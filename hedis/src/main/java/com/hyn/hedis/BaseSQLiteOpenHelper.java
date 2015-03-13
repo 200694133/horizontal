@@ -26,6 +26,7 @@ public class BaseSQLiteOpenHelper extends SQLiteOpenHelper {
 
     public static class Column{
         public static final String PRIMARY_KEY = "primaryKey";
+        public static final String TAG = "primaryKey";
         public static final String KEY = "key";
         public static final String PRIORITY = "priority";
         public static final String SIZE = "size";

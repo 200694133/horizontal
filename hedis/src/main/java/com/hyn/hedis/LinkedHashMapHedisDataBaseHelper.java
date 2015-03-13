@@ -9,16 +9,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import hyn.com.lib.ThreeTuple;
 import hyn.com.lib.TwoTuple;
+import hyn.com.lib.ValueUtil;
 import hyn.com.lib.android.Log;
 
 /**
  * Created by hanyanan on 2015/2/28.
  *  the list structure as follow:
  * |------------------------------------------------------------------------  linkedHashMap  ------------------------------------------------------------------------------------|
- * |---- primaryKey ----|---- tag -----|---- key ----|---- size ----|---- accessTime ----|---- modifyTime ----|---- createTime ----|---- expireTime ----|---- content ----|
- * |---- 0000000001 ----|---- map1 ----|---- 111 ----|---- 1231 ----|---- 1231231232 ----|---- 7484873243 ----|---- 7484873243 ----|---- 1231231232 ----|----"12345678" --|
- * |---- 0000000002 ----|---- map1 ----|---- 222 ----|---- 3434 ----|---- 3545454545 ----|---- 7484873243 ----|---- 7484873243 ----|---- 5465465546 ----|----"12332543" --|
+ * |---- tag -----|---- key ----|---- size ----|---- accessTime ----|---- modifyTime ----|---- createTime ----|---- expireTime ----|---- content ----|
+ * |---- map1 ----|---- 111 ----|---- 1231 ----|---- 1231231232 ----|---- 7484873243 ----|---- 7484873243 ----|---- 1231231232 ----|----"12345678" --|
+ * |---- map1 ----|---- 222 ----|---- 3434 ----|---- 3545454545 ----|---- 7484873243 ----|---- 7484873243 ----|---- 5465465546 ----|----"12332543" --|
  * |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
  * Column key1 and key2 as te primary key.
  * When user add/update/read will be influence accessTime element.
@@ -26,27 +28,28 @@ import hyn.com.lib.android.Log;
  */
 public class LinkedHashMapHedisDataBaseHelper extends BaseSQLiteOpenHelper {
     public static final int VERSION = 1;
-    public static final String TABLE_NAME = "queue_data";
+    public static final String TABLE_NAME = "LINKED_HASHMAP_TABLE";
 
     public static final String CREATE_TABLE_SQL = String.format("CREATE TABLE if not exists %s\n" +
             "(\n" +
-            "%s INTEGER PRIMARY KEY AUTOINCREMENT,\n" +//primary key
-            "%s TEXT,\n" + //tag
-            "%s TEXT,\n" + //key
-            "%s long,\n" + //priority
+            "%s CHAR(16),\n" + //tag
+            "%s CHAR(16),\n" + //key
             "%s int,\n" + //size
             "%s long,\n" + //access time
             "%s long,\n" + //modify time
             "%s TimeStamp NOT NULL DEFAULT (datetime('now','localtime')),\n" + //create time
             "%s long,\n" + //expire time
             "%s blob\n" + //content
-            ")\n",TABLE_NAME, Column.PRIMARY_KEY, Column.KEY,Column.PRIORITY, Column.SIZE, Column.accessTime,
-            Column.modifyTime, Column.createTime, Column.expireTime, Column.content);
+            "primary key (%s,%s)"+
+            ")\n",TABLE_NAME, Column.TAG, Column.KEY,Column.SIZE, Column.accessTime,
+                    Column.modifyTime, Column.createTime, Column.expireTime, Column.content,
+                    Column.TAG, Column.KEY);
 
 
     public LinkedHashMapHedisDataBaseHelper(Context context, String dbName) {
         super(context, dbName, null, VERSION);
     }
+
     public LinkedHashMapHedisDataBaseHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
     }
@@ -56,11 +59,11 @@ public class LinkedHashMapHedisDataBaseHelper extends BaseSQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_SQL);
     }
 
-    public void put(final String key, final byte[] content, long priority, long expireTime, long systemTime){
+    public void put(final String tag, final String key, final byte[] content, long expireTime, long systemTime){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Column.KEY, key);
+        contentValues.put(Column.TAG, ValueUtil.md5_16(tag));
+        contentValues.put(Column.KEY, ValueUtil.md5_16(key));
         contentValues.put(Column.content, content);
-        contentValues.put(Column.PRIORITY, priority);
         contentValues.put(Column.expireTime, expireTime);
         contentValues.put(Column.SIZE, content.length);
         contentValues.put(Column.accessTime, systemTime);
@@ -68,31 +71,75 @@ public class LinkedHashMapHedisDataBaseHelper extends BaseSQLiteOpenHelper {
         getWritableDatabase().insertWithOnConflict(TABLE_NAME, null, contentValues,SQLiteDatabase.CONFLICT_REPLACE);
     }
 
-    public void deleteTailByPriority(final String key){
-        String sql = "delete from " + TABLE_NAME + " where " + Column.PRIMARY_KEY+" in (" +
-                "select "+Column.PRIMARY_KEY+" from " + TABLE_NAME + " where "
-                + Column.KEY +"='"+key+"' order by "+Column.PRIORITY+" desc limit 1 "+
-                ")";
-        Log.d("QueueHedisDataBaseHelper  deleteTailByPriority run sql "+sql);
-        getWritableDatabase().execSQL(sql);
-    }
-
-    public void deleteHeadByPriority(final String key){
-        String sql = "delete from " + TABLE_NAME + " where " + Column.PRIMARY_KEY+" in (" +
-                "select "+Column.PRIMARY_KEY+" from " + TABLE_NAME + " where "
-                + Column.KEY +"='"+key+"' order by "+Column.PRIORITY+" ASC limit 1 "+
-                ")";
-        Log.d("QueueHedisDataBaseHelper deleteHeadByPriority run sql "+sql);
-        getWritableDatabase().execSQL(sql);
-    }
-
-    public void deleteAll(final String key){
+    public void put(final String tag, final String key, final byte[] content,long systemTime){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Column.KEY, key);
-        String sql = "DELETE FROM " + TABLE_NAME +" where "+Column.KEY+"='"+key+"'";
+        contentValues.put(Column.TAG, ValueUtil.md5_16(tag));
+        contentValues.put(Column.KEY, ValueUtil.md5_16(key));
+        contentValues.put(Column.content, content);
+        contentValues.put(Column.expireTime, Long.MAX_VALUE);
+        contentValues.put(Column.SIZE, content.length);
+        contentValues.put(Column.accessTime, systemTime);
+        contentValues.put(Column.modifyTime, systemTime);
+        getWritableDatabase().insertWithOnConflict(TABLE_NAME, null, contentValues,SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+
+//    public void deleteTailByPriority(final String key){
+//        String sql = "delete from " + TABLE_NAME + " where " + Column.PRIMARY_KEY+" in (" +
+//                "select "+Column.PRIMARY_KEY+" from " + TABLE_NAME + " where "
+//                + Column.KEY +"='"+key+"' order by "+Column.PRIORITY+" desc limit 1 "+
+//                ")";
+//        Log.d("QueueHedisDataBaseHelper  deleteTailByPriority run sql "+sql);
+//        getWritableDatabase().execSQL(sql);
+//    }
+//
+//    public void deleteHeadByPriority(final String key){
+//        String sql = "delete from " + TABLE_NAME + " where " + Column.PRIMARY_KEY+" in (" +
+//                "select "+Column.PRIMARY_KEY+" from " + TABLE_NAME + " where "
+//                + Column.KEY +"='"+key+"' order by "+Column.PRIORITY+" ASC limit 1 "+
+//                ")";
+//        Log.d("QueueHedisDataBaseHelper deleteHeadByPriority run sql "+sql);
+//        getWritableDatabase().execSQL(sql);
+//    }
+
+    public void deleteTag(final String tag){
+        String sql = "DELETE FROM " + TABLE_NAME +" where "+Column.TAG+"='"+tag+"'";
         Log.d("QueueHedisDataBaseHelper deleteAll run sql " + sql);
         getWritableDatabase().execSQL(sql);
     }
+
+    public void deleteEntry(final String tag, final String key){
+        String sql = "DELETE FROM " + TABLE_NAME +" where "+Column.TAG+"='"+tag+"' AND "
+                +Column.KEY+"='"+key+"'";
+        Log.d("QueueHedisDataBaseHelper deleteAll run sql " + sql);
+        getWritableDatabase().execSQL(sql);
+    }
+
+    public ThreeTuple<String,String,byte[]> get(final String tag, final String key){
+        String sql = "SELECT "+Column.content+" FROM " + TABLE_NAME +" where "+Column.TAG+"='"+tag+"' AND "
+                +Column.KEY+"='"+key+"'";
+        Log.d("QueueHedisDataBaseHelper getEntry run sql " + sql);
+        Cursor cursor = getReadableDatabase().rawQuery(sql, null);
+        if(null == cursor || !cursor.moveToFirst()) return null;
+        byte[] content = parseEntry(cursor);
+        cursor.close();
+        if(null == content) return null;
+        return new ThreeTuple<>(tag, key, content);
+    }
+
+    public ThreeTuple<String,String,byte[]> getEldest(final String tag, OrderPolicy orderPolicy){
+        String sql = "SELECT "+Column.content+" FROM " + TABLE_NAME +" where "+Column.TAG+"='"+tag+"'"
+                + getOrderSelection(orderPolicy)
+                + "  ";
+        Log.d("QueueHedisDataBaseHelper getEntry run sql " + sql);
+        Cursor cursor = getReadableDatabase().rawQuery(sql, null);
+        if(null == cursor || !cursor.moveToFirst()) return null;
+        byte[] content = parseEntry(cursor);
+        cursor.close();
+        if(null == content) return null;
+        return new ThreeTuple<>(tag, key, content);
+    }
+
 
     /**
      * Get the first element of current queue
@@ -326,6 +373,30 @@ public class LinkedHashMapHedisDataBaseHelper extends BaseSQLiteOpenHelper {
         cursor.close();
         deleteByIdsSilence(ids);
         return result;
+    }
+
+    public static String getOrderSelection(OrderPolicy orderPolicy){
+        switch (orderPolicy) {
+            case LRU://按照最近未访问的顺序排序，最新被访问的放在第一个，最早被访问的放在末尾
+                return " ORDER BY " + Column.accessTime + " ASC ";
+            case TTL://最先超时的放在头部，最后超时的放在末尾
+                return " ORDER BY " + Column.expireTime + " ASC ";
+            case REVERT_TTL://按照超时时间排序，最先超时的放在末尾，最后超时的放在头部
+                return " ORDER BY " + Column.expireTime + " DESC ";
+            case Size://按照从小到大，
+                return " ORDER BY " + Column.SIZE + " ASC ";
+            case REVERT_SIZE://最先超时的放在头部，最后超时的放在末尾
+                return " ORDER BY " + Column.SIZE + " DESC ";
+            case DEFAULT:
+                return "";
+        }
+        return "";
+    }
+
+    public static byte[] parseEntry(Cursor cursor){
+        if(null == cursor) return null;
+        byte[] content = cursor.getBlob(cursor.getColumnIndex(Column.content));
+        return content;
     }
 
     @Override

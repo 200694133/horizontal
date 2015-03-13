@@ -8,6 +8,11 @@ import java.security.NoSuchAlgorithmException;
  */
 public class ValueUtil {
 
+    public static boolean isEmpty(CharSequence charSequence){
+        if(null == charSequence || charSequence.length() <= 0) return true;
+        return false;
+    }
+
     public static String sha1(String input)  {
         MessageDigest mDigest = null;
         try {
@@ -35,6 +40,23 @@ public class ValueUtil {
             m.update(inputText.getBytes());
             byte s[] = m.digest();
             return hex(s);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return ""+inputText.hashCode();
+        }
+    }
+
+    public static String md5_16(String inputText) {
+        if (inputText == null || "".equals(inputText.trim())) {
+            throw new IllegalArgumentException("请输入要加密的内容");
+        }
+
+        String encryptText = null;
+        try {
+            MessageDigest m = MessageDigest.getInstance("md5");
+            m.update(inputText.getBytes());
+            byte s[] = m.digest();
+            return hex(s).substring(8,24);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return ""+inputText.hashCode();
