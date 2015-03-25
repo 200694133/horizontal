@@ -10,7 +10,7 @@
         android:theme="@style/Theme.AppCompat.Light"
         android:label="@string/app_name" >
         <activity
-            android:name="com.hyn.hedis.sample.QueueHedisActivity"
+            android:name="com.hyn.hedis.sample.LinkedHedisActivity"
             android:label="@string/title_activity_queue_hedis" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -8,16 +8,12 @@ import android.os.Environment;
 /**
  * Created by hanyanan on 2015/2/28.
  */
-public class BaseSQLiteOpenHelper extends SQLiteOpenHelper {
+public abstract class BaseSQLiteOpenHelper extends SQLiteOpenHelper {
     public static final String DB_NAME = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/data.db";
     public BaseSQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-
-    }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -26,8 +22,9 @@ public class BaseSQLiteOpenHelper extends SQLiteOpenHelper {
 
     public static class Column{
         public static final String PRIMARY_KEY = "primaryKey";
-        public static final String TAG = "primaryKey";
+        public static final String TAG = "tag";
         public static final String KEY = "key";
+        public static final String RAW_KEY = "raw_key";
         public static final String PRIORITY = "priority";
         public static final String SIZE = "size";
         public static final String accessTime = "accessTime";

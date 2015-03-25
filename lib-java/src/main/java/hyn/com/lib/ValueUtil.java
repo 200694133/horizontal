@@ -31,7 +31,7 @@ public class ValueUtil {
 
     public static String md5(String inputText) {
         if (inputText == null || "".equals(inputText.trim())) {
-            throw new IllegalArgumentException("请输入要加密的内容");
+            throw new IllegalArgumentException("please input un-null value");
         }
 
         String encryptText = null;
@@ -48,7 +48,7 @@ public class ValueUtil {
 
     public static String md5_16(String inputText) {
         if (inputText == null || "".equals(inputText.trim())) {
-            throw new IllegalArgumentException("请输入要加密的内容");
+            throw new IllegalArgumentException("please input un-null value");
         }
 
         String encryptText = null;
@@ -63,7 +63,6 @@ public class ValueUtil {
         }
     }
 
-    // 返回十六进制字符串
     private static String hex(byte[] arr) {
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < arr.length; ++i) {
