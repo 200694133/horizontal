@@ -182,4 +182,14 @@ public class SetHedisImpl<T> implements SetHedis<T> {
     public boolean enableExpireTime() {
         return true;
     }
+
+    @Override
+    public void setRemoveListener(OnEntryRemovedListener<T> listener) {
+
+    }
+
+    @Override
+    public void dispose() {
+
+    }
 }

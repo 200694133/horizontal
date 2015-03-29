@@ -24,8 +24,8 @@ public class MapHedisImpl implements MapHedis {
         mMapHedisDataBaseHelper = new MapHedisDataBaseHelper(context);
     }
 
-    public MapHedisImpl(Context context,String tag){
-        mMapHedisDataBaseHelper = new MapHedisDataBaseHelper(context, tag);
+    public MapHedisImpl(Context context,String path){
+        mMapHedisDataBaseHelper = new MapHedisDataBaseHelper(context, path);
     }
 
     @Override

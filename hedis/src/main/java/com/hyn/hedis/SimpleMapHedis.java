@@ -15,8 +15,8 @@ public class SimpleMapHedis extends MapHedisImpl {
     public SimpleMapHedis(Context context) {
         super(context);
     }
-    public SimpleMapHedis(Context context, String tag) {
-        super(context, tag);
+    public SimpleMapHedis(Context context, String path) {
+        super(context, path);
     }
 
     public Boolean getBoolean(final String key) throws HedisException {

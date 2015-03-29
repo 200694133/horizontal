@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.hyn.hedis.BaseSetHedisImpl;
 import com.hyn.hedis.LinkedHashMapHedisDataBaseHelper;
+import com.hyn.hedis.LruSetHedis;
 import com.hyn.hedis.OrderPolicy;
 import com.hyn.hedis.SetHedis;
 import com.hyn.hedis.StringParser;
@@ -40,7 +41,7 @@ public class LinkedHedisActivity extends ActionBarActivity {
     private MyAdapter myAdapter1 = new MyAdapter();
     private MyAdapter myAdapter2 = new MyAdapter();
 
-    private BaseSetHedisImpl<String> mBaseSetHedisImpl;
+    private SetHedis<String> mBaseSetHedisImpl;
 
 
     private final String TAG_FAST = "fast";
@@ -59,9 +60,12 @@ public class LinkedHedisActivity extends ActionBarActivity {
         listView1.setAdapter(myAdapter1);
         listView2.setAdapter(myAdapter2);
 
-        mBaseSetHedisImpl = new BaseSetHedisImpl<String>(this,TAG_FAST,
+//        mBaseSetHedisImpl = new BaseSetHedisImpl<String>(this,TAG_FAST,
+//                LinkedHashMapHedisDataBaseHelper.getInstance(this)
+//                ,new StringParser(), OrderPolicy.Size, true);
+        mBaseSetHedisImpl = new LruSetHedis<String>(
                 LinkedHashMapHedisDataBaseHelper.getInstance(this)
-                ,new StringParser(), OrderPolicy.LRU, false);
+                ,new StringParser(),TAG_FAST);
         mBaseSetHedisImpl.setRemoveListener(listener);
     }
 
@@ -88,7 +92,7 @@ public class LinkedHedisActivity extends ActionBarActivity {
 
         final List<String> prev = new ArrayList<>();
         final List<TwoTuple<String,String>> load = new ArrayList<>();
-        for(int i =0 ;i<200;++i){
+        for(int i =0 ;i<500;++i){
             String key = getKey();
             int count = Math.abs(random.nextInt()%8) + 2;
             String body = "";
@@ -100,7 +104,7 @@ public class LinkedHedisActivity extends ActionBarActivity {
         long t1 = TimeUtils.getCurrentWallClockTime();
         try {
             for(TwoTuple<String,String> twoTuple : load) {
-                String p = mBaseSetHedisImpl.replace(twoTuple.firstValue, twoTuple.secondValue, 300 * 1000);
+                String p = mBaseSetHedisImpl.replace(twoTuple.firstValue, twoTuple.secondValue, 30 * 1000);
                 if(null != p )prev.add(p);
             }
         } catch (HedisException e) {

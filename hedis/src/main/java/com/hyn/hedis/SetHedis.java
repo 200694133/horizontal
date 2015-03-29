@@ -141,6 +141,10 @@ public interface SetHedis<T> {
     public String getTag();
     //if enable expire time restrict
     public boolean enableExpireTime();
+
+    public void setRemoveListener(OnEntryRemovedListener<T> listener);
+    //close
+    public void dispose();
     /**
      * Called when the out-of date
      * */

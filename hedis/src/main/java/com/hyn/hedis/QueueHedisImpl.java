@@ -10,6 +10,7 @@ import java.util.List;
 
 import hyn.com.lib.TimeUtils;
 import hyn.com.lib.TwoTuple;
+import hyn.com.lib.android.Log;
 
 /**
  * Created by hanyanan on 2015/3/2.
@@ -21,8 +22,8 @@ public class QueueHedisImpl implements QueueHedis {
     public QueueHedisImpl(Context context){
         mQueueHedisDataBaseHelper = new QueueHedisDataBaseHelper(context);
     }
-    public QueueHedisImpl(Context context,String tag){
-        mQueueHedisDataBaseHelper = new QueueHedisDataBaseHelper(context, tag);
+    public QueueHedisImpl(Context context,String path){
+        mQueueHedisDataBaseHelper = new QueueHedisDataBaseHelper(context, path);
     }
     @Override
     public <T> void pushHead(String key, T content, ObjectParser<T> parser, long deltaExpireTime) {
@@ -142,6 +143,18 @@ public class QueueHedisImpl implements QueueHedis {
             }
         }
         mQueueHedisDataBaseHelper.deleteByIdsSilence(deleteRequire);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        dispose();
+        super.finalize();
+    }
+
+    @Override
+    public void dispose() {
+        mQueueHedisDataBaseHelper.close();
+        Log.d("QueueHedisImpl dispose");
     }
 
     @Override

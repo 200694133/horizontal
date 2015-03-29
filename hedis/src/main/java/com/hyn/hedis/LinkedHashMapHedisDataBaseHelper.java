@@ -48,18 +48,13 @@ public class LinkedHashMapHedisDataBaseHelper extends BaseSQLiteOpenHelper {
                     Column.modifyTime, Column.createTime, Column.expireTime, Column.content,
                     Column.TAG, Column.KEY);
 
-    public static WeakReference<LinkedHashMapHedisDataBaseHelper> sDBRef;
 
-    public static synchronized LinkedHashMapHedisDataBaseHelper getInstance(Context context) {
-       if(null != sDBRef && null != sDBRef.get()) return sDBRef.get();
-
-        LinkedHashMapHedisDataBaseHelper db = new LinkedHashMapHedisDataBaseHelper(context);
-        sDBRef = new WeakReference<LinkedHashMapHedisDataBaseHelper>(db);
-        return db;
+    LinkedHashMapHedisDataBaseHelper(Context context) {
+        super(context, DB_NAME, null, VERSION);
     }
 
-    private LinkedHashMapHedisDataBaseHelper(Context context) {
-        super(context, DB_NAME, null, VERSION);
+    LinkedHashMapHedisDataBaseHelper(Context context,String path) {
+        super(context, path, null, VERSION);
     }
 
     @Override

@@ -107,8 +107,6 @@ public interface QueueHedis extends BaseHedis{
      * Limit the max element count, remove illegal element. Delete the lowest order element
      * @param key the identify key.
      * @param maxRowCount max element count.
-     * @param parser The parse transfer byte array to content
-     * @param <T>
      * @return All need removed elements.
      */
     public void trimCountSilence(final String key, int maxRowCount);
@@ -117,9 +115,10 @@ public interface QueueHedis extends BaseHedis{
      *
      * @param key
      * @param maxSize
-     * @param parser
-     * @param <T>
      * @return
      */
     public void trimSizeSilence(final String key, int maxSize);
+
+    //dispose all resource
+    public void dispose();
 }

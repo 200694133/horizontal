@@ -42,8 +42,8 @@ public class MapHedisDataBaseHelper extends BaseSQLiteOpenHelper {
             Column.modifyTime, Column.createTime, Column.expireTime, Column.content);
 
 
-    public MapHedisDataBaseHelper(Context context, String dbName) {
-        super(context, dbName, null, VERSION);
+    public MapHedisDataBaseHelper(Context context, String path) {
+        super(context, path, null, VERSION);
     }
     public MapHedisDataBaseHelper(Context context) {
         super(context, DB_NAME, null, VERSION);

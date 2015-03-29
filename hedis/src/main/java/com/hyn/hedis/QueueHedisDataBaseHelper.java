@@ -46,8 +46,8 @@ public class QueueHedisDataBaseHelper extends BaseSQLiteOpenHelper {
             Column.modifyTime, Column.createTime, Column.expireTime, Column.content);
 
 
-    public QueueHedisDataBaseHelper(Context context, String dbName) {
-        super(context, dbName, null, VERSION);
+    public QueueHedisDataBaseHelper(Context context, String path) {
+        super(context, path, null, VERSION);
     }
     public QueueHedisDataBaseHelper(Context context) {
         super(context, DB_NAME, null, VERSION);

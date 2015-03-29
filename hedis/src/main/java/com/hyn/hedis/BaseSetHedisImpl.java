@@ -917,6 +917,18 @@ public class BaseSetHedisImpl<T> implements SetHedis<T> {
         return supportTimeRestrict;
     }
 
+    @Override
+    public synchronized void dispose() {
+        currentCount = currentSize = 0;
+        memoryIndexDataBaseHelper.close();
+        diskDataBaseHelper.close();
+    }
+
+    @Override
+    protected final synchronized void finalize() throws Throwable {
+        dispose();
+        super.finalize();
+    }
 
     public static String getQueryOrderSelection(OrderPolicy orderPolicy){
         switch (orderPolicy) {
