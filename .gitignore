@@ -1,3 +1,10 @@
+.idea
+gradlew*
+*.iml
+.gitignore
+LICENSE
+androidTest
+
 # Built application files
 *.apk
 *.ap_

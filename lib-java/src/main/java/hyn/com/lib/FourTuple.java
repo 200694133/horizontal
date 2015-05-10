@@ -1,5 +1,7 @@
 package hyn.com.lib;
 
+import java.net.HttpURLConnection;
+
 /**
  * Created by hanyanan on 2015/3/17.
  */

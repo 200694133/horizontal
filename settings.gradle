@@ -1,1 +1,1 @@
-include ':app', ':hedis', ':lib-android', ':lib-java', ':'
+include ':app', ':lib-android', ':lib-java', ':datastorage', ':network'

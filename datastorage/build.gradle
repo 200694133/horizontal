@@ -5,8 +5,8 @@ android {
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "hyn.com.horizontal"
-        minSdkVersion 8
+        applicationId "hyn.com.datastorage"
+        minSdkVersion 9
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
