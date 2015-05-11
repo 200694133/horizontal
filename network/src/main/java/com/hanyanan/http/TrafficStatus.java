@@ -36,4 +36,40 @@ public class TrafficStatus {
             return outHeadBoundSize + outBodyBoundSize + inHeadBoundSize + inBodyBoundSize;
         }
     }
+
+    public void headIn(long length){
+        synchronized (this) {
+            inHeadBoundSize += length;
+        }
+    }
+
+    public void bodyIn(long length) {
+        synchronized (this) {
+            inBodyBoundSize += length;
+        }
+    }
+
+    public void headOut(long length) {
+        synchronized (this) {
+            outHeadBoundSize += length;
+        }
+    }
+
+    public void bodyOut(long length){
+        synchronized (this) {
+            outBodyBoundSize += length;
+        }
+    }
+
+    public long getInBoundSize(){
+        synchronized (this) {
+            return inBodyBoundSize + inHeadBoundSize;
+        }
+    }
+
+    public long getOutBoundSize() {
+        synchronized (this) {
+            return outBodyBoundSize + outHeadBoundSize;
+        }
+    }
 }
