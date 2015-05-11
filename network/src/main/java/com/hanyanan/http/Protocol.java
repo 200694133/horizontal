@@ -18,7 +18,7 @@ public enum Protocol {
      * <p>This version of OkHttp implements <aref="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616</a>, and tracks
      * revisions to that spec.
      */
-    HTTP_1_1("http/1.1"),
+    HTTP_1_1("http/1.1");
 
     private final String protocol;
 
