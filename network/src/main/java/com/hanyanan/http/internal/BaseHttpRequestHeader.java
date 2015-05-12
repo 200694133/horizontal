@@ -1,8 +1,8 @@
 package com.hanyanan.http.internal;
 
-import java.util.ArrayList;
+import com.hanyanan.http.Headers;
+
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import hyn.com.lib.Preconditions;

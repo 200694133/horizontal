@@ -1,9 +1,38 @@
-package com.hanyanan.http.internal;
+package com.hanyanan.http;
 
 /**
  * Created by hanyanan on 2015/5/10.
+ * https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-latest.html
+ * http://stackoverflow.com/questions/18315787/http-1-1-response-to-multiple-range
+ *
  */
 public enum Headers {
+    /**
+     * Some demo
+     * HTTP/1.1 206 Partial Content
+     * Date: Tue, 14 Nov 1995 06:25:24 GMT
+     * Last-Modified: Tue, 14 July 04:58:08 GMT
+     * Content-Length: 2331785
+     * Content-Type: multipart/byteranges; boundary=THIS_STRING_SEPARATES
+     * <p/>
+     * --THIS_STRING_SEPARATES
+     * Content-Type: video/example
+     * Content-Range: exampleunit 1.2-4.3/25
+     * <p/>
+     * ...the first range...
+     * --THIS_STRING_SEPARATES
+     * Content-Type: video/example
+     * Content-Range: exampleunit 11.2-14.3/25
+     * <p/>
+     * ...the second range
+     * --THIS_STRING_SEPARATES--
+     */
+
+
+
+
+
+
     //common partials
     Connection("Connection"),//Connection: close
     Cache_Control("Cache-Control"),//Cache-Control: no-cache
@@ -11,6 +40,7 @@ public enum Headers {
     Pragma("Pragma"),//Pragma: no-cache
     Via("Via"),//Via: 1.0 fred, 1.1 nowhere.com (Apache/1.1)
     Warn("Warn"),//Warn: 199 Miscellaneous warning
+
 
     //client request partials
     Accept("Accept"),//Accept: text/plain, text/html
@@ -24,10 +54,10 @@ public enum Headers {
     Date("Date"),//Date: Tue, 15 Nov 2010 08:12:31 GMT
     From("From"),//From: user@email.com
     Host("Host"),//Host: www.zcmhi.com
-    If_Match("If-Match"),//If-Match: °∞737060cd8c284d8af7ad3082f209582d°±
+    If_Match("If-Match"),//If-Match: ÔøΩÔøΩ737060cd8c284d8af7ad3082f209582dÔøΩÔøΩ
     If_Modified_Since("If-Modified-Since"),//If-Modified-Since: Sat, 29 Oct 2010 19:43:31 GMT
-    If_None_Match("If-None-Match"),//If-None-Match: °∞737060cd8c284d8af7ad3082f209582d°±
-    If_Range("If-Range"),//If-Range: °∞737060cd8c284d8af7ad3082f209582d°±
+    If_None_Match("If-None-Match"),//If-None-Match: ÔøΩÔøΩ737060cd8c284d8af7ad3082f209582dÔøΩÔøΩ
+    If_Range("If-Range"),//If-Range: ÔøΩÔøΩ737060cd8c284d8af7ad3082f209582dÔøΩÔøΩ
     If_Unmodified_Since("If-Unmodified-Since"),//If-Unmodified-Since: Sat, 29 Oct 2010 19:43:31 GMT
     Max_Forwards("Max-Forwards"),//Max-Forwards: 10
     Proxy_Authorization("Proxy-Authorization"),//Proxy-Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -36,14 +66,16 @@ public enum Headers {
     Upgrade("Upgrade"),//Upgrade: HTTP/2.0, SHTTP/1.3, IRC/6.9, RTA/x11
 
     //server response partials
+    Content_Encoding("Content-Encoding"),//ÂèØ‰ª•ÂèÇËÄÉÁöÑÂÄº‰∏∫Ôºögzip,compress,deflateÂíåidentity„ÄÇ
     Age("Age"),//Age: 12
     Allow("Allow"),//Allow: GET, HEAD
-    Content_Length("Content-Length"),//Content-Length: 348
+    //http://stackoverflow.com/questions/18315787/http-1-1-response-to-multiple-range
+    Content_Length("Content-Length"),//Content-Length: 348, transfer-length of message body.
     Content_Location("Content-Location"),//Content-Location: /index.htm
     Location("Location"),//Location: http://www.zcmhi.com/archives/94.html
     Content_MD5("Content-MD5"),//Content-MD5: Q2hlY2sgSW50ZWdyaXR5IQ==
     Content_Range("Content-Range"),//Content-Range: bytes 21010-47021/47022
-    ETag("ETag"),//ETag: °∞737060cd8c284d8af7ad3082f209582d°±
+    ETag("ETag"),//ETag: ÔøΩÔøΩ737060cd8c284d8af7ad3082f209582dÔøΩÔøΩ
     Expires("Expires"),//Expires: Thu, 01 Dec 2010 16:00:00 GMT
     Last_Modified("Last-Modified"),//Last-Modified: Tue, 15 Nov 2010 12:45:26 GMT
     Refresh("Refresh"),//Refresh: 5; url=http://www.zcmhi.com/archives/94.html
@@ -51,17 +83,19 @@ public enum Headers {
     Server("Server"),//Server: Apache/1.3.27 (Unix) (Red-Hat/Linux)
     Set_Cookie("Set-Cookie"),//Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
     Trailer("Trailer"),//Trailer: Max-Forwards
-    Transfer_Encoding("Transfer-Encoding"),//Transfer-Encoding:chunked
+    Transfer_Encoding("Transfer-Encoding"),//Transfer-Encoding:chunked, ÊúâÊïàÁöÑÂÄº‰∏∫ÔºöTrunkedÂíåIdentity.
     Vary("Vary"),//Vary: *
     WWW_Authenticate("WWW-Authenticate");//WWW-Authenticate: Basic
 
 
     private String header;
+
     private Headers(String header) {
         this.header = header;
     }
 
-    @Override public String toString(){
+    @Override
+    public String toString() {
         return header;
     }
 }
