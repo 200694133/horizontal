@@ -6,13 +6,31 @@ package com.hanyanan.http;
  */
 public class TrafficStatus {
     public static final TrafficStatus sGlobalTrafficStatus = new TrafficStatus();
+    private static final TrafficListener sTrafficListener = new TrafficListener(){
+        @Override
+        public void onHeadIn(long length, long cost) {
+            sGlobalTrafficStatus.headIn(length, cost);
+        }
+
+        @Override
+        public void onHeadOut(long length, long cost) {
+            sGlobalTrafficStatus.headOut(length, cost);
+        }
+
+        @Override
+        public void onBodyIn(long length, long cost) {
+            sGlobalTrafficStatus.bodyIn(length, cost);
+        }
+
+        @Override
+        public void onBodyOut(long length, long cost) {
+            sGlobalTrafficStatus.bodyOut(length, cost);
+        }
+    };
 
     public synchronized static TrafficStatus creator(){
         TrafficStatus trafficStatus = new TrafficStatus();
-
-
-
-
+        trafficStatus.setListener(sTrafficListener);
         return trafficStatus;
     }
 
@@ -35,6 +53,7 @@ public class TrafficStatus {
     /** The time cost during head sending. */
     private long outBodyCost;
 
+    private TrafficListener listener;
     private TrafficStatus(){
         outHeadBoundSize = 0;
         outBodyBoundSize = 0;
@@ -49,6 +68,9 @@ public class TrafficStatus {
         inBodyBoundSize = other.inBodyBoundSize;
     }
 
+    private void setListener(TrafficListener listener) {
+        this.listener = listener;
+    }
     /**
      * Return all the cost of current request.
      */
@@ -62,11 +84,17 @@ public class TrafficStatus {
         synchronized (this) {
             inHeadBoundSize += length;
         }
+        if(null != listener) {
+            listener.onHeadIn(length,timeCost);
+        }
     }
 
     public void bodyIn(long length, long timeCost) {
         synchronized (this) {
             inBodyBoundSize += length;
+        }
+        if(null != listener) {
+            listener.onBodyIn(length, timeCost);
         }
     }
 
@@ -74,11 +102,17 @@ public class TrafficStatus {
         synchronized (this) {
             outHeadBoundSize += length;
         }
+        if(null != listener) {
+            listener.onHeadOut(length, timeCost);
+        }
     }
 
     public void bodyOut(long length, long timeCost){
         synchronized (this) {
             outBodyBoundSize += length;
+        }
+        if(null != listener) {
+            listener.onBodyOut(length,timeCost);
         }
     }
 

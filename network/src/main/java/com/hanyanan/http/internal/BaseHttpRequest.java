@@ -26,13 +26,15 @@ public class BaseHttpRequest{
     /** A monitor to record the traffic. */
     protected final TrafficStatus trafficStatus;
 
+    protected final HttpExecutor httpExecutor;
+
     public BaseHttpRequest(String url, Method method, Protocol protocol) {
         this.url = url;
         this.method = method;
         this.protocol = protocol;
         this.requestBody = new HttpRequestBody();
         this.requestHeader = new HttpRequestHeader();
-        this.trafficStatus = new TrafficStatus();
+        this.trafficStatus = TrafficStatus.creator();
     }
     public BaseHttpRequest(String url, Method method) {
         this(url, method, Protocol.HTTP_1_1);
