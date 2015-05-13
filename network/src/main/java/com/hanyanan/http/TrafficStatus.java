@@ -5,6 +5,19 @@ package com.hanyanan.http;
  * Record the traffic status of current http request.
  */
 public class TrafficStatus {
+    public static final TrafficStatus sGlobalTrafficStatus = new TrafficStatus();
+
+    public synchronized static TrafficStatus creator(){
+        TrafficStatus trafficStatus = new TrafficStatus();
+
+
+
+
+        return trafficStatus;
+    }
+
+
+
     /** The head size of out bound.  */
     private long outHeadBoundSize;
     /** The body size of out bound. */
@@ -13,15 +26,23 @@ public class TrafficStatus {
     private long inHeadBoundSize;
     /** The body size of in bound. */
     private long inBodyBoundSize;
+    /** The time cost during head information in. */
+    private long inHeadCost;
+    /** The time cost during send head information to server. */
+    private long outHeadCost;
+    /** The time cost during body was send. */
+    private long inBodyCost;
+    /** The time cost during head sending. */
+    private long outBodyCost;
 
-    public TrafficStatus(){
+    private TrafficStatus(){
         outHeadBoundSize = 0;
         outBodyBoundSize = 0;
         inHeadBoundSize = 0;
         inBodyBoundSize = 0;
     }
 
-    public TrafficStatus(TrafficStatus other) {
+    private TrafficStatus(TrafficStatus other) {
         outHeadBoundSize = other.outHeadBoundSize;
         outBodyBoundSize = other.outBodyBoundSize;
         inHeadBoundSize = other.inHeadBoundSize;
@@ -37,25 +58,25 @@ public class TrafficStatus {
         }
     }
 
-    public void headIn(long length){
+    public void headIn(long length, long timeCost){
         synchronized (this) {
             inHeadBoundSize += length;
         }
     }
 
-    public void bodyIn(long length) {
+    public void bodyIn(long length, long timeCost) {
         synchronized (this) {
             inBodyBoundSize += length;
         }
     }
 
-    public void headOut(long length) {
+    public void headOut(long length, long timeCost) {
         synchronized (this) {
             outHeadBoundSize += length;
         }
     }
 
-    public void bodyOut(long length){
+    public void bodyOut(long length, long timeCost){
         synchronized (this) {
             outBodyBoundSize += length;
         }
@@ -71,5 +92,13 @@ public class TrafficStatus {
         synchronized (this) {
             return outBodyBoundSize + outHeadBoundSize;
         }
+    }
+
+
+    private interface TrafficListener {
+        public void onHeadIn(long length, long cost);
+        public void onHeadOut(long length, long cost);
+        public void onBodyIn(long length, long cost);
+        public void onBodyOut(long length, long cost);
     }
 }

@@ -2,6 +2,7 @@ package com.hanyanan.http;
 
 import java.util.LinkedList;
 
+import hyn.com.lib.Preconditions;
 import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
@@ -18,7 +19,7 @@ public class HttpRequestBody {
 
 
     public static class Builder {
-        private LinkedList
+        private final LinkedList<EntityHolder> resources = new LinkedList<EntityHolder>();
 
 
 
@@ -26,12 +27,20 @@ public class HttpRequestBody {
 
 
 
-        public void addBody(String param, BinaryResource binaryResource){
+        public void addBody(String param, BinaryResource resource){
+            Preconditions.checkNotNull(param);
+            Preconditions.checkNotNull(resource);
+            Preconditions.checkArgument(resource.size() > 0, "The Body's size must be greater than 0!");
+            resources.add(new EntityHolder(param, null, resource));
 
         }
 
-        public void addBody(String param, String fileName, BinaryResource binaryResource){
-
+        public void addBody(String param, String fileName, BinaryResource resource){
+            Preconditions.checkNotNull(param);
+            Preconditions.checkNotNull(fileName);
+            Preconditions.checkNotNull(resource);
+            Preconditions.checkArgument(resource.size() > 0, "The Body's size must be greater than 0!");
+            resources.add(new EntityHolder(param, null, resource));
         }
     }
 
