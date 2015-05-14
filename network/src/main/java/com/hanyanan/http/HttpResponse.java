@@ -1,11 +1,7 @@
 package com.hanyanan.http;
 
+import com.hanyanan.http.internal.HttpBinaryResource;
 import com.sun.deploy.net.HttpRequest;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
  * Created by hanyanan on 2015/5/11.
@@ -21,7 +17,6 @@ public final class HttpResponse {
     private final int code;
     /** http status message */
     private final String msg;
-
 
 
     public HttpBinaryResource body(){

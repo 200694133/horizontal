@@ -1,14 +1,11 @@
 package com.hanyanan.http.internal;
 
-import android.support.annotation.Nullable;
-
 import com.hanyanan.http.HttpRequestBody;
 import com.hanyanan.http.HttpRequestHeader;
 import com.hanyanan.http.Method;
 import com.hanyanan.http.Protocol;
-import com.hanyanan.http.TrafficStatus;
-
-import hyn.com.lib.binaryresource.BinaryResource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by hanyanan on 2015/5/13.
@@ -27,8 +24,13 @@ public class BaseHttpRequest{
     private final Protocol protocol;
     /** A monitor to record the traffic. */
     private final TrafficStatus trafficStatus;
-
+    /** A monitor to record the http time status */
+    private final TimeStatus timeStatus;
+    /** The request executor */
     private final HttpExecutor httpExecutor;
+    /** The tag user for caller identify the request. */
+    private Object tag;
+    private final Map<String, Object> params = new HashMap<>();
 
     public BaseHttpRequest(String url, Method method, Protocol protocol) {
         this.url = url;
@@ -38,7 +40,9 @@ public class BaseHttpRequest{
         this.requestHeader = new HttpRequestHeader();
         this.trafficStatus = TrafficStatus.creator();
         this.httpExecutor = HttpExecutor.sHttpExecutor;
+        this.timeStatus = new TimeStatus();
     }
+
     public BaseHttpRequest(String url, Method method) {
         this(url, method, Protocol.HTTP_1_1);
     }
@@ -80,6 +84,16 @@ public class BaseHttpRequest{
     }
 
     public BaseHttpRequest range(long start, long count){
+        //TODO
+        return this;
+    }
+
+    public BaseHttpRequest putParam(String name, Object value) {
+        //TODO
+        return this;
+    }
+
+    public BaseHttpRequest putParam(Map<String, Object> params) {
         //TODO
         return this;
     }

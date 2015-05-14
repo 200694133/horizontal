@@ -47,4 +47,10 @@ public class HttpExecutor implements Asyncable<BaseHttpRequest, HttpResponse> {
 
         return null;
     }
+
+
+    protected void sendBody(BaseHttpRequest request, HttpURLConnection connection){
+        if(!HttpPreconditions.requiresRequestBody(request.getMethod().toString())) return ;
+        Http
+    }
 }

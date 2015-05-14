@@ -1,11 +1,14 @@
-package com.hanyanan.http;
+package com.hanyanan.http.internal;
+
+import java.io.Closeable;
+import java.nio.charset.Charset;
 
 import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
  * Created by hanyanan on 2015/5/14.
  */
-public interface HttpBinaryResource extends BinaryResource {
+public interface HttpBinaryResource extends BinaryResource, Closeable {
     /**
      * Return the recommond name for current resource.
      * The server may be provide a default file name for current resource, most of time it will be return {@code null},
@@ -17,4 +20,9 @@ public interface HttpBinaryResource extends BinaryResource {
      *  </pr>
      */
     public String getDisposition();
+
+    public Charset charset() ;/*{
+        MediaType contentType = contentType();
+        return contentType != null ? contentType.charset(UTF_8) : UTF_8;
+    }*/
 }
