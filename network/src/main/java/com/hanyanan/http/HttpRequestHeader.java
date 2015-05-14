@@ -9,12 +9,4 @@ public class HttpRequestHeader {
 
 
 
-    public byte[] bytes(){
-        return new byte[0];
-    }
-
-
-    public static class Builder {
-
-    }
 }

@@ -44,7 +44,7 @@ public enum Headers {
 
     //client request partials
     Accept("Accept"),//Accept: text/plain, text/html
-    Accept_Charset("Accept-Charset"),//Accept-Charset: iso-8859-5
+    Accept_Charset("Accept-Charset"),//Accept-Charset: iso-8859-5, unicode-1-1;q=0.8
     Accept_Encoding("Accept-Encoding"),//Accept-Encoding: compress, gzip
     Accept_Language("Accept-Language"),//Accept-Language: en,zh
     Accept_Ranges("Accept-Ranges"),//Accept-Ranges: bytes

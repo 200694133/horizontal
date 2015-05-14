@@ -1,5 +1,8 @@
 package com.hanyanan.http;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
+
 import java.util.LinkedList;
 
 import hyn.com.lib.Preconditions;
@@ -28,9 +31,9 @@ public class HttpRequestBody {
 
     /** The entry of one file will upload. */
     private static final class EntityHolder {
-        private String param;
-        private String fileName;
-        BinaryResource resource;
+        @NotNull private String param;
+        @Nullable private String fileName;
+        @NotNull BinaryResource resource;
         private EntityHolder(String param, String fileName, BinaryResource binaryResource){
             this.param = param;
             this.fileName = fileName;

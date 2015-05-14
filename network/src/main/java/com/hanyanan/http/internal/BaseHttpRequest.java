@@ -1,5 +1,7 @@
 package com.hanyanan.http.internal;
 
+import android.support.annotation.Nullable;
+
 import com.hanyanan.http.HttpRequestBody;
 import com.hanyanan.http.HttpRequestHeader;
 import com.hanyanan.http.Method;
@@ -14,19 +16,19 @@ import hyn.com.lib.binaryresource.BinaryResource;
  */
 public class BaseHttpRequest{
     /** http request body, it it's a  */
-    protected final HttpRequestBody requestBody;
+    @Nullable private final HttpRequestBody requestBody;
 
-    protected final HttpRequestHeader requestHeader;
+    private final HttpRequestHeader requestHeader;
 
-    protected final String url;
+    private final String url;
 
-    protected final Method method;
+    private final Method method;
 
-    protected final Protocol protocol;
+    private final Protocol protocol;
     /** A monitor to record the traffic. */
-    protected final TrafficStatus trafficStatus;
+    private final TrafficStatus trafficStatus;
 
-    protected final HttpExecutor httpExecutor;
+    private final HttpExecutor httpExecutor;
 
     public BaseHttpRequest(String url, Method method, Protocol protocol) {
         this.url = url;
@@ -35,6 +37,7 @@ public class BaseHttpRequest{
         this.requestBody = new HttpRequestBody();
         this.requestHeader = new HttpRequestHeader();
         this.trafficStatus = TrafficStatus.creator();
+        this.httpExecutor = HttpExecutor.sHttpExecutor;
     }
     public BaseHttpRequest(String url, Method method) {
         this(url, method, Protocol.HTTP_1_1);
@@ -44,8 +47,11 @@ public class BaseHttpRequest{
         this(url, Method.GET, Protocol.HTTP_1_1);
     }
 
-    public HttpRequestBody getRequestBody() {
-        return requestBody;
+    @Nullable public HttpRequestBody getRequestBody() {
+        if(HttpPreconditions.permitsRequestBody(method.toString())) {
+            return requestBody;
+        }
+        return null;
     }
 
     public HttpRequestHeader getRequestHeader() {
@@ -58,5 +64,23 @@ public class BaseHttpRequest{
 
     public final Method getMethod() {
         return method;
+    }
+
+    public final TrafficStatus getTrafficStatus(){
+        return trafficStatus;
+    }
+
+    public final HttpExecutor getHttpExecutor(){
+        return httpExecutor;
+    }
+
+    public BaseHttpRequest addCookie(String cookie){
+        //TODO
+        return this;
+    }
+
+    public BaseHttpRequest range(long start, long count){
+        //TODO
+        return this;
     }
 }

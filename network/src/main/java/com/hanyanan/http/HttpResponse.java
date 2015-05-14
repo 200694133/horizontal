@@ -1,5 +1,7 @@
 package com.hanyanan.http;
 
+import com.sun.deploy.net.HttpRequest;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,19 +13,18 @@ import hyn.com.lib.binaryresource.BinaryResource;
 public final class HttpResponse {
     /** The raw http request */
     private final HttpRequest httpRequest;
-    /** Http response headers, it contain the redirect response header. */
-    private final List<HttpResponseHeader> responseHeaders = new ArrayList<HttpResponseHeader>();
+    /** Http response header for current request. */
+    private final HttpResponseHeader responseHeader;
     /** The real body which store the content response from server. */
-    private final BinaryResource bodyResource;
+    private final HttpBinaryResource bodyResource;
     /** http resonse code */
     private final int code;
     /** http status message */
     private final String msg;
-    /** http protocol */
-    private final Protocol protocol;
 
 
-    public BinaryResource body(){
+
+    public HttpBinaryResource body(){
         return bodyResource;
     }
 }
