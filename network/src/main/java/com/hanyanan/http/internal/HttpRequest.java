@@ -1,7 +1,7 @@
 package com.hanyanan.http.internal;
 
-import com.hanyanan.http.HttpRequestBody;
-import com.hanyanan.http.HttpRequestHeader;
+import android.support.annotation.Nullable;
+
 import com.hanyanan.http.Method;
 import com.hanyanan.http.Protocol;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.Map;
  * Created by hanyanan on 2015/5/13.
  * The main http request.
  */
-public class BaseHttpRequest{
+public class HttpRequest {
     /** http request body, it it's a  */
     @Nullable private final HttpRequestBody requestBody;
 
@@ -30,9 +30,10 @@ public class BaseHttpRequest{
     private final HttpExecutor httpExecutor;
     /** The tag user for caller identify the request. */
     private Object tag;
-    private final Map<String, Object> params = new HashMap<>();
+    /**  */
+    private final Map<String, Object> params = new HashMap<String, Object>();
 
-    public BaseHttpRequest(String url, Method method, Protocol protocol) {
+    public HttpRequest(String url, Method method, Protocol protocol) {
         this.url = url;
         this.method = method;
         this.protocol = protocol;
@@ -43,11 +44,11 @@ public class BaseHttpRequest{
         this.timeStatus = new TimeStatus();
     }
 
-    public BaseHttpRequest(String url, Method method) {
+    public HttpRequest(String url, Method method) {
         this(url, method, Protocol.HTTP_1_1);
     }
 
-    public BaseHttpRequest(String url) {
+    public HttpRequest(String url) {
         this(url, Method.GET, Protocol.HTTP_1_1);
     }
 
@@ -78,22 +79,22 @@ public class BaseHttpRequest{
         return httpExecutor;
     }
 
-    public BaseHttpRequest addCookie(String cookie){
+    public HttpRequest addCookie(String cookie){
         //TODO
         return this;
     }
 
-    public BaseHttpRequest range(long start, long count){
+    public HttpRequest range(long start, long count){
         //TODO
         return this;
     }
 
-    public BaseHttpRequest putParam(String name, Object value) {
+    public HttpRequest putParam(String name, Object value) {
         //TODO
         return this;
     }
 
-    public BaseHttpRequest putParam(Map<String, Object> params) {
+    public HttpRequest putParam(Map<String, Object> params) {
         //TODO
         return this;
     }

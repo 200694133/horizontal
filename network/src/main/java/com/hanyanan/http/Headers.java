@@ -29,9 +29,30 @@ public enum Headers {
      */
 
 
+    /*
+     *   请求头字段	                         说明	                       响应头字段
+     *      Accept	               告知服务器发送何种媒体类型	             Content-Type
+     * Accept-Language	             告知服务器发送何种语言	                 Content-Language
+     * Accept-Charset	            告知服务器发送何种字符集	             Content-Type
+     * Accept-Encoding	            告知服务器采用何种压缩方式	             Content-Encoding
+     * */
 
 
-
+    /**
+     * 在HTTP中，与字符集和字符编码相关的消息头是Accept-Charset/Content-Type，另外主区区分Accept-Charset/Accept-Encoding/Accept-Language/Content-Type/Content-Encoding/Content-Language：
+     * <p/>
+     * Accept-Charset：浏览器申明自己接收的字符集，这就是本文前面介绍的各种字符集和字符编码，如gb2312，utf-8（通常我们说Charset包括了相应的字符编码方案）；
+     * <p/>
+     * Accept-Encoding：浏览器申明自己接收的编码方法，通常指定压缩方法，是否支持压缩，支持什么压缩方法（gzip，deflate），（注意：这不是只字符编码）；
+     * <p/>
+     * Accept-Language：浏览器申明自己接收的语言。语言跟字符集的区别：中文是语言，中文有多种字符集，比如big5，gb2312，gbk等等；
+     * <p/>
+     * Content-Type：WEB服务器告诉浏览器自己响应的对象的类型和字符集。例如：Content-Type: text/html; charset='gb2312'
+     * <p/>
+     * Content-Encoding：WEB服务器表明自己使用了什么压缩方法（gzip，deflate）压缩响应中的对象。例如：Content-Encoding：gzip
+     * <p/>
+     * Content-Language：WEB服务器告诉浏览器自己响应的对象的语言。
+     */
 
     //common partials
     Connection("Connection"),//Connection: close
@@ -91,11 +112,15 @@ public enum Headers {
     private String header;
 
     private Headers(String header) {
-        this.header = header;
+        this.header = header.toLowerCase();
     }
 
     @Override
     public String toString() {
+        return header;
+    }
+
+    public String value(){
         return header;
     }
 }

@@ -3,24 +3,22 @@ package com.hanyanan.http.internal;
 import com.hanyanan.http.HttpResponse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import hyn.com.lib.Asyncable;
-import hyn.com.lib.IOUtil;
 
 /**
  * Created by hanyanan on 2015/5/13.
  */
-public class HttpExecutor implements Asyncable<BaseHttpRequest, HttpResponse> {
+public class HttpExecutor implements Asyncable<HttpRequest, HttpResponse> {
     public static final HttpExecutor sHttpExecutor = new HttpExecutor();
 
     private HttpExecutor(){}
 
     @Override
-    public HttpResponse run(BaseHttpRequest request) {
+    public HttpResponse run(HttpRequest request) {
         String url = request.getUrl();
         URL address_url = null;
         HttpURLConnection connection;
@@ -33,9 +31,23 @@ public class HttpExecutor implements Asyncable<BaseHttpRequest, HttpResponse> {
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Connection", "Keep-Alive");
             connection.setRequestProperty("Charsert", "UTF-8");
-            connection.setRequestProperty("Cookie", "JSESSIONID="+paramObj.getKey());
+            connection.setRequestProperty("Cookie", "JSESSIONID=" + paramObj.getKey());
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
+            connection.setInstanceFollowRedirects(true);
+            connection.setIfModifiedSince(0x2304320423L);
+
+
+
+
+
+
+
+
+
+
+
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -49,8 +61,8 @@ public class HttpExecutor implements Asyncable<BaseHttpRequest, HttpResponse> {
     }
 
 
-    protected void sendBody(BaseHttpRequest request, HttpURLConnection connection){
+    protected void sendBody(HttpRequest request, HttpURLConnection connection){
         if(!HttpPreconditions.requiresRequestBody(request.getMethod().toString())) return ;
-        Http
+
     }
 }

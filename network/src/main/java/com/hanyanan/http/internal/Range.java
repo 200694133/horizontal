@@ -8,7 +8,7 @@ public class Range {
     public final long count;
     public final long fullLength;
 
-    public Range(long start, long count, long fullLength){
+    public Range(long start, long count, long fullLength) {
         this.start = start;
         this.count = count;
         this.fullLength = fullLength;

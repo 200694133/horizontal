@@ -1,6 +1,7 @@
 package com.hanyanan.http;
 
 import com.hanyanan.http.internal.HttpBinaryResource;
+import com.hanyanan.http.internal.HttpResponseHeader;
 import com.sun.deploy.net.HttpRequest;
 
 /**
