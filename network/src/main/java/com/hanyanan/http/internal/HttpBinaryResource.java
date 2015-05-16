@@ -10,7 +10,7 @@ import hyn.com.lib.binaryresource.BinaryResource;
  */
 public interface HttpBinaryResource extends BinaryResource, Closeable {
     /**
-     * Return the recommond name for current resource.
+     * Return the origin server to suggest a default filename
      * The server may be provide a default file name for current resource, most of time it will be return {@code null},
      * So client cannot depende on this value.
      * </pr>
@@ -21,8 +21,5 @@ public interface HttpBinaryResource extends BinaryResource, Closeable {
      */
     public String getDisposition();
 
-    public Charset charset() ;/*{
-        MediaType contentType = contentType();
-        return contentType != null ? contentType.charset(UTF_8) : UTF_8;
-    }*/
+
 }

@@ -7,13 +7,15 @@ import com.hanyanan.http.Protocol;
 import java.util.HashMap;
 import java.util.Map;
 
+import hyn.com.lib.binaryresource.BinaryResource;
+
 /**
  * Created by hanyanan on 2015/5/13.
  * The main http request.
  */
 public class HttpRequest {
     /** http request body, it it's a  */
-    @Nullable private final HttpRequestBody requestBody;
+    private final HttpRequestBody requestBody;
 
     private final HttpRequestHeader requestHeader;
 
@@ -89,13 +91,19 @@ public class HttpRequest {
         return this;
     }
 
-    public HttpRequest putParam(String name, Object value) {
+    public HttpRequest param(Map<String, Object> params){
         //TODO
         return this;
     }
 
-    public HttpRequest putParam(Map<String, Object> params) {
-        //TODO
-        return this;
+
+    public static class Builder {
+        String url;
+        public Builder(String url) {
+
+        }
+        public HttpRequest post(BinaryResource body){
+
+        }
     }
 }

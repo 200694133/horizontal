@@ -51,7 +51,19 @@ public class HttpHeader {
         if(null == headers || headers.size() <= 0) return ;
         Set<Map.Entry<String, List<String>>> entrySet =  headers.entrySet();
         if(null == entrySet || entrySet.size() <= 0) return ;
-
+        //TODO
+        for(Map.Entry<String, List<String>> entry : entrySet){
+            if(null == entry || entry.getKey() == null || entry.getValue() == null
+                    || entry.getValue().size() <= 0) continue;
+            StringBuilder value = new StringBuilder();
+            for(String val : entry.getValue()){
+                if(!ValueUtil.isEmpty(value)) {
+                    value.append(SEPARATOR).append(val);
+                }else{
+                    value.append(value);
+                }
+            }
+        }
     }
 
     public Object value(String head){
@@ -122,66 +134,11 @@ public class HttpHeader {
         return this;
     }
 
-    public HttpHeader setRequestCookie(String cookie) {
-        //TODO
-        return this;
-    }
-
-    public String getResponseCookie(){
-        //TODO
-        return  null;
-    }
-
-    public HttpHeader setRequestRange(long start, long count) {
-        //TODO
-        return this;
-    }
-
-    public Range getResponseRange(){
-        return null;
-    }
-
-    public HttpHeader setRequestSupportCache(final boolean supportCache){
-        //TODO
-        return this;
-    }
-
-    public boolean isResponseSupportCache() {
-        return false;
-    }
-
-    public HttpHeader setRequestCharset(String charset) {
-        //TODO
-        return this;
-    }
-
-    public String getResponseCharset() {
-        return "utf-8";
-    }
-
-    public HttpHeader setReferer(String referer) {
-        //TODO
-        return this;
-    }
-
-    //Content-Type：WEB服务器告诉浏览器自己响应的对象的类型和字符集。例如：Content-Type: text/html; charset='gb2312'
-    public String getResponseContentType() {
-        return null;
-    }
-
-    public HttpHeader setAuthorization(String name, String passwd) {
-        //TODO
-        return this;
-    }
-
-    public HttpHeader setETag(String eTag){
-        //TODO
-        return this;
-    }
-
+    /**
+     * Formate the current head to string mode.
+     * @return
+     */
     public String string(){
         return null;
     }
-
-    public static HttpHeader
 }
