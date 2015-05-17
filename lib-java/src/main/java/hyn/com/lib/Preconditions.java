@@ -1,7 +1,6 @@
 package hyn.com.lib;
 
-
-import com.sun.istack.internal.Nullable;
+import javax.annotation.Nullable;
 
 public final class Preconditions {
   private Preconditions() {}

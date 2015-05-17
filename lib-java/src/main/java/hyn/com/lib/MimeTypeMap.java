@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
  * Two-way map that maps MIME-types to file extensions and vice versa.
  */
 public final class MimeTypeMap {
+    public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
 
     /**
      * Singleton MIME-type map instance:
