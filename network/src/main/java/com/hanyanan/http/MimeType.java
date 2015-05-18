@@ -1,8 +1,11 @@
-package hyn.com.lib;
+package com.hanyanan.http;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import hyn.com.lib.Preconditions;
+import hyn.com.lib.ValueUtil;
 
 /**
  * Created by hanyanan on 2015/5/16.
@@ -1144,6 +1147,6 @@ public class MimeType {
         String[] strings = contentType.split(SEPERATOR);
         if(strings.length < 2) return new MimeType(contentType, DEFAULT_CHARSET);
 
-
+        return new MimeType(strings[0], strings[1]);
     }
 }

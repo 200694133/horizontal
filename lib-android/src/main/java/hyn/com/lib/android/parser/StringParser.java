@@ -1,4 +1,4 @@
-package hyn.com.datastorage.parser;
+package hyn.com.lib.android.parser;
 
 import java.io.InputStream;
 

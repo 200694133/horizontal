@@ -1,9 +1,8 @@
-package hyn.com.datastorage.parser;
+package hyn.com.lib.android.parser;
 
 
 import java.io.InputStream;
 
-import hyn.com.datastorage.db.ObjectParser;
 import hyn.com.datastorage.exception.ParseFailedException;
 import hyn.com.lib.IOUtil;
 

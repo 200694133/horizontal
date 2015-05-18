@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import hyn.com.datastorage.exception.ParseFailedException;
+import hyn.com.lib.android.parser.ObjectParser;
 import hyn.com.lib.IOUtil;
 import hyn.com.datastorage.db.BaseSQLiteOpenHelper.Column;
 import hyn.com.lib.TimeUtils;

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hyn.com.datastorage.exception.ParseFailedException;
+import hyn.com.lib.android.parser.ObjectParser;
 import hyn.com.lib.IOUtil;
 import hyn.com.lib.android.logging.Log;
 import hyn.com.lib.binaryresource.BinaryResource;

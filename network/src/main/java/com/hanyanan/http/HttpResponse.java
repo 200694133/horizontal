@@ -7,7 +7,7 @@ import com.sun.deploy.net.HttpRequest;
 /**
  * Created by hanyanan on 2015/5/11.
  */
-public final class HttpResponse {
+public class HttpResponse {
     /** The raw http request */
     private final HttpRequest httpRequest;
     /** Http response header for current request. */
@@ -19,6 +19,25 @@ public final class HttpResponse {
     /** http status message */
     private final String msg;
 
+    public final HttpRequest getHttpRequest() {
+        return httpRequest;
+    }
+
+    public final HttpResponseHeader getResponseHeader() {
+        return responseHeader;
+    }
+
+    public final HttpBinaryResource getBodyResource() {
+        return bodyResource;
+    }
+
+    public final int getCode() {
+        return code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
 
     public HttpBinaryResource body(){
         return bodyResource;
