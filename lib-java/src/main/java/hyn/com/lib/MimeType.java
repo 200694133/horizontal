@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * Created by hanyanan on 2015/5/16.
  */
 public class MimeType {
-    public static final String SEPERATOR = "";
+    public static final String SEPERATOR = ";";
     public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
     public static final String DEFAULT_URL_MIME_TYPE = "application/x-www-form-urlencoded";
     public static final String DEFAULT_CHARSET = "charset=utf-8";
@@ -1101,30 +1101,25 @@ public class MimeType {
         return mimeType + "; " + charset;
     }
 
-
     public static MimeType createFromFileName(String fileName){
         Preconditions.checkArgument(!ValueUtil.isEmpty(fileName));
         String mimeType = DEFAULT_MIME_TYPE;
         String extension = getFileExtension(fileName);
         if(ValueUtil.isEmpty(extension)) {
-            return new MimeType(mimeType, DEFAULT_CHARSET);
+            return new MimeType(DEFAULT_MIME_TYPE, null);
         }
         mimeType = getMimeTypeFromExtension(extension);
         if(ValueUtil.isEmpty(mimeType)) {
-            return new MimeType(DEFAULT_MIME_TYPE, DEFAULT_CHARSET);
+            return new MimeType(DEFAULT_MIME_TYPE, null);
         }
         return new MimeType(mimeType, DEFAULT_CHARSET);
     }
 
     public static MimeType createFromExtension(String extension, String charset){
         Preconditions.checkArgument(!ValueUtil.isEmpty(extension));
-        String mimeType = DEFAULT_MIME_TYPE;
-        mimeType = getMimeTypeFromExtension(extension);
+        String mimeType = getMimeTypeFromExtension(extension);
         if(ValueUtil.isEmpty(mimeType)) {
-            return new MimeType(DEFAULT_MIME_TYPE, DEFAULT_CHARSET);
-        }
-        if(ValueUtil.isEmpty(charset)) {
-            charset = DEFAULT_CHARSET;
+            return new MimeType(DEFAULT_MIME_TYPE, null);
         }
         return new MimeType(mimeType, charset);
     }
@@ -1143,7 +1138,11 @@ public class MimeType {
     }
 
     public static MimeType crateFromContentType(String contentType){
-        Preconditions.checkArgument(!ValueUtil.isEmpty(contentType));
+        if(ValueUtil.isEmpty(contentType)) {
+            return new MimeType(DEFAULT_MIME_TYPE, DEFAULT_CHARSET);
+        }
+        String[] strings = contentType.split(SEPERATOR);
+        if(strings.length < 2) return new MimeType(contentType, DEFAULT_CHARSET);
 
 
     }
