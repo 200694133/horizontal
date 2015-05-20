@@ -1,5 +1,10 @@
 package com.hanyanan.http.internal;
 
+
+import static hyn.com.lib.Preconditions.checkNotNull;
+import static hyn.com.lib.Preconditions.checkArgument;
+
+import com.google.common.collect.Maps;
 import com.hanyanan.http.Headers;
 
 import java.util.LinkedHashMap;
@@ -41,6 +46,12 @@ public class HttpHeader {
         DEFAULT_HEADERS.put(Headers.Pragma.value(), "no-cache");
     }
     private final Map<String, Object> headers = new LinkedHashMap<String, Object>();
+
+    /**
+     * The headers with high priority headers, it will override the {@link #headers}, it store the
+     * manual operations.
+     * */
+    private final Map<String, Object> priorHeaders = Maps.newHashMap();
     public HttpHeader(HttpHeader header) {
         if (null != headers) {
             this.headers.putAll(header.headers);
@@ -74,7 +85,7 @@ public class HttpHeader {
      */
     public HttpHeader appand(String line) {
         int index = line.indexOf(":");
-        Preconditions.checkArgument(index >= 0, "Unexpected header: " + line);
+        checkArgument(index >= 0, "Unexpected header: " + line);
         return doAppand(line.substring(0, index).trim(), line.substring(index + 1));
     }
 
@@ -82,9 +93,9 @@ public class HttpHeader {
      * Add a field with the specified value.
      */
     public HttpHeader appand(String name, Object value) {
-        Preconditions.checkNotNull(name, "name == null");
-        Preconditions.checkNotNull(value, "value == null");
-        Preconditions.checkNotNull(value.toString(), "value.toString() == null");
+        checkNotNull(name, "name == null");
+        checkNotNull(value, "value == null");
+        checkNotNull(value.toString(), "value.toString() == null");
 
         if (name.length() == 0 || name.indexOf('\0') != -1 || value.toString().indexOf('\0') != -1) {
             throw new IllegalArgumentException("Unexpected header: " + name + ": " + value);
@@ -108,7 +119,7 @@ public class HttpHeader {
     }
 
     public HttpHeader remove(String attr) {
-        Preconditions.checkNotNull(attr);
+        checkNotNull(attr);
         headers.remove(attr);
         return this;
     }
@@ -119,7 +130,7 @@ public class HttpHeader {
      */
     public HttpHeader put(String line) {
         int index = line.indexOf(":");
-        Preconditions.checkArgument(index >= 0, "Unexpected header: " + line);
+        checkArgument(index >= 0, "Unexpected header: " + line);
         return setHeadProperty(line.substring(0, index).trim(), line.substring(index + 1));
     }
 
@@ -128,12 +139,18 @@ public class HttpHeader {
      * added. If the field is found, the existing values are replaced.
      */
     public HttpHeader setHeadProperty(String attr, Object value) {
-        Preconditions.checkNotNull(attr, "attr == null");
-        Preconditions.checkNotNull(value, "value == null");
+        checkNotNull(attr, "attr == null");
+        checkNotNull(value, "value == null");
         headers.put(attr, value);
         return this;
     }
 
+    public HttpHeader setPriorHeadProperty(String attr, Object value) {
+        checkNotNull(attr, "attr == null");
+        checkNotNull(value, "value == null");
+        this.priorHeaders.put(attr, value);
+        return this;
+    }
     /**
      * Formate the current head to string mode.
      * @return

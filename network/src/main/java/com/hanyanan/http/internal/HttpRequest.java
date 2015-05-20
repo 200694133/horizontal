@@ -1,5 +1,9 @@
 package com.hanyanan.http.internal;
 
+
+import static hyn.com.lib.Preconditions.checkNotNull;
+import static hyn.com.lib.Preconditions.checkArgument;
+
 import android.support.annotation.Nullable;
 
 import com.hanyanan.http.Method;
@@ -150,8 +154,8 @@ public class HttpRequest {
     }
 
     public HttpRequest setHeadProperty(String key, String value){
-        Preconditions.checkNotNull(key);
-        Preconditions.checkNotNull(value);
+        checkNotNull(key);
+        checkNotNull(value);
         getRequestHeader().setHeadProperty(key,value);
         return this;
     }

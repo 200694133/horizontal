@@ -1,5 +1,6 @@
 package com.hanyanan.http;
 
+import static com.hanyanan.http.HttpUtil.SEPERATOR;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -11,10 +12,19 @@ import hyn.com.lib.ValueUtil;
  * Created by hanyanan on 2015/5/16.
  */
 public class MimeType {
-    public static final String SEPERATOR = ";";
     public static final String DEFAULT_MIME_TYPE = "application/octet-stream";
     public static final String DEFAULT_URL_MIME_TYPE = "application/x-www-form-urlencoded";
     public static final String DEFAULT_CHARSET = "charset=utf-8";
+
+    public static final String APPLICATION_TYPE = "application";
+    public static final String AUDIO_TYPE = "audio";
+    public static final String IMAGE_TYPE = "image";
+    public static final String TEXT_TYPE = "text";
+    public static final String VIDEO_TYPE = "video";
+
+    private static final String WILDCARD = "*";
+
+
     public static final Map<String, String> sMimeTypeMap = new HashMap<String, String>();
 
     static {
@@ -1148,5 +1158,11 @@ public class MimeType {
         if(strings.length < 2) return new MimeType(contentType, DEFAULT_CHARSET);
 
         return new MimeType(strings[0], strings[1]);
+    }
+
+    public static MimeType create(String type, String subType){
+
+        //TODO
+        return null;
     }
 }

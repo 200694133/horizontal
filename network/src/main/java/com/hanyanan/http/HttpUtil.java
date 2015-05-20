@@ -13,6 +13,7 @@ public class HttpUtil {
     public static final String DEFAULT_ENCODING = "gzip";
     public static final int DEFAULT_TIMEOUT = 5000;//5s
     public static final String DEFAULT_USER_AGENT = "horizontal-version 0.0.1 :)";
+    public static final String SEPERATOR = ";";
 
     /**
      * Parse date in RFC1123 format, and return its value as epoch

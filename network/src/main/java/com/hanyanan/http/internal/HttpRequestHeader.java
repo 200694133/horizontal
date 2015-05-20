@@ -17,13 +17,13 @@ public class HttpRequestHeader extends HttpHeader{
     }
 
     public HttpHeader setRequestCookie(String cookie) {
-        put(Headers.Cookie.value(), cookie);
+        setHeadProperty(Headers.Cookie.value(), cookie);
         return this;
     }
 
     public HttpHeader setRequestRange(long start, long count) {
-        put(Headers.Accept_Ranges.value(), "bytes");
-        put(Headers.Range.value(), "bytes="+start+"-"+(start+count));
+        setHeadProperty(Headers.Accept_Ranges.value(), "bytes");
+        setHeadProperty(Headers.Range.value(), "bytes=" + start + "-" + (start + count));
         return this;
     }
 
@@ -37,12 +37,12 @@ public class HttpRequestHeader extends HttpHeader{
     }
 
     public HttpHeader setRequestCharset(String charset) {
-        put(Headers.Accept_Charset.value(), charset);
+        setHeadProperty(Headers.Accept_Charset.value(), charset);
         return this;
     }
 
     public HttpHeader setReferer(String referer) {
-        put(Headers.Referer.value(), referer);
+        setHeadProperty(Headers.Referer.value(), referer);
         return this;
     }
 
@@ -62,13 +62,13 @@ public class HttpRequestHeader extends HttpHeader{
      * @return
      */
     public HttpHeader setETag(String eTag){
-        put(Headers.If_None_Match.value(), eTag);
+        setHeadProperty(Headers.If_None_Match.value(), eTag);
         return this;
     }
     //send request with head {If-Modified-Since   Fri, 04 Sep 2009 05:55:43 GMT}
     public HttpHeader setLastModifiedTime(long time) {
         Date date = new Date(time);
-        put(Headers.If_Modified_Since.value(), DateUtils.formatDate(date));
+        setHeadProperty(Headers.If_Modified_Since.value(), DateUtils.formatDate(date));
         return this;
     }
 }
