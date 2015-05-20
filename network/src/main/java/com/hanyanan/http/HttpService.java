@@ -27,19 +27,19 @@ public class HttpService {
     }
 
     public int getTimeout(){
-        return Util.DEFAULT_TIMEOUT;
+        return HttpUtil.DEFAULT_TIMEOUT;
     }
 
     public String getCharset(){
-        return Util.DEFAULT_CHARSET;
+        return HttpUtil.DEFAULT_CHARSET;
     }
 
     public String getEncoding(){
-        return Util.DEFAULT_ENCODING;
+        return HttpUtil.DEFAULT_ENCODING;
     }
 
     public String getUserAgent(){
-        return Util.DEFAULT_USER_AGENT;
+        return HttpUtil.DEFAULT_USER_AGENT;
     }
 
     public HttpResponse loadHttpRequest(HttpRequest request) {
@@ -56,6 +56,7 @@ public class HttpService {
     }
 
     public InputStream loadResourceHttpRequest(HttpRequest httpRequest) throws IOException{
+
         return null;
     }
 

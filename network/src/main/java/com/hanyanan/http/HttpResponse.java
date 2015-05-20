@@ -1,6 +1,5 @@
 package com.hanyanan.http;
 
-import com.hanyanan.http.internal.HttpBinaryResource;
 import com.hanyanan.http.internal.HttpHeader;
 import com.hanyanan.http.internal.HttpResponseHeader;
 import com.hanyanan.http.internal.Range;
@@ -22,6 +21,15 @@ public class HttpResponse {
     private final int code;
     /** http status message */
     private final String msg;
+
+    public HttpResponse(int code, String msg, HttpRequest httpRequest, HttpResponseHeader responseHeader,
+                        BinaryResource bodyResource){
+        this.code = code;
+        this.msg = msg;
+        this.httpRequest = httpRequest;
+        this.responseHeader = responseHeader;
+        this.bodyResource = bodyResource;
+    }
 
     public final HttpRequest getHttpRequest() {
         return httpRequest;

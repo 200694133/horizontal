@@ -120,14 +120,14 @@ public class HttpHeader {
     public HttpHeader put(String line) {
         int index = line.indexOf(":");
         Preconditions.checkArgument(index >= 0, "Unexpected header: " + line);
-        return put(line.substring(0, index).trim(), line.substring(index + 1));
+        return setHeadProperty(line.substring(0, index).trim(), line.substring(index + 1));
     }
 
     /**
      * Set a field with the specified value. If the field is not found, it is
      * added. If the field is found, the existing values are replaced.
      */
-    public HttpHeader put(String attr, Object value) {
+    public HttpHeader setHeadProperty(String attr, Object value) {
         Preconditions.checkNotNull(attr, "attr == null");
         Preconditions.checkNotNull(value, "value == null");
         headers.put(attr, value);

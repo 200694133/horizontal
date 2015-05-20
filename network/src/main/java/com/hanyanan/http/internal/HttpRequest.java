@@ -7,6 +7,7 @@ import com.hanyanan.http.Protocol;
 import java.util.HashMap;
 import java.util.Map;
 
+import hyn.com.lib.Preconditions;
 import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
@@ -21,6 +22,9 @@ public class HttpRequest {
 
     private final String url;
 
+    //The redirect url
+    private String forwardUrl;
+
     private final Method method;
 
     private final Protocol protocol;
@@ -28,8 +32,6 @@ public class HttpRequest {
     private final TrafficStatus trafficStatus;
     /** A monitor to record the http time status */
     private final TimeStatus timeStatus;
-    /** The request executor */
-    private final HttpExecutor httpExecutor;
     /** The tag user for caller identify the request. */
     private Object tag;
     /**  */
@@ -42,7 +44,6 @@ public class HttpRequest {
         this.requestBody = new HttpRequestBody();
         this.requestHeader = new HttpRequestHeader();
         this.trafficStatus = TrafficStatus.creator();
-        this.httpExecutor = HttpExecutor.sHttpExecutor;
         this.timeStatus = new TimeStatus();
     }
 
@@ -52,6 +53,15 @@ public class HttpRequest {
 
     public HttpRequest(String url) {
         this(url, Method.GET, Protocol.HTTP_1_1);
+    }
+
+    public HttpRequest setForwardUrl(String url) {
+        this.forwardUrl = url;
+        return this;
+    }
+
+    public String getForwardUrl(){
+        return forwardUrl;
     }
 
     @Nullable public HttpRequestBody getRequestBody() {
@@ -77,33 +87,83 @@ public class HttpRequest {
         return trafficStatus;
     }
 
-    public final HttpExecutor getHttpExecutor(){
-        return httpExecutor;
+    public final void setTag(Object tag) {
+        this.tag = tag;
     }
 
-    public HttpRequest addCookie(String cookie){
-        //TODO
+    public final Object getTag(){
+        return tag;
+    }
+
+    public HttpRequest addBodyEntity(BinaryResource resource){
+
+
+        return this;
+    }
+
+    public HttpRequest setCookie(String cookie){
+        getRequestHeader().setRequestCookie(cookie);
         return this;
     }
 
     public HttpRequest range(long start, long count){
-        //TODO
+        getRequestHeader().setRequestRange(start, count);
         return this;
     }
 
     public HttpRequest param(Map<String, Object> params){
+        //TODO encode
+        if(null != params) {
+            this.params.putAll(params);
+        }
+        return this;
+    }
+
+    public HttpRequest setRequestSupportCache(final boolean supportCache){
         //TODO
         return this;
     }
 
-
-    public static class Builder {
-        String url;
-        public Builder(String url) {
-
-        }
-        public HttpRequest post(BinaryResource body){
-
-        }
+    public HttpRequest setRequestCharset(String charset) {
+        //TODO
+        return this;
     }
+
+    public HttpRequest setReferer(String referer) {
+        //TODO
+        return this;
+    }
+
+    public HttpRequest setAuthorization(String name, String passwd) {
+        //TODO
+        return this;
+    }
+
+    public HttpRequest setETag(String eTag){
+        //TODO
+        return this;
+    }
+
+    public HttpRequest setLastModifiedTime(long time) {
+        //TODO
+        return this;
+    }
+
+    public HttpRequest setHeadProperty(String key, String value){
+        Preconditions.checkNotNull(key);
+        Preconditions.checkNotNull(value);
+        getRequestHeader().setHeadProperty(key,value);
+        return this;
+    }
+//
+//
+//    public static class Builder {
+//        String url;
+//        public Builder(String url) {
+//
+//        }
+//        public HttpRequest post(BinaryResource body){
+//
+//        }
+//    }
 }

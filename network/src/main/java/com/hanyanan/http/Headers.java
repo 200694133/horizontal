@@ -29,7 +29,7 @@ public enum Headers {
      */
 
 
-    /*
+    /* *
      *   请求头字段	                         说明	                       响应头字段
      *      Accept	               告知服务器发送何种媒体类型	             Content-Type
      * Accept-Language	             告知服务器发送何种语言	                 Content-Language
@@ -104,12 +104,12 @@ public enum Headers {
     Server("Server"),//Server: Apache/1.3.27 (Unix) (Red-Hat/Linux)
     Set_Cookie("Set-Cookie"),//Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
     Trailer("Trailer"),//Trailer: Max-Forwards
-    Transfer_Encoding("Transfer-Encoding"),//Transfer-Encoding:chunked, 有效的值为：Trunked和Identity.
+    TRANSFER_ENCODING("Transfer-Encoding"),//Transfer-Encoding:chunked, 有效的值为：Trunked和Identity.
     Vary("Vary"),//Vary: *
-    WWW_Authenticate("WWW-Authenticate");//WWW-Authenticate: Basic
+    WWW_AUTHENTICATE("WWW-Authenticate");//WWW-Authenticate: Basic
 
 
-    private String header;
+    private final String header;
 
     private Headers(String header) {
         this.header = header.toLowerCase();
