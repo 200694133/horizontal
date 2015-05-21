@@ -1163,10 +1163,10 @@ public class MimeType {
 
     public static MimeType crateFromContentType(String contentType){
         if(ValueUtil.isEmpty(contentType)) {
-            return new MimeType(DEFAULT_MIME_TYPE, DEFAULT_CHARSET);
+            return new MimeType(DEFAULT_MIME_TYPE, null);
         }
         String[] strings = contentType.split(CONNECTOR);
-        if(strings.length < 2) return new MimeType(contentType, DEFAULT_CHARSET);
+        if(strings.length < 2) return new MimeType(contentType, null);
 
         return new MimeType(strings[0], strings[1]);
     }
