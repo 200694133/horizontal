@@ -1,6 +1,8 @@
 package com.hanyanan.http.internal;
 
+import com.google.common.net.MediaType;
 import com.hanyanan.http.Headers;
+import com.hanyanan.http.MimeType;
 
 import java.util.Date;
 
@@ -8,6 +10,7 @@ import java.util.Date;
  * Created by hanyanan on 2015/5/9.
  */
 public class HttpRequestHeader extends HttpHeader{
+    private MimeType mimeType;
     public HttpRequestHeader(HttpHeader header) {
         super(header);
     }
@@ -17,32 +20,51 @@ public class HttpRequestHeader extends HttpHeader{
     }
 
     public HttpHeader setRequestCookie(String cookie) {
-        setHeadProperty(Headers.Cookie.value(), cookie);
+        setHeadProperty(Headers.COOKIE.value(), cookie);
         return this;
     }
 
     public HttpHeader setRequestRange(long start, long count) {
-        setHeadProperty(Headers.Accept_Ranges.value(), "bytes");
-        setHeadProperty(Headers.Range.value(), "bytes=" + start + "-" + (start + count));
+        setHeadProperty(Headers.ACCEPT_RANGES.value(), "bytes");
+        setHeadProperty(Headers.RANGE.value(), "bytes=" + start + "-" + (start + count));
         return this;
     }
 
+    /**
+     * Cache-Control：
+     * 请求：
+     * no-cache（不要缓存的实体，要求现在从WEB服务器去取）
+     * max-age：（只接受 Age 值小于 max-age 值，并且没有过期的对象）
+     * max-stale：（可以接受过去的对象，但是过期时间必须小于 max-stale 值）
+     * min-fresh：（接受其新鲜生命期大于其当前 Age 跟 min-fresh 值之和的缓存对象）
+     * 响应：
+     * public(可以用 Cached 内容回应任何用户)
+     * private（只能用缓存内容回应先前请求该内容的那个用户）
+     * no-cache（可以缓存，但是只有在跟WEB服务器验证了其有效后，才能返回给客户端）
+     * max-age：（本响应包含的对象的过期时间）
+     * <p/>
+     * ALL: no-store（不允许缓存）
+     * Currently just support no-cache and max-age
+     * @param supportCache
+     * @return
+     */
     public HttpHeader setRequestSupportCache(final boolean supportCache){
         if(!supportCache) {
-
+            setHeadProperty(Headers.CACHE_CONTROL.value(), "no-cache");
         } else {
-
+            setHeadProperty(Headers.CACHE_CONTROL.value(), "no-cache");
+            setHeadProperty(Headers.PRAGMA.value(), "no-cache");
         }
         return this;
     }
 
     public HttpHeader setRequestCharset(String charset) {
-        setHeadProperty(Headers.Accept_Charset.value(), charset);
+        setHeadProperty(Headers.ACCEPT_CHARSET.value(), charset);
         return this;
     }
 
     public HttpHeader setReferer(String referer) {
-        setHeadProperty(Headers.Referer.value(), referer);
+        setHeadProperty(Headers.REFERER.value(), referer);
         return this;
     }
 
@@ -62,13 +84,13 @@ public class HttpRequestHeader extends HttpHeader{
      * @return
      */
     public HttpHeader setETag(String eTag){
-        setHeadProperty(Headers.If_None_Match.value(), eTag);
+        setHeadProperty(Headers.IF_NONE_MATCH.value(), eTag);
         return this;
     }
     //send request with head {If-Modified-Since   Fri, 04 Sep 2009 05:55:43 GMT}
     public HttpHeader setLastModifiedTime(long time) {
         Date date = new Date(time);
-        setHeadProperty(Headers.If_Modified_Since.value(), DateUtils.formatDate(date));
+        setHeadProperty(Headers.IF_MODIFIED_SINCE.value(), DateUtils.formatDate(date));
         return this;
     }
 }

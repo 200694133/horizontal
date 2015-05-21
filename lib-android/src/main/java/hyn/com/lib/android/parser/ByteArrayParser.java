@@ -3,13 +3,12 @@ package hyn.com.lib.android.parser;
 
 import java.io.InputStream;
 
-import hyn.com.datastorage.exception.ParseFailedException;
 import hyn.com.lib.IOUtil;
 
 /**
  * Created by hanyanan on 2015/3/5.
  */
-public class ByteArrayParser implements ObjectParser<byte[]> {
+public class ByteArrayParser extends BaseObjectParser <byte[]> implements ObjectParser<byte[]> {
     @Override
     public byte[] transferToBlob(byte[] object) {
         return object;
@@ -27,5 +26,10 @@ public class ByteArrayParser implements ObjectParser<byte[]> {
             IOUtil.safeClose(inputStream);
         }
         return content;
+    }
+
+    @Override
+    protected int getBinarySize() {
+        return 0;
     }
 }

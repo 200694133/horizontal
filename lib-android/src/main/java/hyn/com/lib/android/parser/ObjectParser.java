@@ -3,9 +3,6 @@ package hyn.com.lib.android.parser;
 
 import java.io.InputStream;
 
-import hyn.com.datastorage.exception.DataException;
-import hyn.com.datastorage.exception.ParseFailedException;
-
 /**
  * Created by hanyanan on 2015/2/27.
  * Transfer object to byte array and transfer byte array to object.

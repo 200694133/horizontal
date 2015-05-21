@@ -1,7 +1,6 @@
 package hyn.com.lib.android.parser;
 
 
-import hyn.com.datastorage.exception.ParseFailedException;
 
 /**
  * Created by hanyanan on 2015/3/5.

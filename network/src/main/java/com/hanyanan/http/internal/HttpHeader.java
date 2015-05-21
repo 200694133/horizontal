@@ -1,18 +1,20 @@
 package com.hanyanan.http.internal;
 
-
 import static hyn.com.lib.Preconditions.checkNotNull;
 import static hyn.com.lib.Preconditions.checkArgument;
+import static com.hanyanan.http.HttpUtil.CONNECTOR;
+import static com.hanyanan.http.HttpUtil.CRLF;
+import static com.hanyanan.http.HttpUtil.BREAK;
 
 import com.google.common.collect.Maps;
 import com.hanyanan.http.Headers;
+import com.hanyanan.http.HttpUtil;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
 
 /**
@@ -31,27 +33,50 @@ import hyn.com.lib.ValueUtil;
  * Accept: text/plain, text/html
  * Pragma: no-cache
  */
+
+/**
+ * Cache-Control：
+ * 请求：
+ * no-cache（不要缓存的实体，要求现在从WEB服务器去取）
+ * max-age：（只接受 Age 值小于 max-age 值，并且没有过期的对象）
+ * max-stale：（可以接受过去的对象，但是过期时间必须小于 max-stale 值）
+ * min-fresh：（接受其新鲜生命期大于其当前 Age 跟 min-fresh 值之和的缓存对象）
+ * 响应：
+ * public(可以用 Cached 内容回应任何用户)
+ * private（只能用缓存内容回应先前请求该内容的那个用户）
+ * no-cache（可以缓存，但是只有在跟WEB服务器验证了其有效后，才能返回给客户端）
+ * max-age：（本响应包含的对象的过期时间）
+ * <p/>
+ * ALL: no-store（不允许缓存）
+ * Currently just support no-cache and max-age
+ * Cache-Control的max-age优先级高于Expires(至少对于Apache是这样的）,即如果定义了Cache-Control: max-age，
+ * 则完全不需要加上Expries，因为根本没用。
+ *Cache-Control在Apache中的设置为  Header set Cache-Control "max-age: 60" , Expires是相同的功能，不过参数是个绝对的日期，
+ * 不是一个相对的值 Header set Expires "Thu, 15 Apr 2010 20:00:00 GMT"
+ *
+ *
+ *
+ */
 public class HttpHeader {
-    public static final String SEPARATOR = ";";
-    protected static final Map<String, Object> DEFAULT_HEADERS = new LinkedHashMap<String, Object>();
+    protected static final Map<String, String> DEFAULT_HEADERS = new LinkedHashMap<String, String>();
     static{
-        DEFAULT_HEADERS.put(Headers.Connection.value(), "keep-alive");
-        DEFAULT_HEADERS.put(Headers.Accept_Encoding.value(), "gzip, deflate");
-        DEFAULT_HEADERS.put(Headers.Accept_Language.value(), "en,zh");
-        DEFAULT_HEADERS.put(Headers.Accept_Ranges.value(), "bytes");
-        DEFAULT_HEADERS.put(Headers.User_Agent.value(), "HANYANAN VERSION 0.0.1");
-        DEFAULT_HEADERS.put(Headers.Cache_Control.value(), "no-cache");
-        DEFAULT_HEADERS.put(Headers.Accept_Charset.value(), "utf-8");
-        DEFAULT_HEADERS.put(Headers.Accept.value(), "*/*");
-        DEFAULT_HEADERS.put(Headers.Pragma.value(), "no-cache");
+        DEFAULT_HEADERS.put(Headers.CONNECTION.value(), "keep-alive");
+        DEFAULT_HEADERS.put(Headers.ACCEPT_ENCODING.value(), "gzip, deflate");
+        DEFAULT_HEADERS.put(Headers.ACCEPT_LANGUAGE.value(), "en,zh");
+        DEFAULT_HEADERS.put(Headers.ACCEPT_RANGES.value(), "bytes");
+        DEFAULT_HEADERS.put(Headers.USER_AGENT.value(), "HANYANAN VERSION 0.0.1");
+        DEFAULT_HEADERS.put(Headers.CACHE_CONTROL.value(), "no-cache");
+        DEFAULT_HEADERS.put(Headers.ACCEPT_CHARSET.value(), "utf-8");
+        DEFAULT_HEADERS.put(Headers.ACCEPT.value(), "*/*");
+        DEFAULT_HEADERS.put(Headers.PRAGMA.value(), "no-cache");
     }
-    private final Map<String, Object> headers = new LinkedHashMap<String, Object>();
+    protected final Map<String, String> headers = Maps.newLinkedHashMap();
 
     /**
      * The headers with high priority headers, it will override the {@link #headers}, it store the
      * manual operations.
      * */
-    private final Map<String, Object> priorHeaders = Maps.newHashMap();
+    protected final Map<String, String> priorHeaders = Maps.newHashMap();
     public HttpHeader(HttpHeader header) {
         if (null != headers) {
             this.headers.putAll(header.headers);
@@ -62,57 +87,48 @@ public class HttpHeader {
         if(null == headers || headers.size() <= 0) return ;
         Set<Map.Entry<String, List<String>>> entrySet =  headers.entrySet();
         if(null == entrySet || entrySet.size() <= 0) return ;
-        //TODO
         for(Map.Entry<String, List<String>> entry : entrySet){
             if(null == entry || entry.getKey() == null || entry.getValue() == null
                     || entry.getValue().size() <= 0) continue;
             StringBuilder value = new StringBuilder();
             for(String val : entry.getValue()){
                 if(!ValueUtil.isEmpty(value)) {
-                    value.append(SEPARATOR).append(val);
+                    value.append(CONNECTOR).append(val);
                 }else{
                     value.append(value);
                 }
             }
+            this.headers.put(entry.getKey().toLowerCase(), value.toString());
         }
     }
 
-    public Object value(String head){
-        return headers.get(head);
-    }
     /**
      * Add an header line containing a field name, a literal colon, and a value.
      */
-    public HttpHeader appand(String line) {
-        int index = line.indexOf(":");
-        checkArgument(index >= 0, "Unexpected header: " + line);
-        return doAppand(line.substring(0, index).trim(), line.substring(index + 1));
+    public HttpHeader add(String line) {
+        int index = HttpUtil.skipUntil(line,0, ":=");
+        checkArgument(index > 0 && index < line.length(), "Unexpected header: " + line);
+        return add(line.substring(0, index).trim(), line.substring(index + 1));
     }
 
     /**
      * Add a field with the specified value.
      */
-    public HttpHeader appand(String name, Object value) {
+    public HttpHeader add(String name, Object value) {
         checkNotNull(name, "name == null");
         checkNotNull(value, "value == null");
         checkNotNull(value.toString(), "value.toString() == null");
-
-        if (name.length() == 0 || name.indexOf('\0') != -1 || value.toString().indexOf('\0') != -1) {
+        name = name.toLowerCase();
+        if (name.length() == 0 || name.indexOf('\0') != -1
+                || value.toString() == null || value.toString().indexOf('\0') != -1) {
             throw new IllegalArgumentException("Unexpected header: " + name + ": " + value);
         }
-        return doAppand(name, value);
-    }
 
-    /**
-     * Add a field with the specified value without any validation. Only
-     * appropriate for headers from the remote peer or cache.
-     */
-    private HttpHeader doAppand(String attr, Object value) {
-        Object prev = headers.get(attr);
+        String prev = headers.get(name);
         if (!ValueUtil.isEmpty(prev.toString())) {
-            headers.put(attr, prev.toString() + SEPARATOR + value.toString());
+            headers.put(name, prev.toString() + CONNECTOR + value.toString());
         } else {
-            headers.put(attr, value);
+            headers.put(name, value.toString());
         }
 
         return this;
@@ -120,7 +136,7 @@ public class HttpHeader {
 
     public HttpHeader remove(String attr) {
         checkNotNull(attr);
-        headers.remove(attr);
+        headers.remove(attr.toLowerCase());
         return this;
     }
 
@@ -129,8 +145,8 @@ public class HttpHeader {
      * added. If the field is found, the existing values are replaced.
      */
     public HttpHeader put(String line) {
-        int index = line.indexOf(":");
-        checkArgument(index >= 0, "Unexpected header: " + line);
+        int index = HttpUtil.skipUntil(line, 0, ":=");
+        checkArgument(index > 0 && index < line.length(), "Unexpected header: " + line);
         return setHeadProperty(line.substring(0, index).trim(), line.substring(index + 1));
     }
 
@@ -141,14 +157,14 @@ public class HttpHeader {
     public HttpHeader setHeadProperty(String attr, Object value) {
         checkNotNull(attr, "attr == null");
         checkNotNull(value, "value == null");
-        headers.put(attr, value);
+        headers.put(attr.toLowerCase(), value.toString());
         return this;
     }
 
     public HttpHeader setPriorHeadProperty(String attr, Object value) {
         checkNotNull(attr, "attr == null");
         checkNotNull(value, "value == null");
-        this.priorHeaders.put(attr, value);
+        this.priorHeaders.put(attr.toLowerCase(), value.toString());
         return this;
     }
     /**
@@ -156,6 +172,14 @@ public class HttpHeader {
      * @return
      */
     public String string(){
-        return null;
+        final Map<String, String> header = Maps.newHashMap(headers);
+        header.putAll(priorHeaders);
+        Set<Map.Entry<String, String>> entries = header.entrySet();
+        if(null == entries || entries.size() <= 0) return null;
+        StringBuilder stringBuilder = new StringBuilder();
+        for(Map.Entry<String, String> entry : entries){
+            stringBuilder.append(entry.getKey()).append(BREAK).append(entry.getValue()).append(CRLF);
+        }
+        return stringBuilder.toString();
     }
 }

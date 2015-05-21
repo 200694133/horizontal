@@ -3,7 +3,6 @@ package hyn.com.lib.android.parser;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import hyn.com.datastorage.exception.ParseFailedException;
 import hyn.com.lib.ByteUtil;
 import hyn.com.lib.IOUtil;
 

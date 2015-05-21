@@ -42,25 +42,25 @@ public class HttpService {
         return HttpUtil.DEFAULT_USER_AGENT;
     }
 
-    public HttpResponse loadHttpRequest(HttpRequest request) {
+    public HttpResponse loadHttpRequest(HttpRequest request) throws Throwable{
 
         return null;
     }
 
-    public String loadStringHttpRequest(HttpRequest httpRequest) {
+    public String loadStringHttpRequest(HttpRequest httpRequest) throws Throwable{
         return null;
     }
 
-    public byte[] loadByteArrayHttpRequest(HttpRequest httpRequest) {
+    public byte[] loadByteArrayHttpRequest(HttpRequest httpRequest) throws Throwable {
         return null;
     }
 
-    public InputStream loadResourceHttpRequest(HttpRequest httpRequest) throws IOException{
+    public InputStream loadResourceHttpRequest(HttpRequest httpRequest) throws Throwable{
 
         return null;
     }
 
-    public <T> T loadObjectHttpRequest(HttpRequest httpRequest, ObjectParser<T> parser) {
+    public <T> T loadObjectHttpRequest(HttpRequest httpRequest, ObjectParser<T> parser) throws Throwable {
 
         return null;
     }

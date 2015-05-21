@@ -2,10 +2,7 @@ package hyn.com.lib.android.parser;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
 import java.io.InputStream;
-
-import hyn.com.datastorage.exception.ParseFailedException;
 import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.android.UiUtil;

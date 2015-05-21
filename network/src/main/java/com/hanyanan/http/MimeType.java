@@ -1,9 +1,13 @@
 package com.hanyanan.http;
 
-import static com.hanyanan.http.HttpUtil.SEPERATOR;
+import static com.hanyanan.http.HttpUtil.CONNECTOR;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import javax.activation.MimeTypeParameterList;
+import javax.activation.MimeTypeParseException;
 
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
@@ -1128,6 +1132,13 @@ public class MimeType {
         return new MimeType(mimeType, DEFAULT_CHARSET);
     }
 
+    /**
+     * Create {@link MimeType} by file extension, such as zip, json,txt.
+     * If user kown the specify file will be upload or
+     * @param extension
+     * @param charset
+     * @return
+     */
     public static MimeType createFromExtension(String extension, String charset){
         Preconditions.checkArgument(!ValueUtil.isEmpty(extension));
         String mimeType = getMimeTypeFromExtension(extension);
@@ -1154,15 +1165,45 @@ public class MimeType {
         if(ValueUtil.isEmpty(contentType)) {
             return new MimeType(DEFAULT_MIME_TYPE, DEFAULT_CHARSET);
         }
-        String[] strings = contentType.split(SEPERATOR);
+        String[] strings = contentType.split(CONNECTOR);
         if(strings.length < 2) return new MimeType(contentType, DEFAULT_CHARSET);
 
         return new MimeType(strings[0], strings[1]);
     }
 
-    public static MimeType create(String type, String subType){
+    /**
+     * create a MimeType by primary type and sub type.
+     * @param primaryType the primary type such as "application"
+     * @param subType  the sub type such as "json"
+     * @return
+     */
+    public static MimeType create(String primaryType, String subType){
+        Preconditions.checkArgument(isValidToken(primaryType));
+        Preconditions.checkArgument(isValidToken(subType));
 
-        //TODO
-        return null;
+        primaryType = primaryType.toLowerCase(Locale.ENGLISH);
+        subType = subType.toLowerCase(Locale.ENGLISH);
+
+        return new MimeType(primaryType+"/"+subType, null);
+    }
+
+
+    private static boolean isTokenChar(char c) {
+        return c > 32 && c < 127 && "()<>@,;:/[]?=\\\"".indexOf(c) < 0;
+    }
+
+    private static boolean isValidToken(String s) {
+        int len = s.length();
+        if(len > 0) {
+            for(int i = 0; i < len; ++i) {
+                char c = s.charAt(i);
+                if(!isTokenChar(c)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 }

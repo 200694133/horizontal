@@ -1,7 +1,6 @@
 package hyn.com.lib.android.parser;
 
 
-import hyn.com.datastorage.exception.ParseFailedException;
 import hyn.com.lib.ByteUtil;
 
 /**

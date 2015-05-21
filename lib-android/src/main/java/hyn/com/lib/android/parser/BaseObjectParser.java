@@ -3,7 +3,6 @@ package hyn.com.lib.android.parser;
 import java.io.IOException;
 import java.io.InputStream;
 
-import hyn.com.datastorage.exception.ParseFailedException;
 import hyn.com.lib.IOUtil;
 
 /**
@@ -13,11 +12,6 @@ public abstract class BaseObjectParser<T> implements ObjectParser<T> {
     @Override
     public InputStream transferToStream(T object) {
         return IOUtil.bytesToInputStream(transferToBlob(object));
-    }
-
-    @Override
-    public T transferToObject(byte[] blob) throws ParseFailedException {
-        return null;
     }
 
     @Override

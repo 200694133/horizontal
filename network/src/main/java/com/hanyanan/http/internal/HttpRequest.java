@@ -5,12 +5,10 @@ import static hyn.com.lib.Preconditions.checkNotNull;
 import static hyn.com.lib.Preconditions.checkArgument;
 
 import android.support.annotation.Nullable;
-
 import com.hanyanan.http.Method;
 import com.hanyanan.http.Protocol;
 import java.util.HashMap;
 import java.util.Map;
-
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.binaryresource.BinaryResource;
 

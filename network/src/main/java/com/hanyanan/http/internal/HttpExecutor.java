@@ -18,7 +18,7 @@ public class HttpExecutor implements Asyncable<HttpRequest, HttpResponse> {
     private HttpExecutor(){}
 
     @Override
-    public HttpResponse run(HttpRequest request) {
+    public HttpResponse run(HttpRequest request) throws Throwable {
         String url = request.getUrl();
         URL address_url = null;
         HttpURLConnection connection;
@@ -37,7 +37,7 @@ public class HttpExecutor implements Asyncable<HttpRequest, HttpResponse> {
             connection.setInstanceFollowRedirects(true);
             connection.setIfModifiedSince(0x2304320423L);
 
-
+            connection.setFixedLengthStreamingMode();
 
 
 

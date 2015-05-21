@@ -13,7 +13,36 @@ public class HttpUtil {
     public static final String DEFAULT_ENCODING = "gzip";
     public static final int DEFAULT_TIMEOUT = 5000;//5s
     public static final String DEFAULT_USER_AGENT = "horizontal-version 0.0.1 :)";
-    public static final String SEPERATOR = ";";
+    public static final String CONNECTOR = ";";
+    public static final String BREAK = ":";
+
+    /**
+     * Returns the next index in {@code input} at or after {@code pos} that
+     * contains a character from {@code characters}. Returns the input length if
+     * none of the requested characters can be found.
+     */
+    public static int skipUntil(String input, int pos, String characters) {
+        for (; pos < input.length(); pos++) {
+            if (characters.indexOf(input.charAt(pos)) != -1) {
+                break;
+            }
+        }
+        return pos;
+    }
+
+    /**
+     * Returns the next non-whitespace character in {@code input} that is white
+     * space. Result is undefined if input contains newline characters.
+     */
+    public static int skipWhitespace(String input, int pos) {
+        for (; pos < input.length(); pos++) {
+            char c = input.charAt(pos);
+            if (c != ' ' && c != '\t') {
+                break;
+            }
+        }
+        return pos;
+    }
 
     /**
      * Parse date in RFC1123 format, and return its value as epoch
@@ -37,7 +66,7 @@ public class HttpUtil {
      * or the defaultCharset if none can be found.
      */
     public static String parseCharset(Map<String, String> headers, String defaultCharset) {
-        String contentType = headers.get(Headers.Content_Type);
+        String contentType = headers.get(Headers.CONTENT_TYPE);
         if (contentType != null) {
             String[] params = contentType.split(";");
             for (int i = 1; i < params.length; i++) {
