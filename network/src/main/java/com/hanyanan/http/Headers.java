@@ -1,5 +1,7 @@
 package com.hanyanan.http;
 
+import java.util.Locale;
+
 /**
  * Created by hanyanan on 2015/5/10.
  * https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-latest.html
@@ -112,7 +114,7 @@ public enum Headers {
     private final String header;
 
     private Headers(String header) {
-        this.header = header.toLowerCase();
+        this.header = header.toLowerCase(Locale.ENGLISH);
     }
 
     @Override

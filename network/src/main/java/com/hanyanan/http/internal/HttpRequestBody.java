@@ -1,8 +1,11 @@
 package com.hanyanan.http.internal;
 
+import com.hanyanan.http.MimeType;
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 
 import hyn.com.lib.Preconditions;
@@ -45,8 +48,18 @@ public class HttpRequestBody {
 
 
 
-    public static HttpRequestBody create(String mediaType, String charSet, String content){
-        //TODO
+    public static HttpRequestBody create(MimeType mimeType, String content){
+        Charset charset = Util.UTF_8;
+//        Charset charset = Util.UTF_8;
+//        if (contentType != null) {
+//            charset = contentType.charset();
+//            if (charset == null) {
+//                charset = Util.UTF_8;
+//                contentType = MediaType.parse(contentType + "; charset=utf-8");
+//            }
+//        }
+//        byte[] bytes = content.getBytes(charset);
+//        return create(contentType, bytes);
         return null;
     }
 
@@ -54,4 +67,23 @@ public class HttpRequestBody {
         //TODO
         return null;
     }
+
+//    /** Returns a new request body that transmits {@code content}. */
+//    public static RequestBody create(final MediaType contentType, final byte[] content,
+//                                     final int offset, final int byteCount) {
+//        if (content == null) throw new NullPointerException("content == null");
+//        Util.checkOffsetAndCount(content.length, offset, byteCount);
+//        return new RequestBody() {
+//            @Override public MediaType contentType() {
+//                return contentType;
+//            }
+//
+//            @Override public long contentLength() {
+//                return byteCount;
+//            }
+//
+//            @Override public void writeTo(BufferedSink sink) throws IOException {
+//                sink.write(content, offset, byteCount);
+//            }
+//        };
 }

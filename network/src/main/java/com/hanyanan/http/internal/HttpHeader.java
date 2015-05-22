@@ -12,6 +12,7 @@ import com.hanyanan.http.HttpUtil;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,7 +99,7 @@ public class HttpHeader {
                     value.append(value);
                 }
             }
-            this.headers.put(entry.getKey().toLowerCase(), value.toString());
+            this.headers.put(entry.getKey().toLowerCase(Locale.ENGLISH), value.toString());
         }
     }
 
@@ -118,7 +119,7 @@ public class HttpHeader {
         checkNotNull(name, "name == null");
         checkNotNull(value, "value == null");
         checkNotNull(value.toString(), "value.toString() == null");
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ENGLISH);
         if (name.length() == 0 || name.indexOf('\0') != -1
                 || value.toString() == null || value.toString().indexOf('\0') != -1) {
             throw new IllegalArgumentException("Unexpected header: " + name + ": " + value);
@@ -136,7 +137,7 @@ public class HttpHeader {
 
     public HttpHeader remove(String attr) {
         checkNotNull(attr);
-        headers.remove(attr.toLowerCase());
+        headers.remove(attr.toLowerCase(Locale.ENGLISH));
         return this;
     }
 
@@ -157,14 +158,14 @@ public class HttpHeader {
     public HttpHeader setHeadProperty(String attr, Object value) {
         checkNotNull(attr, "attr == null");
         checkNotNull(value, "value == null");
-        headers.put(attr.toLowerCase(), value.toString());
+        headers.put(attr.toLowerCase(Locale.ENGLISH), value.toString());
         return this;
     }
 
     public HttpHeader setPriorHeadProperty(String attr, Object value) {
         checkNotNull(attr, "attr == null");
         checkNotNull(value, "value == null");
-        this.priorHeaders.put(attr.toLowerCase(), value.toString());
+        this.priorHeaders.put(attr.toLowerCase(Locale.ENGLISH), value.toString());
         return this;
     }
     /**

@@ -1161,6 +1161,11 @@ public class MimeType {
         return new MimeType(DEFAULT_MIME_TYPE, null);
     }
 
+    /**
+     * Create the mimeType when get the response "Content-Type: text/html; charset=utf-8"
+     * @param contentType
+     * @return
+     */
     public static MimeType crateFromContentType(String contentType){
         if(ValueUtil.isEmpty(contentType)) {
             return new MimeType(DEFAULT_MIME_TYPE, null);
@@ -1186,7 +1191,6 @@ public class MimeType {
 
         return new MimeType(primaryType+"/"+subType, null);
     }
-
 
     private static boolean isTokenChar(char c) {
         return c > 32 && c < 127 && "()<>@,;:/[]?=\\\"".indexOf(c) < 0;

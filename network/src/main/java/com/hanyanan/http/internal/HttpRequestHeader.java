@@ -10,7 +10,7 @@ import java.util.Date;
  * Created by hanyanan on 2015/5/9.
  */
 public class HttpRequestHeader extends HttpHeader{
-    private MimeType mimeType;
+    MimeType mimeType;
     public HttpRequestHeader(HttpHeader header) {
         super(header);
     }
@@ -19,12 +19,16 @@ public class HttpRequestHeader extends HttpHeader{
         this(null);
     }
 
-    public HttpHeader setRequestCookie(String cookie) {
+    public HttpRequestHeader setMimeType(MimeType mimeType){
+        this.mimeType = mimeType;
+        return this;
+    }
+    public HttpRequestHeader setRequestCookie(String cookie) {
         setHeadProperty(Headers.COOKIE.value(), cookie);
         return this;
     }
 
-    public HttpHeader setRequestRange(long start, long count) {
+    public HttpRequestHeader setRequestRange(long start, long count) {
         setHeadProperty(Headers.ACCEPT_RANGES.value(), "bytes");
         setHeadProperty(Headers.RANGE.value(), "bytes=" + start + "-" + (start + count));
         return this;
@@ -48,7 +52,7 @@ public class HttpRequestHeader extends HttpHeader{
      * @param supportCache
      * @return
      */
-    public HttpHeader setRequestSupportCache(final boolean supportCache){
+    public HttpRequestHeader setRequestSupportCache(final boolean supportCache){
         if(!supportCache) {
             setHeadProperty(Headers.CACHE_CONTROL.value(), "no-cache");
         } else {
@@ -58,17 +62,17 @@ public class HttpRequestHeader extends HttpHeader{
         return this;
     }
 
-    public HttpHeader setRequestCharset(String charset) {
+    public HttpRequestHeader setRequestCharset(String charset) {
         setHeadProperty(Headers.ACCEPT_CHARSET.value(), charset);
         return this;
     }
 
-    public HttpHeader setReferer(String referer) {
+    public HttpRequestHeader setReferer(String referer) {
         setHeadProperty(Headers.REFERER.value(), referer);
         return this;
     }
 
-    public HttpHeader setAuthorization(String name, String passwd) {
+    public HttpRequestHeader setAuthorization(String name, String passwd) {
         //TODO
         return this;
     }
@@ -83,12 +87,13 @@ public class HttpRequestHeader extends HttpHeader{
      * @param eTag
      * @return
      */
-    public HttpHeader setETag(String eTag){
+    public HttpRequestHeader setETag(String eTag){
         setHeadProperty(Headers.IF_NONE_MATCH.value(), eTag);
         return this;
     }
+
     //send request with head {If-Modified-Since   Fri, 04 Sep 2009 05:55:43 GMT}
-    public HttpHeader setLastModifiedTime(long time) {
+    public HttpRequestHeader setLastModifiedTime(long time) {
         Date date = new Date(time);
         setHeadProperty(Headers.IF_MODIFIED_SINCE.value(), DateUtils.formatDate(date));
         return this;
