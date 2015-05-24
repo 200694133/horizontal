@@ -23,6 +23,14 @@ public class HttpRequestHeader extends HttpHeader{
         this.mimeType = mimeType;
         return this;
     }
+
+    public MimeType getMimeType(){
+        if(null == mimeType) {
+            mimeType = MimeType.defaultMimeType();
+        }
+        return mimeType;
+    }
+
     public HttpRequestHeader setRequestCookie(String cookie) {
         setHeadProperty(Headers.COOKIE.value(), cookie);
         return this;

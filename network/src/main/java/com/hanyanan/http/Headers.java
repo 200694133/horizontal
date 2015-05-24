@@ -108,8 +108,8 @@ public enum Headers {
     TRAILER("Trailer"),//Trailer: Max-Forwards
     TRANSFER_ENCODING("Transfer-Encoding"),//Transfer-Encoding:chunked, 有效的值为：Trunked和Identity.
     VARY("Vary"),//Vary: *
-    WWW_AUTHENTICATE("WWW-Authenticate");//WWW-Authenticate: Basic
-
+    WWW_AUTHENTICATE("WWW-Authenticate"),//WWW-Authenticate: Basic
+    CONTENT_DISPOSITION("Content-Disposition");
 
     private final String header;
 
@@ -117,8 +117,7 @@ public enum Headers {
         this.header = header.toLowerCase(Locale.ENGLISH);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return header;
     }
 

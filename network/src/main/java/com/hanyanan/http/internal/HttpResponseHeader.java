@@ -2,37 +2,60 @@ package com.hanyanan.http.internal;
 
 
 import com.hanyanan.http.Headers;
+import com.hanyanan.http.MimeType;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import hyn.com.lib.ValueUtil;
 
 import static hyn.com.lib.Preconditions.checkNotNull;
 
 /**
  * Created by hanyanan on 2015/5/9.
  */
-public class HttpResponseHeader extends HttpHeader{
+public class HttpResponseHeader extends HttpHeader {
+    private MimeType mimeType;
+
     public HttpResponseHeader(Map<String, List<String>> headers) {
         super(headers);
     }
 
-    public String value(String key){
-        checkNotNull(key);
-        if(headers.containsKey(key)){
-            Object res = headers.get(key);
-            if(null != res) return res.toString();
+    public MimeType getMimeType() {
+        if (null == mimeType) {
+            String contentType = getContentType();
+            if (!ValueUtil.isEmpty(contentType)) {
+                mimeType = MimeType.crateFromContentType(contentType);
+            } else {
+                mimeType = MimeType.defaultMimeType();
+            }
         }
-        if(priorHeaders.containsKey(key)){
-            Object res =  priorHeaders.get(key);
-            if(null != res) return res.toString();
-        }
-        return null;
-    }
-    public String getCookie(){
-        return  value(Headers.SET_COOKIE.value());
+        return mimeType;
     }
 
-    public Range getRange(){
+
+    public String getCookie() {
+        return value(Headers.SET_COOKIE);
+    }
+
+    ////Content-Range: bytes 21010-47021/47022
+    public Range getRange() {
+        String range = value(Headers.CONTENT_RANGE);
+        if (null == range) return null;
+        Pattern pattern = Pattern.compile("bytes\\s*(\\d*)-?(\\d)*/?(\\d*)");
+        Matcher m = pattern.matcher(range);
+        if (m.find()) {
+            String start = m.group(0);
+            String end = m.group(1);
+            String full = m.group(2);
+            long s = ValueUtil.parseLong(start, -1);
+            long e = ValueUtil.parseLong(end, -1);
+            long f = ValueUtil.parseLong(full, -1);
+            return new Range(s, e, f);
+        }
         return null;
     }
 
@@ -41,17 +64,18 @@ public class HttpResponseHeader extends HttpHeader{
     }
 
     public String getCharset() {
-        return "utf-8";
+        MimeType mimeType = getMimeType();
+        if (null == mimeType.getCharset()) return "utf-8";
+        return mimeType.getCharset();
     }
 
     //Content-Type：WEB服务器告诉浏览器自己响应的对象的类型和字符集。例如：Content-Type: text/html; charset='gb2312'
     public String getContentType() {
-        return null;
+        return value(Headers.CONTENT_TYPE);
     }
 
-    public String getETag(){
-        //TODO
-        return null;
+    public String getETag() {
+        return value(Headers.E_TAG);
     }
 
     /**
@@ -74,21 +98,59 @@ public class HttpResponseHeader extends HttpHeader{
      * Cache-Control在Apache中的设置为  Header set Cache-Control "max-age: 60" , Expires是相同的功能，不过参数是个绝对的日期，
      * 不是一个相对的值 Header set Expires "Thu, 15 Apr 2010 20:00:00 GMT"
      * Cache-Control会覆盖Expires字段。
+     * <p/>
+     * cache-request-directive =
+     * "no-cache"
+     * | "no-store"
+     * no-cache表示必须先与服务器确认返回的响应是否被更改，然后才能使用该响应来满足后续对同一个网址的请求。
+     * 因此，如果存在合适的验证令牌 (ETag)，no-cache 会发起往返通信来验证缓存的响应，如果资源未被更改，可以避免下载。（即no-cache不会有请求的实体）
+     * 相比之下，no-store更加简单，直接禁止浏览器和所有中继缓存存储返回的任何版本的响应 - 例如：一个包含个人隐私数据或银行数据的响应。
+     * 每次用户请求该资源时，都会向服务器发送一个请求，每次都会下载完整的响应。<p/>
+     *
+     * | "max-age" "=" delta-seconds
+     * | "max-stale" [ "=" delta-seconds ]
+     * | "min-fresh" "=" delta-seconds
+     * | "no-transform"
+     * | "only-if-cached"
+     * | cache-extension
+     * cache-response-directive =
+     * "public"
+     * | "private" [ "=" <"> 1#field-name <"> ]
+     * | "no-cache" [ "=" <"> 1#field-name <"> ]
+     * 如果响应被标记为public，即使有关联的 HTTP 认证，甚至响应状态码无法正常缓存，响应也可以被缓存。
+     * 大多数情况下，public不是必须的，因为明确的缓存信息（例如max-age）已表示 响应可以被缓存。
+     * 相比之下，浏览器可以缓存private响应，但是通常只为单个用户缓存，因此，不允许任何中继缓存对其进行缓存
+     * - 例如，用户浏览器可以缓存包含用户私人信息的 HTML 网页，但是 CDN 不能缓存。
+     * | "no-store"
+     * | "no-transform"
+     * | "must-revalidate"
+     * | "proxy-revalidate"
+     * | "max-age" "=" delta-seconds 该指令指定从当前请求开始，允许获取的响应被重用的最长时间（单位为秒） - 例如：max-age=60表示响应可以再缓存和重用 60 秒。
+     * | "s-maxage" "=" delta-seconds
+     * | cache-extension
+     *
      * @return
      */
-    public long getExpireTime(){
+    //Cache-Control: max-age=30
+    public long getExpireTime() {
         //TODO
         return -1;
     }
 
-    public long getServerDate(){
-        //TODO
-        return -1;
+    public long getServerDate() {
+        String serverDate = value(Headers.DATE);
+        if (ValueUtil.isEmpty(serverDate)) return -1;
+        Date date = DateUtils.parseDate(serverDate);
+        if (null == date) return -1;
+        return date.getTime();
     }
 
-    public long getLastModified(){
-        //TODO
-        return -1;
+    public long getLastModified() {
+        String serverDate = value(Headers.LAST_MODIFIED);
+        if (ValueUtil.isEmpty(serverDate)) return -1;
+        Date date = DateUtils.parseDate(serverDate);
+        if (null == date) return -1;
+        return date.getTime();
     }
 
     /**
@@ -96,13 +158,20 @@ public class HttpResponseHeader extends HttpHeader{
      * The server may be provide a default file name for current resource, most of time it will be return {@code null},
      * So client cannot depende on this value.
      * </pr>
-     *  The Content-Disposition identify the default file name value in http headers which come from server.
-     *  Content-Disposition: attachment; filename="fname.ext". it will return the fname.ext as the default download file
-     *  name.
-     *  </pr>
+     * The Content-Disposition identify the default file name value in http headers which come from server.
+     * Content-Disposition: attachment; filename="fname.ext". it will return the fname.ext as the default download file
+     * name.
+     * </pr>
      */
-    public String getDisposition(){
-        //TODO
+    public String getDisposition() {
+        String contentDisposition = value(Headers.CONTENT_DISPOSITION);
+        if (null == contentDisposition) return null;
+        Pattern pattern = Pattern.compile("filename=[^\\w]?([^\"]+)[^\\w]?&");
+        Matcher m = pattern.matcher(contentDisposition);
+        if (m.find()) {
+            String fileName = m.group(0);
+            return fileName;
+        }
         return null;
     }
 }

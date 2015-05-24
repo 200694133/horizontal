@@ -107,7 +107,7 @@ public class HttpHeader {
      * Add an header line containing a field name, a literal colon, and a value.
      */
     public HttpHeader add(String line) {
-        int index = HttpUtil.skipUntil(line,0, ":=");
+        int index = HttpUtil.skipUntil(line, 0, ":=");
         checkArgument(index > 0 && index < line.length(), "Unexpected header: " + line);
         return add(line.substring(0, index).trim(), line.substring(index + 1));
     }
@@ -168,6 +168,23 @@ public class HttpHeader {
         this.priorHeaders.put(attr.toLowerCase(Locale.ENGLISH), value.toString());
         return this;
     }
+
+    public String value(Object key){
+        checkNotNull(key);
+        String k = key.toString();
+        checkNotNull(k);
+        if(headers.containsKey(k)){
+            Object res = headers.get(k);
+            if(null != res) return res.toString();
+        }
+        if(priorHeaders.containsKey(k)){
+            Object res =  priorHeaders.get(k);
+            if(null != res) return res.toString();
+        }
+        return null;
+    }
+
+
     /**
      * Formate the current head to string mode.
      * @return

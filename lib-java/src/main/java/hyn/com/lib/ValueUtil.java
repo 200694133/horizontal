@@ -56,7 +56,7 @@ public class ValueUtil {
             MessageDigest m = MessageDigest.getInstance("md5");
             m.update(inputText.getBytes());
             byte s[] = m.digest();
-            return hex(s).substring(8,24);
+            return hex(s).substring(8, 24);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return ""+inputText.hashCode();
@@ -71,4 +71,13 @@ public class ValueUtil {
         return sb.toString();
     }
 
+    public static long parseLong(String s, long defaultValue) {
+        if(ValueUtil.isEmpty(s)) return defaultValue;
+
+        try {
+            return Long.parseLong(s);
+        }catch (Exception ex) {
+            return defaultValue;
+        }
+    }
 }
