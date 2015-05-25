@@ -1,14 +1,11 @@
-package com.hanyanan.http;
+package com.hanyanan.http.internal;
 
-import com.hanyanan.http.internal.HttpResponseHeader;
-import com.hanyanan.http.internal.Range;
-import com.hanyanan.http.internal.RedirectedResponse;
+import com.hanyanan.http.MimeType;
+import com.hanyanan.http.Protocol;
 import com.sun.deploy.net.HttpRequest;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,7 +23,7 @@ public class HttpResponse implements Closeable{
     private final List<RedirectedResponse> redirectedResponse = new LinkedList<RedirectedResponse>();
 
     /** The real body which store the content response from server. */
-    private final BinaryResource bodyResource;
+    private final HttpResponseBody bodyResource;
     /** http resonse code */
     private final int code;
     /** http status message */
@@ -34,10 +31,8 @@ public class HttpResponse implements Closeable{
 
     private final Protocol protocol;
 
-    private MimeType mimeType;
-
-    public HttpResponse(int code, String msg, HttpRequest httpRequest, Protocol protocol, HttpResponseHeader responseHeader,
-                        BinaryResource bodyResource){
+    private HttpResponse(int code, String msg, HttpRequest httpRequest, Protocol protocol, HttpResponseHeader responseHeader,
+                         HttpResponseBody bodyResource){
         this.code = code;
         this.msg = msg;
         this.httpRequest = httpRequest;
@@ -47,29 +42,29 @@ public class HttpResponse implements Closeable{
     }
 
     public MimeType mimeType(){
-        MimeType mimeType = getResponseHeader().
+        return getResponseHeader().getMimeType();
     }
 
     public List<RedirectedResponse> getRedirectedResponse(){
         return new LinkedList<>(redirectedResponse);
     }
-    /**
-     * Returns the response as a string decoded with the charset of the
-     * Content-Type header. If that header is either absent or lacks a charset,
-     * this will attempt to decode the response body as UTF-8.
-     */
-    public final String string() throws IOException {
-        return new String(bytes(), charset().name());
-    }
-
-    private Charset charset() {
-        MimeType contentType = contentType();
-        return contentType != null ? contentType.charset(UTF_8) : UTF_8;
-    }
-
-    @Override public void close() throws IOException {
-        source().close();
-    }
+//    /**
+//     * Returns the response as a string decoded with the charset of the
+//     * Content-Type header. If that header is either absent or lacks a charset,
+//     * this will attempt to decode the response body as UTF-8.
+//     */
+//    public final String string() throws IOException {
+//        return new String(bytes(), charset().name());
+//    }
+//
+//    private Charset charset() {
+//        MimeType contentType = contentType();
+//        return contentType != null ? contentType.charset(UTF_8) : UTF_8;
+//    }
+//
+//    @Override public void close() throws IOException {
+//        source().close();
+//    }
 
     public final HttpRequest getHttpRequest() {
         return httpRequest;
@@ -100,8 +95,7 @@ public class HttpResponse implements Closeable{
     }
 
     public String getCookie(){
-        //TODO
-        return  null;
+        return  getResponseHeader().getCookie();
     }
 
     public Range getRange(){
@@ -151,11 +145,6 @@ public class HttpResponse implements Closeable{
         return getResponseHeader().getDisposition();
     }
 
-
-    public MimeType getMimeType(){
-        return mimeType;
-    }
-
     /**
      * Returns true if the code is in [200..300), which means the request was
      * successfully received, understood, and accepted.
@@ -164,16 +153,75 @@ public class HttpResponse implements Closeable{
         return code >= 200 && code < 300;
     }
 
-    @Override public String toString() {
-        return "Response{protocol="
-                + protocol
-                + ", code="
-                + code
-                + ", message="
-                + msg
-                + ", url="
-                + httpRequest.urlString()
-                + '}';
+    @Override
+    public void close() throws IOException {
+
+    }
+
+//    @Override public String toString() {
+//        return "Response{protocol="
+//                + protocol
+//                + ", code="
+//                + code
+//                + ", message="
+//                + msg
+//                + ", url="
+//                + httpRequest.urlString()
+//                + '}';
+//    }
+
+    final static class Builder {
+        /** The raw http request */
+        private HttpRequest httpRequest;
+        /** Http response header for current request. */
+        private HttpResponseHeader responseHeader;
+
+        private List<RedirectedResponse> redirectedResponses = new LinkedList<RedirectedResponse>();
+
+        /** The real body which store the content response from server. */
+        private HttpResponseBody responseBody;
+        /** http resonse code */
+        private int code;
+        /** http status message */
+        private String msg;
+
+        private Protocol protocol;
+        Builder(HttpRequest request){
+            this.httpRequest = request;
+        }
+
+        public Builder setHttpResponseHeader(HttpResponseHeader header) {
+            this.responseHeader = header;
+            return this;
+        }
+
+        public Builder setMessage(String msg) {
+            this.msg = msg;
+            return this;
+        }
+
+        public Builder addRedirectedResponse(RedirectedResponse redirectedResponse){
+            this.redirectedResponses.add(redirectedResponse);
+            return this;
+        }
+
+        public Builder setProtocol(Protocol protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        public Builder setStatusCode(int code) {
+            this.code = code;
+            return this;
+        }
+
+        public Builder setBody(HttpResponseBody responseBody){
+            this.responseBody = responseBody;
+            return this;
+        }
+        HttpResponse build(){
+            HttpResponse response = new HttpResponse(code, msg, httpRequest, protocol, responseHeader, responseBody);
+        }
     }
 
 }

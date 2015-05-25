@@ -81,4 +81,23 @@ public class HttpUtil {
 
         return defaultCharset;
     }
+
+    /**
+     * Returns {@code value} as a positive integer, or 0 if it is negative, or
+     * {@code defaultValue} if it cannot be parsed.
+     */
+    public static int parseSeconds(String value, int defaultValue) {
+        try {
+            long seconds = Long.parseLong(value);
+            if (seconds > Integer.MAX_VALUE) {
+                return Integer.MAX_VALUE;
+            } else if (seconds < 0) {
+                return 0;
+            } else {
+                return (int) seconds;
+            }
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }

@@ -1,15 +1,20 @@
-package com.hanyanan.http.internal;
+package com.hanyanan.http;
 
 
 import static hyn.com.lib.Preconditions.checkNotNull;
 import static hyn.com.lib.Preconditions.checkArgument;
+import static hyn.com.lib.Preconditions.checkState;
 
 import android.support.annotation.Nullable;
-import com.hanyanan.http.Method;
-import com.hanyanan.http.Protocol;
+
+import com.hanyanan.http.internal.HttpPreconditions;
+import com.hanyanan.http.internal.TimeStatus;
+import com.hanyanan.http.internal.TrafficStatus;
+
 import java.util.HashMap;
 import java.util.Map;
-import hyn.com.lib.Preconditions;
+
+import hyn.com.lib.ValueUtil;
 import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
@@ -18,9 +23,9 @@ import hyn.com.lib.binaryresource.BinaryResource;
  */
 public class HttpRequest {
     /** http request body, it it's a  */
-    private final HttpRequestBody requestBody;
+    private HttpRequestBody requestBody;
 
-    private final HttpRequestHeader requestHeader;
+    private HttpRequestHeader requestHeader;
 
     private final String url;
 
@@ -38,6 +43,10 @@ public class HttpRequest {
     private Object tag;
     /**  */
     private final Map<String, Object> params = new HashMap<String, Object>();
+    /** The callback bind to current request. */
+    private CallBack callBack;
+    /** The finger print of current request. */
+    private String fingerPrint;
 
     public HttpRequest(String url, Method method, Protocol protocol) {
         this.url = url;
@@ -57,11 +66,27 @@ public class HttpRequest {
         this(url, Method.GET, Protocol.HTTP_1_1);
     }
 
+    public HttpRequest setCallBack(CallBack callBack) {
+        this.callBack = callBack;
+        return this;
+    }
+
     public HttpRequest setForwardUrl(String url) {
         this.forwardUrl = url;
         return this;
     }
 
+    public HttpRequest setFingerPrint(String fingerPrint) {
+        this.fingerPrint = fingerPrint;
+        return this;
+    }
+
+    public String getFingerPrint(){
+        if(null == fingerPrint) {
+            return ValueUtil.md5(getUrl());
+        }
+        return fingerPrint;
+    }
     public String getForwardUrl(){
         return forwardUrl;
     }
@@ -77,11 +102,11 @@ public class HttpRequest {
         return requestHeader;
     }
 
-    public final String getUrl() {
+    final String getUrl() {
         return url;
     }
 
-    public final Method getMethod() {
+    final Method getMethod() {
         return method;
     }
 
@@ -98,8 +123,14 @@ public class HttpRequest {
     }
 
     public HttpRequest addBodyEntity(BinaryResource resource){
+        //TODO
 
+        return this;
+    }
 
+    public HttpRequest setHttpRequestBody(HttpRequestBody httpRequestBody){
+        checkState(requestBody!=null && !requestBody.hasContent(), "The body not empty!");
+        this.requestBody = httpRequestBody;
         return this;
     }
 
@@ -113,7 +144,7 @@ public class HttpRequest {
         return this;
     }
 
-    public HttpRequest param(Map<String, Object> params){
+    public HttpRequest params(Map<String, Object> params){
         //TODO encode
         if(null != params) {
             this.params.putAll(params);
@@ -122,50 +153,34 @@ public class HttpRequest {
     }
 
     public HttpRequest setRequestSupportCache(final boolean supportCache){
-        //TODO
-        return this;
-    }
-
-    public HttpRequest setRequestCharset(String charset) {
-        //TODO
+        getRequestHeader().setRequestSupportCache(supportCache);
         return this;
     }
 
     public HttpRequest setReferer(String referer) {
-        //TODO
+        getRequestHeader().setReferer(referer);
         return this;
     }
 
     public HttpRequest setAuthorization(String name, String passwd) {
-        //TODO
+        getRequestHeader().setAuthorization(name,passwd);
         return this;
     }
 
     public HttpRequest setETag(String eTag){
-        //TODO
+        getRequestHeader().setETag(eTag);
         return this;
     }
 
     public HttpRequest setLastModifiedTime(long time) {
-        //TODO
+        getRequestHeader().setLastModifiedTime(time);
         return this;
     }
 
     public HttpRequest setHeadProperty(String key, String value){
         checkNotNull(key);
         checkNotNull(value);
-        getRequestHeader().setHeadProperty(key,value);
+        getRequestHeader().setPriorHeadProperty(key,value);
         return this;
     }
-//
-//
-//    public static class Builder {
-//        String url;
-//        public Builder(String url) {
-//
-//        }
-//        public HttpRequest post(BinaryResource body){
-//
-//        }
-//    }
 }

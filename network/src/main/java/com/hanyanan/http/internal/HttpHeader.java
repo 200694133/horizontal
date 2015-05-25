@@ -151,6 +151,14 @@ public class HttpHeader {
         return setHeadProperty(line.substring(0, index).trim(), line.substring(index + 1));
     }
 
+    public Map<String, String> maps(){
+        Map<String, String> res = Maps.newHashMap();
+        res.putAll(headers);
+        res.putAll(priorHeaders);
+        return res;
+    }
+
+
     /**
      * Set a field with the specified value. If the field is not found, it is
      * added. If the field is found, the existing values are replaced.
@@ -168,6 +176,20 @@ public class HttpHeader {
         this.priorHeaders.put(attr.toLowerCase(Locale.ENGLISH), value.toString());
         return this;
     }
+
+    public int size(){
+        return headers.size() + priorHeaders.size();
+    }
+
+//    public String name(int index) {
+//        Map<String, String> maps = maps();
+//        if(maps.size() <= index) return null;
+//        return maps.
+//    }
+//
+//    public String value(int index) {
+//
+//    }
 
     public String value(Object key){
         checkNotNull(key);

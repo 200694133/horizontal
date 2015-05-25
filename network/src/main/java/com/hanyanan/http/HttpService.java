@@ -1,8 +1,7 @@
 package com.hanyanan.http;
 
-import com.hanyanan.http.internal.HttpRequest;
+import com.hanyanan.http.internal.HttpResponse;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import hyn.com.lib.android.parser.ObjectParser;

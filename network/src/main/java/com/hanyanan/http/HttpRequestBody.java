@@ -1,11 +1,8 @@
-package com.hanyanan.http.internal;
+package com.hanyanan.http;
 
-import com.hanyanan.http.MimeType;
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.LinkedList;
 
 import hyn.com.lib.Preconditions;
@@ -34,6 +31,10 @@ public class HttpRequestBody {
         return this;
     }
 
+    public boolean hasContent(){
+        return resources.size() > 0;
+    }
+
     /** The entry of one file will upload. */
     private static final class EntityHolder {
         @NotNull private String param;
@@ -49,7 +50,6 @@ public class HttpRequestBody {
 
 
     public static HttpRequestBody create(MimeType mimeType, String content){
-        Charset charset = Util.UTF_8;
 //        Charset charset = Util.UTF_8;
 //        if (contentType != null) {
 //            charset = contentType.charset();

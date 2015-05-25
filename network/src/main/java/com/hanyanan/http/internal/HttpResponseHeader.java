@@ -2,6 +2,7 @@ package com.hanyanan.http.internal;
 
 
 import com.hanyanan.http.Headers;
+import com.hanyanan.http.HttpUtil;
 import com.hanyanan.http.MimeType;
 
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import hyn.com.lib.TimeUtils;
 import hyn.com.lib.ValueUtil;
 
 import static hyn.com.lib.Preconditions.checkNotNull;
@@ -19,7 +21,7 @@ import static hyn.com.lib.Preconditions.checkNotNull;
  */
 public class HttpResponseHeader extends HttpHeader {
     private MimeType mimeType;
-
+    private CacheControl cacheControl;
     public HttpResponseHeader(Map<String, List<String>> headers) {
         super(headers);
     }
@@ -78,6 +80,12 @@ public class HttpResponseHeader extends HttpHeader {
         return value(Headers.E_TAG);
     }
 
+    public CacheControl getCacheControl(){
+        if(null == cacheControl) {
+            cacheControl = CacheControl.parse(this);
+        }
+        return cacheControl;
+    }
     /**
      * Cache-Control：
      * 请求：
@@ -134,7 +142,19 @@ public class HttpResponseHeader extends HttpHeader {
     //Cache-Control: max-age=30
     public long getExpireTime() {
         //TODO
-        return -1;
+        CacheControl cacheControl = getCacheControl();
+        if(null != cacheControl) {
+            int maxAge = cacheControl.maxAgeSeconds();
+            maxAge = maxAge<=0?cacheControl.sMaxAgeSeconds():maxAge;
+            if(maxAge >= 0){
+                long serverDate = getServerDate();
+                serverDate = serverDate<=0? TimeUtils.getCurrentWallClockTime():serverDate;
+                return serverDate + maxAge;
+            }
+        }
+        String expire = value(Headers.EXPIRES);
+        if(ValueUtil.isEmpty(expire)) return -1;
+        return HttpUtil.parseDateAsEpoch(expire);
     }
 
     public long getServerDate() {

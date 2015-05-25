@@ -1,12 +1,6 @@
 package com.hanyanan.http.internal;
 
-import com.hanyanan.http.HttpResponse;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
+import com.hanyanan.http.HttpRequest;
 
 import hyn.com.lib.Asyncable;
 
@@ -14,7 +8,8 @@ import hyn.com.lib.Asyncable;
  * Created by hanyanan on 2015/5/13.
  */
 public interface HttpExecutor extends Asyncable<HttpRequest, HttpResponse> {
-
+    public static final int HTTP_TEMP_REDIRECT = 307;
+    public static final int HTTP_PERM_REDIRECT = 308;
 //    public static final HttpExecutor sHttpExecutor = new HttpExecutor();
 //
 //    private HttpExecutor(){}

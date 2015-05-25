@@ -1,15 +1,14 @@
-package com.hanyanan.http.internal;
+package com.hanyanan.http;
 
-import com.google.common.net.MediaType;
-import com.hanyanan.http.Headers;
-import com.hanyanan.http.MimeType;
+import com.hanyanan.http.internal.DateUtils;
+import com.hanyanan.http.internal.HttpHeader;
 
 import java.util.Date;
 
 /**
  * Created by hanyanan on 2015/5/9.
  */
-public class HttpRequestHeader extends HttpHeader{
+public class HttpRequestHeader extends HttpHeader {
     MimeType mimeType;
     public HttpRequestHeader(HttpHeader header) {
         super(header);
