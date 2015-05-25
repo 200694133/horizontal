@@ -194,4 +194,21 @@ public class HttpResponseHeader extends HttpHeader {
         }
         return null;
     }
+
+
+    static class Builder {
+        Builder(){
+
+        }
+
+        Builder setHeaders(Map<String, List<String>> headers){
+
+            return this;
+        }
+
+        HttpResponseHeader build(){
+
+            return null;
+        }
+    }
 }
