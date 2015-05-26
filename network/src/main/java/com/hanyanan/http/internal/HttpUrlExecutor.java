@@ -1,8 +1,11 @@
 package com.hanyanan.http.internal;
 
 import com.hanyanan.http.HttpRequest;
+import com.hanyanan.http.HttpRequestBody;
 import com.hanyanan.http.HttpRequestHeader;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -12,6 +15,7 @@ import java.util.Set;
 import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
+import hyn.com.lib.binaryresource.StreamBinaryResource;
 
 
 import static java.net.HttpURLConnection.HTTP_MOVED_PERM;
@@ -90,24 +94,25 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
 
             int statusCode = connection.getResponseCode();
             String msg = connection.getResponseMessage();
-            HttpResponseHeader responseHeader = new HttpResponseHeader(connection.getHeaderFields());
+            HttpResponseHeader responseHeader = readResponseHeaders(request, connection);
             if(isRedirect(statusCode)){
                 int count = builder.increaseAndGetRedirectCount();
                 if(count > MAX_REDIRECT_COUNT){
                     //TODO
                 }
-                String forwordUrl = responseHeader.getForwardUrl();
-                if(ValueUtil.isEmpty(forwordUrl)) {
+                String forwardUrl = responseHeader.getForwardUrl();
+                if(ValueUtil.isEmpty(forwardUrl)) {
                     //TODO
                 }
-                request.setForwardUrl(forwordUrl);
+                request.setForwardUrl(forwardUrl);
                 RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwordUrl, responseHeader);
                 builder.addRedirectedResponse(redirectedResponse);
                 //TODO, setCookie, Others
                 connection.disconnect();
                 return performRequest(request, builder);
             }else{
-
+                HttpResponseBody responseBody = readResponseBody(request, connection);
+                return responseBody;
             }
 
 
@@ -122,12 +127,29 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
         } catch (IOException e) {
             e.printStackTrace();
         }finally {
-            IOUtil.safeClose(connection);
+
         }
     }
 
     //readResponseHeaders
     //openResponseBody
+
+    protected HttpResponseBody readResponseBody(HttpRequest httpRequest, HttpURLConnection connection)
+            throws IOException{
+        InputStream inputStream = connection.getInputStream();
+        InputStreamWrapper inputStreamWrapper = new InputStreamWrapper(inputStream, connection);
+        long contentLength = connection.getContentLengthLong();
+        HttpResponseBody responseBody = new HttpResponseBody(new StreamBinaryResource(inputStreamWrapper, contentLength));
+        return responseBody;
+    }
+
+
+    protected HttpResponseHeader readResponseHeaders(HttpRequest httpRequest, HttpURLConnection connection)
+            throws IOException{
+        connection.getResponseCode();
+        return new HttpResponseHeader(connection.getHeaderFields());
+    }
+
 
 
     /** Returns true if this response redirects to another resource. */
