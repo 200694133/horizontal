@@ -195,6 +195,10 @@ public class HttpResponseHeader extends HttpHeader {
         return null;
     }
 
+    public String getForwardUrl() {
+        return value(Headers.LOCATION);
+    }
+
 
     static class Builder {
         Builder(){

@@ -1,10 +1,15 @@
 package com.hanyanan.http.internal;
 
 import com.hanyanan.http.HttpRequest;
+import com.hanyanan.http.HttpRequestHeader;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Map;
+import java.util.Set;
 
+import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
 
@@ -13,36 +18,42 @@ import static java.net.HttpURLConnection.HTTP_MOVED_PERM;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_MULT_CHOICE;
 import static java.net.HttpURLConnection.HTTP_SEE_OTHER;
+import static java.net.HttpURLConnection.getFollowRedirects;
 
 /**
  * Created by hanyanan on 2015/5/22.
  */
-public class HttpUrlExecutor implements HttpExecutor {
+public abstract class HttpUrlExecutor implements HttpExecutor {
 
     @Override
     public HttpResponse run(HttpRequest request) throws Throwable {
         String url = getUrl(request);
         URL address_url = null;
-        HttpURLConnection connection;
-        HttpResponse.Builder
+        HttpURLConnection connection = null;
+        HttpResponse.Builder builder = new HttpResponse.Builder(request);
+        int redirectedCount = 0;
         try {
             address_url = new URL(url);
             connection = (HttpURLConnection) address_url.openConnection();
-            connection.setDoOutput(true);
+            connection.setRequestMethod(request.methodString());
+            setTimeout(connection);//set timeout for connection
+            writeRequestHeader(request, connection);//set http request header
+            writeRequestBody(request, connection);//send request body to server
+
+
+//            connection.setDoOutput(true);
             connection.setDoInput(true);
-            connection.setUseCaches(false);
-            connection.setRequestMethod(request.getMethod().toString());
-            connection.setRequestProperty("Connection", "Keep-Alive");
-            connection.setRequestProperty("Charsert", "UTF-8");
-            connection.setRequestProperty("Cookie", "JSESSIONID=" + paramObj.getKey());
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
-            connection.setInstanceFollowRedirects(true);
-            connection.setIfModifiedSince(0x2304320423L);
 
-            connection.setFixedLengthStreamingMode();
+            int statusCode = connection.getResponseCode();
+            String msg = connection.getResponseMessage();
+            HttpResponseHeader responseHeader = new HttpResponseHeader(connection.getHeaderFields());
+            if(isRedirect(statusCode)){
+                ++redirectedCount;
+                String forwordUrl = responseHeader.getForwardUrl();
 
+            }else{
 
+            }
 
 
 
@@ -50,7 +61,7 @@ public class HttpUrlExecutor implements HttpExecutor {
 
 
 
-
+            return builder.build();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -59,6 +70,60 @@ public class HttpUrlExecutor implements HttpExecutor {
             //TODO , close connection.
         }
         return null;
+    }
+
+    protected HttpResponse performRequest(final HttpRequest request, final HttpResponse.Builder builder) throws Throwable {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkNotNull(builder);
+        String url = getUrl(request);
+        URL address_url = null;
+        HttpURLConnection connection = null;
+        try {
+            address_url = new URL(url);
+            connection = (HttpURLConnection) address_url.openConnection();
+            connection.setRequestMethod(request.methodString());
+            setTimeout(connection);//set timeout for connection
+            writeRequestHeader(request, connection);//set http request header
+            writeRequestBody(request, connection);//send request body to server
+
+            connection.setDoInput(true);
+
+            int statusCode = connection.getResponseCode();
+            String msg = connection.getResponseMessage();
+            HttpResponseHeader responseHeader = new HttpResponseHeader(connection.getHeaderFields());
+            if(isRedirect(statusCode)){
+                int count = builder.increaseAndGetRedirectCount();
+                if(count > MAX_REDIRECT_COUNT){
+                    //TODO
+                }
+                String forwordUrl = responseHeader.getForwardUrl();
+                if(ValueUtil.isEmpty(forwordUrl)) {
+                    //TODO
+                }
+                request.setForwardUrl(forwordUrl);
+                RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwordUrl, responseHeader);
+                builder.addRedirectedResponse(redirectedResponse);
+                //TODO, setCookie, Others
+                connection.disconnect();
+                return performRequest(request, builder);
+            }else{
+
+            }
+
+
+
+
+
+
+
+            return builder.build();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            IOUtil.safeClose(connection);
+        }
     }
 
     //readResponseHeaders
@@ -80,20 +145,39 @@ public class HttpUrlExecutor implements HttpExecutor {
         }
     }
 
-    protected void writeRequestBody(HttpRequest request) {
-
+    protected abstract void writeRequestBody(HttpRequest request, URLConnection connection) ;
+    /**
+     *
+     * @param request
+     */
+    protected void writeRequestHeader(HttpRequest request, URLConnection connection) {
+        HttpRequestHeader requestHeader = request.getRequestHeader();
+        if(null == requestHeader) return ;
+        Map<String, String> headers = requestHeader.maps();
+        Set<Map.Entry<String, String>> entrySet = headers.entrySet();
+        if(null == entrySet) return ;
+        for(Map.Entry<String,String> entry : entrySet) {
+            connection.setRequestProperty(entry.getKey(), entry.getValue());
+        }
     }
 
-    protected void writeRequestHeader(HttpRequest request) {
-        //TODO
+    protected void setTimeout(URLConnection connection){
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
     }
 
-    private final boolean permitsRequestBody(HttpRequest request){
+
+    protected final boolean supportRequestBody(HttpRequest request){
         Preconditions.checkNotNull(request);
-        Preconditions.checkNotNull(request.getMethod());
-        Preconditions.checkNotNull(request.getMethod().toString());
-        String method = request.getMethod().toString();
+        Preconditions.checkNotNull(request.methodString());
+        String method = request.methodString();
         return HttpPreconditions.permitsRequestBody(method);
+    }
+
+    protected final boolean containRequestBody(HttpRequest request){
+        if(null == request) return false;
+
+        return request.getRequestBody().hasContent();
     }
 
     /** Return the url will be request. */

@@ -1,9 +1,8 @@
 package com.hanyanan.http.internal;
 
+import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.MimeType;
 import com.hanyanan.http.Protocol;
-import com.sun.deploy.net.HttpRequest;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -45,6 +44,12 @@ public class HttpResponse implements Closeable{
         return getResponseHeader().getMimeType();
     }
 
+    public HttpResponse putRedirectedResponses(List<RedirectedResponse> redirectedResponses){
+        if(null != redirectedResponses) {
+            redirectedResponse.addAll(redirectedResponses);
+        }
+        return this;
+    }
     public List<RedirectedResponse> getRedirectedResponse(){
         return new LinkedList<>(redirectedResponse);
     }
@@ -74,10 +79,6 @@ public class HttpResponse implements Closeable{
         return responseHeader;
     }
 
-    public final BinaryResource geBody() {
-        return bodyResource;
-    }
-
     public String headValue(String key) {
         return getResponseHeader().value(key);
     }
@@ -90,7 +91,7 @@ public class HttpResponse implements Closeable{
         return msg;
     }
 
-    public BinaryResource body(){
+    public HttpResponseBody body(){
         return bodyResource;
     }
 
@@ -186,6 +187,8 @@ public class HttpResponse implements Closeable{
         private String msg;
 
         private Protocol protocol;
+
+        private int redirectCount = 0;
         Builder(HttpRequest request){
             this.httpRequest = request;
         }
@@ -219,8 +222,16 @@ public class HttpResponse implements Closeable{
             this.responseBody = responseBody;
             return this;
         }
+
+        public int increaseAndGetRedirectCount(){
+            ++redirectCount;
+            return redirectCount;
+        }
+
         HttpResponse build(){
             HttpResponse response = new HttpResponse(code, msg, httpRequest, protocol, responseHeader, responseBody);
+            response.putRedirectedResponses(redirectedResponses);
+            return response;
         }
     }
 

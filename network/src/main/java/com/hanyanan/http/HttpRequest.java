@@ -102,12 +102,16 @@ public class HttpRequest {
         return requestHeader;
     }
 
-    final String getUrl() {
+    final public String getUrl() {
         return url;
     }
 
-    final Method getMethod() {
+    final public Method getMethod() {
         return method;
+    }
+
+    public String methodString(){
+        return method.toString();
     }
 
     public final TrafficStatus getTrafficStatus(){

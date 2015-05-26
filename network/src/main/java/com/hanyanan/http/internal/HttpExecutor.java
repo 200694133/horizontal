@@ -10,6 +10,7 @@ import hyn.com.lib.Asyncable;
 public interface HttpExecutor extends Asyncable<HttpRequest, HttpResponse> {
     public static final int HTTP_TEMP_REDIRECT = 307;
     public static final int HTTP_PERM_REDIRECT = 308;
+    public static final int MAX_REDIRECT_COUNT = 10;
 //    public static final HttpExecutor sHttpExecutor = new HttpExecutor();
 //
 //    private HttpExecutor(){}
