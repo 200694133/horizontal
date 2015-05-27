@@ -43,9 +43,9 @@ public class HttpRequestBody {
 
     /** The entry of one file will upload. */
     public static final class EntityHolder {
-        @NotNull private String param;
-        @Nullable private String fileName;
-        @NotNull BinaryResource resource;
+        @NotNull public String param;
+        @Nullable public String fileName;
+        @NotNull public BinaryResource resource;
         private EntityHolder(String param, String fileName, BinaryResource binaryResource){
             this.param = param;
             this.fileName = fileName;
