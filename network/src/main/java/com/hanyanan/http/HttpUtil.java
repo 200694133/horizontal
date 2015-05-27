@@ -2,7 +2,10 @@ package com.hanyanan.http;
 
 import com.hanyanan.http.internal.DateUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by hanyanan on 2015/5/11.
@@ -99,5 +102,34 @@ public class HttpUtil {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+
+    public static String generateUrl(String url, Map<String, ?> parameters) {
+        if (parameters == null || url == null || parameters.isEmpty()) {
+            return url + "?";
+        }
+        String connectorChar = "&";
+        StringBuilder builder = new StringBuilder(url);
+        if (url.contains("?")) {
+            if (!url.endsWith("?")) {
+                connectorChar = "&";
+            } else {
+                connectorChar = "";
+            }
+        } else {
+            connectorChar = "?";
+        }
+        Set<String> keySet = parameters.keySet();
+        try {
+            for (String key : keySet) {
+                builder.append(connectorChar).append(URLEncoder.encode(key, "UTF-8")).append("=")
+                        .append(URLEncoder.encode(String.valueOf(parameters.get(key)), "UTF-8"));
+                connectorChar = "&";
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return builder.toString();
     }
 }

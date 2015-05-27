@@ -19,6 +19,8 @@ import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static hyn.com.lib.Preconditions.checkNotNull;
+import static hyn.com.lib.Preconditions.checkArgument;
 /**
  * Created by hanyanan on 2015/3/6.
  */
@@ -191,8 +193,8 @@ public class IOUtil {
      * @throws IOException IOException if an I/O error occurs
      */
     public static long copy(InputStream from, OutputStream to, long length, int buffSize)throws IOException {
-        Preconditions.checkNotNull(from);
-        Preconditions.checkNotNull(to);
+        checkNotNull(from);
+        checkNotNull(to);
         buffSize = buffSize<=0?DEFAULT_BUFF_SIZE:buffSize;
         length = length<=0?Long.MAX_VALUE:length;
         byte[] buf = new byte[buffSize];
@@ -281,8 +283,8 @@ public class IOUtil {
      * @throws IOException
      */
     public static long skip(final InputStream inputStream, final long bytesCount) throws IOException {
-        Preconditions.checkNotNull(inputStream);
-        Preconditions.checkArgument(bytesCount >= 0);
+        checkNotNull(inputStream);
+        checkArgument(bytesCount >= 0);
 
         long toSkip = bytesCount;
         while (toSkip > 0) {

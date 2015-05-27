@@ -11,6 +11,7 @@ import com.hanyanan.http.internal.HttpPreconditions;
 import com.hanyanan.http.internal.TimeStatus;
 import com.hanyanan.http.internal.TrafficStatus;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,6 +70,10 @@ public class HttpRequest {
     public HttpRequest setCallBack(CallBack callBack) {
         this.callBack = callBack;
         return this;
+    }
+
+    public CallBack getCallBack(){
+        return callBack;
     }
 
     public HttpRequest setForwardUrl(String url) {
@@ -149,12 +154,16 @@ public class HttpRequest {
     }
 
     public HttpRequest params(Map<String, Object> params){
-        //TODO encode
         if(null != params) {
             this.params.putAll(params);
         }
         return this;
     }
+
+    public Map<String, Object> getParams(){
+        return Collections.unmodifiableMap(params);
+    }
+
 
     public HttpRequest setRequestSupportCache(final boolean supportCache){
         getRequestHeader().setRequestSupportCache(supportCache);

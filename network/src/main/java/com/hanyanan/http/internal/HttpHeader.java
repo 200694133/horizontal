@@ -135,9 +135,10 @@ public class HttpHeader {
         return this;
     }
 
-    public HttpHeader remove(String attr) {
+    public HttpHeader remove(Object attr) {
         checkNotNull(attr);
-        headers.remove(attr.toLowerCase(Locale.ENGLISH));
+        checkNotNull(attr.toString());
+        headers.remove(attr.toString().toLowerCase(Locale.ENGLISH));
         return this;
     }
 

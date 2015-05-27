@@ -4,9 +4,11 @@ import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.binaryresource.BinaryResource;
+import hyn.com.lib.binaryresource.ListUtil;
 
 /**
  * Created by hanyanan on 2015/5/11.
@@ -31,12 +33,16 @@ public class HttpRequestBody {
         return this;
     }
 
+    public List<EntityHolder> getResources(){
+        return ListUtil.immutableList(resources);
+    }
+
     public boolean hasContent(){
         return resources.size() > 0;
     }
 
     /** The entry of one file will upload. */
-    private static final class EntityHolder {
+    public static final class EntityHolder {
         @NotNull private String param;
         @Nullable private String fileName;
         @NotNull BinaryResource resource;

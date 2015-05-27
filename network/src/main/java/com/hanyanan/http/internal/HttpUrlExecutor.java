@@ -1,82 +1,44 @@
 package com.hanyanan.http.internal;
 
+import com.hanyanan.http.CallBack;
+import com.hanyanan.http.Headers;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody;
 import com.hanyanan.http.HttpRequestHeader;
+import com.hanyanan.http.Method;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
-import hyn.com.lib.binaryresource.StreamBinaryResource;
 
 
 import static java.net.HttpURLConnection.HTTP_MOVED_PERM;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_MULT_CHOICE;
 import static java.net.HttpURLConnection.HTTP_SEE_OTHER;
-import static java.net.HttpURLConnection.getFollowRedirects;
 
 /**
  * Created by hanyanan on 2015/5/22.
  */
-public abstract class HttpUrlExecutor implements HttpExecutor {
+public class HttpUrlExecutor implements HttpExecutor {
 
     @Override
     public HttpResponse run(HttpRequest request) throws Throwable {
-        String url = getUrl(request);
-        URL address_url = null;
-        HttpURLConnection connection = null;
         HttpResponse.Builder builder = new HttpResponse.Builder(request);
-        int redirectedCount = 0;
-        try {
-            address_url = new URL(url);
-            connection = (HttpURLConnection) address_url.openConnection();
-            connection.setRequestMethod(request.methodString());
-            setTimeout(connection);//set timeout for connection
-            writeRequestHeader(request, connection);//set http request header
-            writeRequestBody(request, connection);//send request body to server
-
-
-//            connection.setDoOutput(true);
-            connection.setDoInput(true);
-
-            int statusCode = connection.getResponseCode();
-            String msg = connection.getResponseMessage();
-            HttpResponseHeader responseHeader = new HttpResponseHeader(connection.getHeaderFields());
-            if(isRedirect(statusCode)){
-                ++redirectedCount;
-                String forwordUrl = responseHeader.getForwardUrl();
-
-            }else{
-
-            }
-
-
-
-
-
-
-
-            return builder.build();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            //TODO , close connection.
-        }
-        return null;
+        builder = performRequest(request, builder);
+        return builder.build();
     }
 
-    protected HttpResponse performRequest(final HttpRequest request, final HttpResponse.Builder builder) throws Throwable {
+    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder) throws Throwable {
         Preconditions.checkNotNull(request);
         Preconditions.checkNotNull(builder);
         String url = getUrl(request);
@@ -87,11 +49,13 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
             connection = (HttpURLConnection) address_url.openConnection();
             connection.setRequestMethod(request.methodString());
             setTimeout(connection);//set timeout for connection
+            if(isMultipart(request)){
+                request.getRequestHeader().remove(Headers.CONTENT_LENGTH);
+            }
             writeRequestHeader(request, connection);//set http request header
             writeRequestBody(request, connection);//send request body to server
 
             connection.setDoInput(true);
-
             int statusCode = connection.getResponseCode();
             String msg = connection.getResponseMessage();
             HttpResponseHeader responseHeader = readResponseHeaders(request, connection);
@@ -105,29 +69,23 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
                     //TODO
                 }
                 request.setForwardUrl(forwardUrl);
-                RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwordUrl, responseHeader);
+                RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwardUrl, responseHeader);
                 builder.addRedirectedResponse(redirectedResponse);
                 //TODO, setCookie, Others
                 connection.disconnect();
                 return performRequest(request, builder);
             }else{
                 HttpResponseBody responseBody = readResponseBody(request, connection);
-                return responseBody;
+                builder.setBody(responseBody);
+                builder.setHttpResponseHeader(responseHeader);
+                return builder;
             }
-
-
-
-
-
-
-
-            return builder.build();
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            throw e;
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
-
+            throw e;
         }
     }
 
@@ -136,13 +94,21 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
 
     protected HttpResponseBody readResponseBody(HttpRequest httpRequest, HttpURLConnection connection)
             throws IOException{
+        final CallBack callBack = httpRequest.getCallBack();
+        final long contentLength = connection.getContentLengthLong();//TODO
         InputStream inputStream = connection.getInputStream();
-        InputStreamWrapper inputStreamWrapper = new InputStreamWrapper(inputStream, connection);
-        long contentLength = connection.getContentLengthLong();
+        InputStreamWrapper inputStreamWrapper = new InputStreamWrapper(inputStream, connection) {
+            @Override protected void onRead(long readCount) {
+                System.out.println("Read count " + readCount);
+                if(null != callBack) {
+                    callBack.onTransportProgress(readCount, contentLength);
+                }
+            }
+        };
+
         HttpResponseBody responseBody = new HttpResponseBody(new StreamBinaryResource(inputStreamWrapper, contentLength));
         return responseBody;
     }
-
 
     protected HttpResponseHeader readResponseHeaders(HttpRequest httpRequest, HttpURLConnection connection)
             throws IOException{
@@ -151,6 +117,15 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
     }
 
 
+    public boolean isMultipart(HttpRequest httpRequest){
+        if(Method.POST != httpRequest.getMethod()) return false;
+        List<HttpRequestBody.EntityHolder> entityHolders = httpRequest.getRequestBody().getResources();
+        if(entityHolders.size() > 0) {
+            System.out.println("url post request not need upload anything.");
+            return true;
+        }
+        return false;
+    }
 
     /** Returns true if this response redirects to another resource. */
     public boolean isRedirect(int code){
@@ -167,7 +142,9 @@ public abstract class HttpUrlExecutor implements HttpExecutor {
         }
     }
 
-    protected abstract void writeRequestBody(HttpRequest request, URLConnection connection) ;
+    protected void writeRequestBody(HttpRequest request, URLConnection connection) {
+        //default not write content
+    }
     /**
      *
      * @param request
