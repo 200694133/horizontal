@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
 
@@ -25,10 +26,9 @@ import hyn.com.lib.ValueUtil;
  * Created by hanyanan on 2015/5/27.
  */
 public class HttpPostExecutor extends HttpUrlExecutor {
-    private static final String COLONSPACE = ": ";
-    private static final String DASHDASH = "--";
-    private static final String CRLF = "\r\n";
-    @Override protected void writeRequestBody(HttpRequest request, URLConnection connection) {
+
+
+    @Override protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {
         String url = request.getUrl();
         Map<String, Object> params = request.getParams();
         List<EntityHolder> entityHolders = request.getRequestBody().getResources();
@@ -36,8 +36,9 @@ public class HttpPostExecutor extends HttpUrlExecutor {
             System.out.println("url post request not need upload anything.");
             return ;
         }
-        if(entityHolders.size() > 0) {
-
+        if(isMultipart(request)) {
+            writeRequestBodyMultipart(request, params, entityHolders, connection);
+            return ;
         }
     }
 
@@ -83,6 +84,8 @@ public class HttpPostExecutor extends HttpUrlExecutor {
 //            Content-Transfer-Encoding: binary
 //
 //                    [图片二进制数据]
+            long count = getTotle(entityHolders);
+            long reads = 0;
             for(EntityHolder entityHolder : entityHolders){
                 long size = entityHolder.resource.size();
                 StringBuilder data = new StringBuilder();
@@ -96,32 +99,50 @@ public class HttpPostExecutor extends HttpUrlExecutor {
                         .append("Content-Type: application/octet-stream")
                         .append(CRLF)
                         .append(CRLF);
+                outputStream.write(data.toString().getBytes());
+                outputStream.flush();
+                reads = copyAndCallback(request, entityHolder.resource.openStream(),
+                        outputStream, callBack, reads, count);
+                IOUtil.closeQuietly(entityHolder.resource.openStream());
 
             }
         }
+        IOUtil.closeQuietly(outputStream);
     }
+
+    private long getTotle(List<EntityHolder> entityHolders){
+        if(null == entityHolders) return 0;
+        long size = 0;
+        for(EntityHolder entityHolder : entityHolders){
+            size += entityHolder.resource.size();
+        }
+        return size;
+    }
+
 
     /**
      * Copy data from inputStream to outputStream.
-     * @param inputStream
-     * @param outputStream
-     * @param callBack
-     * @param maxSize
+     * @param inputStream the data come from
+     * @param outputStream the data output
+     * @param callBack the callback
+     * @param maxSize the max size of the data transport
      */
-    private void copy(InputStream inputStream, OutputStream outputStream, CallBack callBack, long maxSize){
+    private long copyAndCallback(HttpRequest request, InputStream inputStream, OutputStream outputStream,
+                      CallBack callBack, long reads, long maxSize) throws IOException{
         Preconditions.checkNotNull(inputStream);
         Preconditions.checkNotNull(outputStream);
         int buffSize = 1024;//1k
         byte[] buf = new byte[buffSize];
-        try {
-            do {
-                long read = inputStream.read(buf);
-                if(read <= 0) break;//读取完毕
-
-            } while (true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        do {
+            long read = inputStream.read(buf);
+            if (read <= 0) break;//读取完毕
+            outputStream.write(buf, 0, (int) read);
+            reads += read;
+            if (null != callBack) {
+                callBack.onTransportProgress(request, reads, maxSize);
+            }
+        } while (true);
+        return reads;
     }
 
     private Map<String, String> encodeParams(Map<String, Object> params){

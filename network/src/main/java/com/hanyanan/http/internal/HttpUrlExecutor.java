@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
 
@@ -30,6 +31,9 @@ import static java.net.HttpURLConnection.HTTP_SEE_OTHER;
  * Created by hanyanan on 2015/5/22.
  */
 public class HttpUrlExecutor implements HttpExecutor {
+    public static final String COLONSPACE = ": ";
+    public static final String DASHDASH = "--";
+    public static final String CRLF = "\r\n";
 
     @Override
     public HttpResponse run(HttpRequest request) throws Throwable {
@@ -38,7 +42,8 @@ public class HttpUrlExecutor implements HttpExecutor {
         return builder.build();
     }
 
-    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder) throws Throwable {
+    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder)
+            throws Throwable{
         Preconditions.checkNotNull(request);
         Preconditions.checkNotNull(builder);
         String url = getUrl(request);
@@ -49,7 +54,7 @@ public class HttpUrlExecutor implements HttpExecutor {
             connection = (HttpURLConnection) address_url.openConnection();
             connection.setRequestMethod(request.methodString());
             setTimeout(connection);//set timeout for connection
-            if(isMultipart(request)){
+            if (isMultipart(request)) {
                 request.getRequestHeader().remove(Headers.CONTENT_LENGTH);
             }
             writeRequestHeader(request, connection);//set http request header
@@ -59,13 +64,13 @@ public class HttpUrlExecutor implements HttpExecutor {
             int statusCode = connection.getResponseCode();
             String msg = connection.getResponseMessage();
             HttpResponseHeader responseHeader = readResponseHeaders(request, connection);
-            if(isRedirect(statusCode)){
+            if (isRedirect(statusCode)) {
                 int count = builder.increaseAndGetRedirectCount();
-                if(count > MAX_REDIRECT_COUNT){
+                if (count > MAX_REDIRECT_COUNT) {
                     //TODO
                 }
                 String forwardUrl = responseHeader.getForwardUrl();
-                if(ValueUtil.isEmpty(forwardUrl)) {
+                if (ValueUtil.isEmpty(forwardUrl)) {
                     //TODO
                 }
                 request.setForwardUrl(forwardUrl);
@@ -74,7 +79,7 @@ public class HttpUrlExecutor implements HttpExecutor {
                 //TODO, setCookie, Others
                 connection.disconnect();
                 return performRequest(request, builder);
-            }else{
+            } else {
                 HttpResponseBody responseBody = readResponseBody(request, connection);
                 builder.setBody(responseBody);
                 builder.setHttpResponseHeader(responseHeader);
@@ -82,9 +87,17 @@ public class HttpUrlExecutor implements HttpExecutor {
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            releaseBodyResource(request);
+            if (null != connection) {
+                connection.disconnect();
+            }
             throw e;
         } catch (IOException e) {
             e.printStackTrace();
+            releaseBodyResource(request);
+            if (null != connection) {
+                connection.disconnect();
+            }
             throw e;
         }
     }
@@ -92,16 +105,29 @@ public class HttpUrlExecutor implements HttpExecutor {
     //readResponseHeaders
     //openResponseBody
 
+    protected final void releaseBodyResource(HttpRequest request) {
+        List<HttpRequestBody.EntityHolder> entityHolders = request.getRequestBody().getResources();
+        if(null == entityHolders || entityHolders.size() <= 0) return ;
+        for(HttpRequestBody.EntityHolder entityHolder : entityHolders) {
+            try {
+                IOUtil.closeQuietly(entityHolder.resource.openStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     protected HttpResponseBody readResponseBody(HttpRequest httpRequest, HttpURLConnection connection)
-            throws IOException{
+            throws IOException {
         final CallBack callBack = httpRequest.getCallBack();
         final long contentLength = connection.getContentLengthLong();//TODO
         InputStream inputStream = connection.getInputStream();
         InputStreamWrapper inputStreamWrapper = new InputStreamWrapper(inputStream, connection) {
-            @Override protected void onRead(long readCount) {
+            @Override
+            protected void onRead(long readCount) {
                 System.out.println("Read count " + readCount);
-                if(null != callBack) {
-                    callBack.onTransportProgress(readCount, contentLength);
+                if (null != callBack) {
+                    callBack.onTransportProgress(httpRequest, readCount, contentLength);
                 }
             }
         };
@@ -111,24 +137,26 @@ public class HttpUrlExecutor implements HttpExecutor {
     }
 
     protected HttpResponseHeader readResponseHeaders(HttpRequest httpRequest, HttpURLConnection connection)
-            throws IOException{
+            throws IOException {
         connection.getResponseCode();
         return new HttpResponseHeader(connection.getHeaderFields());
     }
 
 
-    public boolean isMultipart(HttpRequest httpRequest){
-        if(Method.POST != httpRequest.getMethod()) return false;
+    public boolean isMultipart(HttpRequest httpRequest) {
+        if (Method.POST != httpRequest.getMethod()) return false;
         List<HttpRequestBody.EntityHolder> entityHolders = httpRequest.getRequestBody().getResources();
-        if(entityHolders.size() > 0) {
+        if (entityHolders.size() > 0) {
             System.out.println("url post request not need upload anything.");
             return true;
         }
         return false;
     }
 
-    /** Returns true if this response redirects to another resource. */
-    public boolean isRedirect(int code){
+    /**
+     * Returns true if this response redirects to another resource.
+     */
+    public boolean isRedirect(int code) {
         switch (code) {
             case HTTP_PERM_REDIRECT:
             case HTTP_TEMP_REDIRECT:
@@ -142,47 +170,49 @@ public class HttpUrlExecutor implements HttpExecutor {
         }
     }
 
-    protected void writeRequestBody(HttpRequest request, URLConnection connection) {
+    protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {
         //default not write content
     }
+
     /**
-     *
      * @param request
      */
     protected void writeRequestHeader(HttpRequest request, URLConnection connection) {
         HttpRequestHeader requestHeader = request.getRequestHeader();
-        if(null == requestHeader) return ;
+        if (null == requestHeader) return;
         Map<String, String> headers = requestHeader.maps();
         Set<Map.Entry<String, String>> entrySet = headers.entrySet();
-        if(null == entrySet) return ;
-        for(Map.Entry<String,String> entry : entrySet) {
+        if (null == entrySet) return;
+        for (Map.Entry<String, String> entry : entrySet) {
             connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
     }
 
-    protected void setTimeout(URLConnection connection){
+    protected void setTimeout(URLConnection connection) {
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
     }
 
 
-    protected final boolean supportRequestBody(HttpRequest request){
+    protected final boolean supportRequestBody(HttpRequest request) {
         Preconditions.checkNotNull(request);
         Preconditions.checkNotNull(request.methodString());
         String method = request.methodString();
         return HttpPreconditions.permitsRequestBody(method);
     }
 
-    protected final boolean containRequestBody(HttpRequest request){
-        if(null == request) return false;
+    protected final boolean containRequestBody(HttpRequest request) {
+        if (null == request) return false;
 
         return request.getRequestBody().hasContent();
     }
 
-    /** Return the url will be request. */
-    protected String getUrl(HttpRequest request){
+    /**
+     * Return the url will be request.
+     */
+    protected String getUrl(HttpRequest request) {
         String url = request.getForwardUrl();
-        if(ValueUtil.isEmpty(url)){
+        if (ValueUtil.isEmpty(url)) {
             url = request.getUrl();
         }
         return url;
