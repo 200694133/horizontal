@@ -6,6 +6,7 @@ import com.hanyanan.http.HttpRequestBody.EntityHolder;
 import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
 
 /**
@@ -96,6 +98,29 @@ public class HttpPostExecutor extends HttpUrlExecutor {
                         .append(CRLF);
 
             }
+        }
+    }
+
+    /**
+     * Copy data from inputStream to outputStream.
+     * @param inputStream
+     * @param outputStream
+     * @param callBack
+     * @param maxSize
+     */
+    private void copy(InputStream inputStream, OutputStream outputStream, CallBack callBack, long maxSize){
+        Preconditions.checkNotNull(inputStream);
+        Preconditions.checkNotNull(outputStream);
+        int buffSize = 1024;//1k
+        byte[] buf = new byte[buffSize];
+        try {
+            do {
+                long read = inputStream.read(buf);
+                if(read <= 0) break;//读取完毕
+
+            } while (true);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
