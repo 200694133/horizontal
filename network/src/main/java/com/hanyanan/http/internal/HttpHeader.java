@@ -79,7 +79,7 @@ public class HttpHeader {
      * */
     protected final Map<String, String> priorHeaders = Maps.newHashMap();
     public HttpHeader(HttpHeader header) {
-        if (null != headers) {
+        if (null != header && null != header.headers) {
             this.headers.putAll(header.headers);
         }
     }

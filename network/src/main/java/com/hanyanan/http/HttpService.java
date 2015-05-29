@@ -4,8 +4,6 @@ import com.hanyanan.http.internal.HttpResponse;
 
 import java.io.InputStream;
 
-import hyn.com.lib.android.parser.ObjectParser;
-
 /**
  * Created by hanyanan on 2015/5/13.
  * Please note that this service just support utf-8.
@@ -59,8 +57,8 @@ public class HttpService {
         return null;
     }
 
-    public <T> T loadObjectHttpRequest(HttpRequest httpRequest, ObjectParser<T> parser) throws Throwable {
-
-        return null;
-    }
+//    public <T> T loadObjectHttpRequest(HttpRequest httpRequest, ObjectParser<T> parser) throws Throwable {
+//
+//        return null;
+//    }
 }

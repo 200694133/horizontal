@@ -59,8 +59,9 @@ public class HttpUrlExecutor implements HttpExecutor {
             }
             writeRequestHeader(request, connection);//set http request header
             writeRequestBody(request, connection);//send request body to server
+            connection.connect();
 
-            connection.setDoInput(true);
+//            connection.setDoInput(true);
             int statusCode = connection.getResponseCode();
             String msg = connection.getResponseMessage();
             HttpResponseHeader responseHeader = readResponseHeaders(request, connection);
@@ -79,10 +80,19 @@ public class HttpUrlExecutor implements HttpExecutor {
                 //TODO, setCookie, Others
                 connection.disconnect();
                 return performRequest(request, builder);
-            } else {
+            } else if(isSuccess(statusCode)){
+                builder.setMessage(msg);
+                builder.setStatusCode(statusCode);
                 HttpResponseBody responseBody = readResponseBody(request, connection);
                 builder.setBody(responseBody);
                 builder.setHttpResponseHeader(responseHeader);
+                return builder;
+            }else{//failed
+                builder.setMessage(msg);
+                builder.setStatusCode(statusCode);
+                builder.setBody(null);
+                builder.setHttpResponseHeader(responseHeader);
+                connection.disconnect();
                 return builder;
             }
         } catch (MalformedURLException e) {
@@ -117,7 +127,7 @@ public class HttpUrlExecutor implements HttpExecutor {
         }
     }
 
-    protected HttpResponseBody readResponseBody(HttpRequest httpRequest, HttpURLConnection connection)
+    protected HttpResponseBody readResponseBody(final HttpRequest httpRequest, HttpURLConnection connection)
             throws IOException {
         final CallBack callBack = httpRequest.getCallBack();
         final long contentLength = connection.getContentLengthLong();//TODO
@@ -168,6 +178,13 @@ public class HttpUrlExecutor implements HttpExecutor {
             default:
                 return false;
         }
+    }
+
+    protected final boolean isSuccess(int code){
+        if(code >= 200 && code < 300){
+            return true;
+        }
+        return false;
     }
 
     protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {

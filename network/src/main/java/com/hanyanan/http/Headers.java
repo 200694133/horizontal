@@ -6,7 +6,6 @@ import java.util.Locale;
  * Created by hanyanan on 2015/5/10.
  * https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-latest.html
  * http://stackoverflow.com/questions/18315787/http-1-1-response-to-multiple-range
- *
  */
 public enum Headers {
     /**
@@ -32,7 +31,7 @@ public enum Headers {
 
 
     /* *
-     *   请求头字段	                         说明	                       响应头字段
+     *   请求头字段                         说明	                       响应头字段
      *      Accept	               告知服务器发送何种媒体类型	             Content-Type
      * Accept-Language	             告知服务器发送何种语言	                 Content-Language
      * Accept-Charset	            告知服务器发送何种字符集	             Content-Type
@@ -77,10 +76,10 @@ public enum Headers {
     DATE("Date"),//Date: Tue, 15 Nov 2010 08:12:31 GMT
     FROM("From"),//From: user@email.com
     HOST("Host"),//Host: www.zcmhi.com
-    IF_MATCH("If-Match"),//If-Match: ��737060cd8c284d8af7ad3082f209582d��
+    IF_MATCH("If-Match"),//If-Match: 737060cd8c284d8af7ad3082f209582d
     IF_MODIFIED_SINCE("If-Modified-Since"),//If-Modified-Since: Sat, 29 Oct 2010 19:43:31 GMT
-    IF_NONE_MATCH("If-None-Match"),//If-None-Match: ��737060cd8c284d8af7ad3082f209582d��
-    IF_RANGE("If-Range"),//If-Range: ��737060cd8c284d8af7ad3082f209582d��
+    IF_NONE_MATCH("If-None-Match"),//If-None-Match: 737060cd8c284d8af7ad3082f209582d
+    IF_RANGE("If-Range"),//If-Range: 737060cd8c284d8af7ad3082f209582d
     IF_UNMODIFIED_SINCE("If-Unmodified-Since"),//If-Unmodified-Since: Sat, 29 Oct 2010 19:43:31 GMT
     MAX_FORWARDS("Max-Forwards"),//Max-Forwards: 10
     PROXY_AUTHORIZATION("Proxy-Authorization"),//Proxy-Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -98,7 +97,7 @@ public enum Headers {
     LOCATION("Location"),//Location: http://www.zcmhi.com/archives/94.html
     CONTENT_MD5("Content-MD5"),//Content-MD5: Q2hlY2sgSW50ZWdyaXR5IQ==
     CONTENT_RANGE("Content-Range"),//Content-Range: bytes 21010-47021/47022
-    E_TAG("ETag"),//ETag: ��737060cd8c284d8af7ad3082f209582d��
+    E_TAG("ETag"),//ETag: 737060cd8c284d8af7ad3082f209582d
     EXPIRES("Expires"),//Expires: Thu, 01 Dec 2010 16:00:00 GMT
     LAST_MODIFIED("Last-Modified"),//Last-Modified: Tue, 15 Nov 2010 12:45:26 GMT
     REFRESH("Refresh"),//Refresh: 5; url=http://www.zcmhi.com/archives/94.html
@@ -117,11 +116,12 @@ public enum Headers {
         this.header = header.toLowerCase(Locale.ENGLISH);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return header;
     }
 
-    public String value(){
+    public String value() {
         return header;
     }
 }

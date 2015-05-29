@@ -4,9 +4,6 @@ package com.hanyanan.http;
 import static hyn.com.lib.Preconditions.checkNotNull;
 import static hyn.com.lib.Preconditions.checkArgument;
 import static hyn.com.lib.Preconditions.checkState;
-
-import android.support.annotation.Nullable;
-
 import com.hanyanan.http.internal.HttpPreconditions;
 import com.hanyanan.http.internal.TimeStatus;
 import com.hanyanan.http.internal.TrafficStatus;
@@ -14,6 +11,8 @@ import com.hanyanan.http.internal.TrafficStatus;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import hyn.com.lib.ValueUtil;
 import hyn.com.lib.binaryresource.BinaryResource;
@@ -153,7 +152,7 @@ public class HttpRequest {
         return this;
     }
 
-    public HttpRequest params(Map<String, Object> params){
+    public HttpRequest params(Map<String, ?> params){
         if(null != params) {
             this.params.putAll(params);
         }

@@ -22,7 +22,7 @@ public class StreamBinaryResource implements BinaryResource {
     }
     @Override
     public InputStream openStream() throws IOException {
-        if(consumed) {
+        if(!consumed) {
             consumed = true;
             return inputStream;
         }

@@ -107,7 +107,7 @@ public class HttpUtil {
 
     public static String generateUrl(String url, Map<String, ?> parameters) {
         if (parameters == null || url == null || parameters.isEmpty()) {
-            return url + "?";
+            return url;
         }
         String connectorChar = "&";
         StringBuilder builder = new StringBuilder(url);

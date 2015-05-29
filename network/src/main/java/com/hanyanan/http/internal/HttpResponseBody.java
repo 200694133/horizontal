@@ -12,4 +12,7 @@ public class HttpResponseBody {
         this.resource = resource;
     }
 
+    public BinaryResource getResource(){
+        return resource;
+    }
 }

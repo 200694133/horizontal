@@ -159,6 +159,16 @@ public class HttpResponse implements Closeable{
 
     }
 
+    @Override public String toString() {
+        return "Response{protocol="
+                + protocol
+                + ", code="
+                + code
+                + ", message="
+                + msg
+                + '}';
+    }
+
 //    @Override public String toString() {
 //        return "Response{protocol="
 //                + protocol

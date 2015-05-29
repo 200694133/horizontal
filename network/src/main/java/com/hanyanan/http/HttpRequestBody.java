@@ -1,10 +1,10 @@
 package com.hanyanan.http;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.binaryresource.BinaryResource;
@@ -16,7 +16,7 @@ import hyn.com.lib.binaryresource.ListUtil;
 public class HttpRequestBody {
     private final LinkedList<EntityHolder> resources = new LinkedList<EntityHolder>();
 
-    public HttpRequestBody add(String param, BinaryResource resource){
+    public HttpRequestBody add(String param, BinaryResource resource) {
         Preconditions.checkNotNull(param);
         Preconditions.checkNotNull(resource);
         Preconditions.checkArgument(resource.size() > 0, "The Body's size must be greater than 0!");
@@ -24,7 +24,7 @@ public class HttpRequestBody {
         return this;
     }
 
-    public HttpRequestBody add(String param, String fileName, BinaryResource resource){
+    public HttpRequestBody add(String param, String fileName, BinaryResource resource) {
         Preconditions.checkNotNull(param);
         Preconditions.checkNotNull(fileName);
         Preconditions.checkNotNull(resource);
@@ -33,20 +33,23 @@ public class HttpRequestBody {
         return this;
     }
 
-    public List<EntityHolder> getResources(){
+    public List<EntityHolder> getResources() {
         return ListUtil.immutableList(resources);
     }
 
-    public boolean hasContent(){
+    public boolean hasContent() {
         return resources.size() > 0;
     }
 
-    /** The entry of one file will upload. */
+    /**
+     * The entry of one file will upload.
+     */
     public static final class EntityHolder {
-        @NotNull public String param;
+        public String param;
         @Nullable public String fileName;
-        @NotNull public BinaryResource resource;
-        private EntityHolder(String param, String fileName, BinaryResource binaryResource){
+        public BinaryResource resource;
+
+        private EntityHolder(String param, String fileName, BinaryResource binaryResource) {
             this.param = param;
             this.fileName = fileName;
             this.resource = binaryResource;
@@ -54,8 +57,7 @@ public class HttpRequestBody {
     }
 
 
-
-    public static HttpRequestBody create(MimeType mimeType, String content){
+    public static HttpRequestBody create(MimeType mimeType, String content) {
 //        Charset charset = Util.UTF_8;
 //        if (contentType != null) {
 //            charset = contentType.charset();
@@ -69,7 +71,7 @@ public class HttpRequestBody {
         return null;
     }
 
-    public static HttpRequestBody create(String content){
+    public static HttpRequestBody create(String content) {
         //TODO
         return null;
     }

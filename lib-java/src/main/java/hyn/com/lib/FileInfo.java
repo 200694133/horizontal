@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Ìá¹©ÓëÎÄ¼şĞÅÏ¢Ïà¹ØµÄ¾²Ì¬¹¤¾ßº¯Êı¡£
+ * æä¾›ä¸æ–‡ä»¶ä¿¡æ¯ç›¸å…³çš„é™æ€å·¥å…·å‡½æ•°ã€‚
  * @author		uestc.Mobius <mobius@toraleap.com>
  * @version	2010.1025
  */
@@ -15,9 +15,9 @@ public class FileInfo {
     private FileInfo() { }
 
     /**
-     * »ñÈ¡¸ø¶¨ÎÄ¼şÃûµÄÖ÷ÎÄ¼şÃûÃû²¿·Ö
-     * @param filename	Ô´ÎÄ¼şÃû
-     * @return Ô´ÎÄ¼şÃûµÄÖ÷ÎÄ¼şÃûÃû²¿·Ö(²»º¬Â·¾¶¼°À©Õ¹Ãû)
+     * è·å–ç»™å®šæ–‡ä»¶åçš„ä¸»æ–‡ä»¶ååéƒ¨åˆ†
+     * @param filename	æºæ–‡ä»¶å
+     * @return æºæ–‡ä»¶åçš„ä¸»æ–‡ä»¶ååéƒ¨åˆ†(ä¸å«è·¯å¾„åŠæ‰©å±•å)
      */
     public static String mainName(String filename) {
         int start = filename.lastIndexOf("/");
@@ -31,9 +31,9 @@ public class FileInfo {
     }
 
     /**
-     * »ñÈ¡¸ø¶¨ÎÄ¼şÃûµÄÀ©Õ¹Ãû²¿·Ö
-     * @param filename	Ô´ÎÄ¼şÃû
-     * @return Ô´ÎÄ¼şÃûµÄÀ©Õ¹Ãû²¿·Ö(²»º¬Ğ¡Êıµã)
+     * è·å–ç»™å®šæ–‡ä»¶åçš„æ‰©å±•åéƒ¨åˆ†
+     * @param filename	æºæ–‡ä»¶å
+     * @return æºæ–‡ä»¶åçš„æ‰©å±•åéƒ¨åˆ†(ä¸å«å°æ•°ç‚¹)
      */
     public static String extension(String filename) {
         int start = filename.lastIndexOf("/");
@@ -43,9 +43,9 @@ public class FileInfo {
     }
 
     /**
-     * »ñÈ¡¸ø¶¨ÎÄ¼şÃûµÄ MIME ÀàĞÍ
-     * @param filename	Ô´ÎÄ¼şÃû
-     * @return Ô´ÎÄ¼şÃûµÄ MIME ÀàĞÍ
+     * è·å–ç»™å®šæ–‡ä»¶åçš„ MIME ç±»å‹
+     * @param filename	æºæ–‡ä»¶å
+     * @return æºæ–‡ä»¶åçš„ MIME ç±»å‹
      */
     public static String mimeType(String filename) {
         String ext = extension(filename);
@@ -54,9 +54,9 @@ public class FileInfo {
     }
 
     /**
-     * »ñÈ¡ÎÄ¼ş³¤¶ÈµÄÖÇÄÜ¿É¶Á×Ö·û´®ĞÎÊ½¡£
-     * @param size	ÎÄ¼ş×Ö½Ú³¤¶È
-     * @return	ÎÄ¼ş³¤¶ÈµÄ×Ö·û´®±íÊ¾
+     * è·å–æ–‡ä»¶é•¿åº¦çš„æ™ºèƒ½å¯è¯»å­—ç¬¦ä¸²å½¢å¼ã€‚
+     * @param size	æ–‡ä»¶å­—èŠ‚é•¿åº¦
+     * @return	æ–‡ä»¶é•¿åº¦çš„å­—ç¬¦ä¸²è¡¨ç¤º
      */
     public static String sizeString(long size) {
         if (size < 1024)
@@ -72,10 +72,10 @@ public class FileInfo {
     }
 
     /**
-     * ´ÓÎÄ¼ş³¤¶ÈµÄ×Ö·û´®ĞÎÊ½×ª»»Îª×Ö½ÚÊı±íÊ¾¡£
-     * @param sizeString	ÎÄ¼ş³¤¶ÈµÄ×Ö·û´®±íÊ¾
-     * @return	ÎÄ¼ş×Ö½Ú³¤¶È
-     * @throws ParseException	¸ø¶¨×Ö·û´®²»ÊÇÖ§³ÖµÄĞÎÊ½£¬½âÎöÊ§°Ü
+     * ä»æ–‡ä»¶é•¿åº¦çš„å­—ç¬¦ä¸²å½¢å¼è½¬æ¢ä¸ºå­—èŠ‚æ•°è¡¨ç¤ºã€‚
+     * @param sizeString	æ–‡ä»¶é•¿åº¦çš„å­—ç¬¦ä¸²è¡¨ç¤º
+     * @return	æ–‡ä»¶å­—èŠ‚é•¿åº¦
+     * @throws ParseException	ç»™å®šå­—ç¬¦ä¸²ä¸æ˜¯æ”¯æŒçš„å½¢å¼ï¼Œè§£æå¤±è´¥
      */
     public static long stringToSize(String sizeString) throws ParseException {
         Pattern pattern = Pattern.compile("(-?\\d+\\.?\\d*)([\\w]{0,2})", Pattern.CASE_INSENSITIVE);
@@ -99,9 +99,9 @@ public class FileInfo {
     }
 
 //    /**
-//     * »ñÈ¡Ê±¼ä¿ç¶ÈµÄÖÇÄÜ¿É¶Á×Ö·û´®ĞÎÊ½¡£ĞèÒª´«ÈëÒ»¸ö·Ç¸ºÕûÊı¡£
-//     * @param timeMillis	ºÁÃëµ¥Î»µÄÊ±¼ä¿ç¶È£¬·Ç¸ºÕûÊı
-//     * @return	Ê±¼ä¿ç¶ÈµÄ×Ö·û´®±íÊ¾
+//     * è·å–æ—¶é—´è·¨åº¦çš„æ™ºèƒ½å¯è¯»å­—ç¬¦ä¸²å½¢å¼ã€‚éœ€è¦ä¼ å…¥ä¸€ä¸ªéè´Ÿæ•´æ•°ã€‚
+//     * @param timeMillis	æ¯«ç§’å•ä½çš„æ—¶é—´è·¨åº¦ï¼Œéè´Ÿæ•´æ•°
+//     * @return	æ—¶é—´è·¨åº¦çš„å­—ç¬¦ä¸²è¡¨ç¤º
 //     */
 //    public static String timeString(long timeMillis) {
 //        if (timeMillis < 1000)
@@ -121,9 +121,9 @@ public class FileInfo {
 //    }
 
 //    /**
-//     * »ñÈ¡¾à½ñÊ±¼äµÄÖÇÄÜ¿É¶Á×Ö·û´®ĞÎÊ½¡£
-//     * @param timeMillis	ºÁÃëµ¥Î»µÄÊ±¼ä¿ç¶È
-//     * @return	¾à½ñÊ±¼äµÄ×Ö·û´®±íÊ¾
+//     * è·å–è·ä»Šæ—¶é—´çš„æ™ºèƒ½å¯è¯»å­—ç¬¦ä¸²å½¢å¼ã€‚
+//     * @param timeMillis	æ¯«ç§’å•ä½çš„æ—¶é—´è·¨åº¦
+//     * @return	è·ä»Šæ—¶é—´çš„å­—ç¬¦ä¸²è¡¨ç¤º
 //     */
 //    public static String timeSpanString(long timeMillis) {
 //        if (timeMillis > 0) {
@@ -134,10 +134,10 @@ public class FileInfo {
 //    }
 
     /**
-     * ´ÓÊ±¼ä¿ç¶ÈµÄ×Ö·û´®ĞÎÊ½×ª»»ÎªºÁÃëÊı±íÊ¾¡£
-     * @param timeString	Ê±¼ä¿ç¶ÈµÄ×Ö·û´®±íÊ¾
-     * @return	ºÁÃëÊı
-     * @throws ParseException	¸ø¶¨×Ö·û´®²»ÊÇÖ§³ÖµÄĞÎÊ½£¬½âÎöÊ§°Ü
+     * ä»æ—¶é—´è·¨åº¦çš„å­—ç¬¦ä¸²å½¢å¼è½¬æ¢ä¸ºæ¯«ç§’æ•°è¡¨ç¤ºã€‚
+     * @param timeString	æ—¶é—´è·¨åº¦çš„å­—ç¬¦ä¸²è¡¨ç¤º
+     * @return	æ¯«ç§’æ•°
+     * @throws ParseException	ç»™å®šå­—ç¬¦ä¸²ä¸æ˜¯æ”¯æŒçš„å½¢å¼ï¼Œè§£æå¤±è´¥
      */
     public static long timespanToMillis(String timeString) throws ParseException {
         Pattern pattern = Pattern.compile("(-?\\d+\\.?\\d*)([\\w]{0,1})", Pattern.CASE_INSENSITIVE);

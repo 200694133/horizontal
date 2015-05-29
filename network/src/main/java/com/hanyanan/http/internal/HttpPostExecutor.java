@@ -3,7 +3,6 @@ package com.hanyanan.http.internal;
 import com.hanyanan.http.CallBack;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody.EntityHolder;
-import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,8 +25,6 @@ import hyn.com.lib.ValueUtil;
  * Created by hanyanan on 2015/5/27.
  */
 public class HttpPostExecutor extends HttpUrlExecutor {
-
-
     @Override protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {
         String url = request.getUrl();
         Map<String, Object> params = request.getParams();
@@ -40,8 +37,27 @@ public class HttpPostExecutor extends HttpUrlExecutor {
             writeRequestBodyMultipart(request, params, entityHolders, connection);
             return ;
         }
+
+        writeRequestParam(request, params, connection);
     }
 
+    private void writeRequestParam(HttpRequest request, Map<String, Object> params, URLConnection connection)
+                                                                throws IOException{
+        if(null == params || params.isEmpty()) return ;
+//        Content-Type: application/x-www-form-urlencoded;charset=utf-8
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+        connection.setDoOutput(true);
+        OutputStream outputStream = connection.getOutputStream();
+        Map<String, String> encodedParam = encodeParams(params);
+        StringBuilder sb = new StringBuilder();
+        Set<Map.Entry<String, String>> entries = encodedParam.entrySet();
+        for(Map.Entry<String, String> entry : entries) {
+            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+        }
+        outputStream.write(sb.substring(0, sb.length() - 1).toString().getBytes());
+        outputStream.flush();
+        outputStream.close();
+    }
     private void writeRequestBodyMultipart(HttpRequest request, Map<String, Object> params, List<EntityHolder> entityHolders,
                                            URLConnection connection) throws IOException {
         String boundary = UUID.randomUUID().toString();
@@ -49,7 +65,6 @@ public class HttpPostExecutor extends HttpUrlExecutor {
         connection.setDoOutput(true);
         OutputStream outputStream = connection.getOutputStream();
         Map<String, String> encodedParam = encodeParams(params);
-        ByteArrayBuffer buff = new ByteArrayBuffer();
         String boundaryLine =DASHDASH +  boundary;
         String boundaryEndLine =DASHDASH +  boundary + DASHDASH;
         //            --ZnGpDtePMx0KrHh_G0X99Yef9r8JZsRJSXC
@@ -104,9 +119,10 @@ public class HttpPostExecutor extends HttpUrlExecutor {
                 reads = copyAndCallback(request, entityHolder.resource.openStream(),
                         outputStream, callBack, reads, count);
                 IOUtil.closeQuietly(entityHolder.resource.openStream());
-
             }
         }
+        outputStream.write(boundaryEndLine.getBytes());
+        outputStream.flush();
         IOUtil.closeQuietly(outputStream);
     }
 

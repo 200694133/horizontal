@@ -1,5 +1,9 @@
 apply plugin: 'java'
 
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
 dependencies {
     //provided "com.google.code.findbugs:jsr305:3.0.0"
     //provided "javax.annotation:javax.annotation-api:1.2"
