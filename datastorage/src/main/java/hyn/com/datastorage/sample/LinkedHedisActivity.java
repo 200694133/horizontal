@@ -17,7 +17,7 @@ import hyn.com.datastorage.db.DataStorageManager;
 import hyn.com.datastorage.db.OrderStructureDataStorage;
 import hyn.com.datastorage.R;
 import hyn.com.datastorage.exception.ParseFailedException;
-import hyn.com.lib.android.parser.StringParser;
+import hyn.com.lib.parser.StringParser;
 import hyn.com.lib.TimeUtils;
 import hyn.com.lib.TwoTuple;
 

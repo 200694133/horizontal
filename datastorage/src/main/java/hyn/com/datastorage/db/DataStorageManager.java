@@ -3,7 +3,7 @@ package hyn.com.datastorage.db;
 import android.content.Context;
 
 import hyn.com.datastorage.exception.TypeConflictException;
-import hyn.com.lib.android.parser.ObjectParser;
+import hyn.com.lib.parser.ObjectParser;
 
 /**
  * Created by hanyanan on 2015/4/1.

@@ -1,4 +1,4 @@
-package hyn.com.lib.android.parser;
+package hyn.com.lib.parser;
 
 
 import hyn.com.lib.ByteUtil;

@@ -43,7 +43,7 @@ public class HttpUrlExecutor implements HttpExecutor {
     }
 
     protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder)
-            throws Throwable{
+            throws Throwable {
         Preconditions.checkNotNull(request);
         Preconditions.checkNotNull(builder);
         String url = getUrl(request);
@@ -53,6 +53,7 @@ public class HttpUrlExecutor implements HttpExecutor {
             address_url = new URL(url);
             connection = (HttpURLConnection) address_url.openConnection();
             connection.setRequestMethod(request.methodString());
+            connection.setInstanceFollowRedirects(false);
             setTimeout(connection);//set timeout for connection
             if (isMultipart(request)) {
                 request.getRequestHeader().remove(Headers.CONTENT_LENGTH);
@@ -70,24 +71,26 @@ public class HttpUrlExecutor implements HttpExecutor {
                 if (count > MAX_REDIRECT_COUNT) {
                     //TODO
                 }
+
                 String forwardUrl = responseHeader.getForwardUrl();
                 if (ValueUtil.isEmpty(forwardUrl)) {
                     //TODO
                 }
+                System.out.println(request.urlString()+" Code "+statusCode + ", redirect to "+forwardUrl);
                 request.setForwardUrl(forwardUrl);
                 RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwardUrl, responseHeader);
                 builder.addRedirectedResponse(redirectedResponse);
                 //TODO, setCookie, Others
                 connection.disconnect();
                 return performRequest(request, builder);
-            } else if(isSuccess(statusCode)){
+            } else if (isSuccess(statusCode)) {
                 builder.setMessage(msg);
                 builder.setStatusCode(statusCode);
                 HttpResponseBody responseBody = readResponseBody(request, connection);
                 builder.setBody(responseBody);
                 builder.setHttpResponseHeader(responseHeader);
                 return builder;
-            }else{//failed
+            } else {//failed
                 builder.setMessage(msg);
                 builder.setStatusCode(statusCode);
                 builder.setBody(null);
@@ -112,13 +115,10 @@ public class HttpUrlExecutor implements HttpExecutor {
         }
     }
 
-    //readResponseHeaders
-    //openResponseBody
-
     protected final void releaseBodyResource(HttpRequest request) {
         List<HttpRequestBody.EntityHolder> entityHolders = request.getRequestBody().getResources();
-        if(null == entityHolders || entityHolders.size() <= 0) return ;
-        for(HttpRequestBody.EntityHolder entityHolder : entityHolders) {
+        if (null == entityHolders || entityHolders.size() <= 0) return;
+        for (HttpRequestBody.EntityHolder entityHolder : entityHolders) {
             try {
                 IOUtil.closeQuietly(entityHolder.resource.openStream());
             } catch (IOException e) {
@@ -180,8 +180,8 @@ public class HttpUrlExecutor implements HttpExecutor {
         }
     }
 
-    protected final boolean isSuccess(int code){
-        if(code >= 200 && code < 300){
+    protected final boolean isSuccess(int code) {
+        if (code >= 200 && code < 300) {
             return true;
         }
         return false;

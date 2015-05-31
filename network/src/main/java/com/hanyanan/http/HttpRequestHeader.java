@@ -12,6 +12,7 @@ public class HttpRequestHeader extends HttpHeader {
     MimeType mimeType;
     public HttpRequestHeader(HttpHeader header) {
         super(header);
+        this.headers.putAll(DEFAULT_HEADERS);
     }
 
     public HttpRequestHeader() {

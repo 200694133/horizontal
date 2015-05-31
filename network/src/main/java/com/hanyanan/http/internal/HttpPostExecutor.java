@@ -25,6 +25,9 @@ import hyn.com.lib.ValueUtil;
  * Created by hanyanan on 2015/5/27.
  */
 public class HttpPostExecutor extends HttpUrlExecutor {
+    public boolean isMultipart(HttpRequest httpRequest) {
+        return true;
+    }
     @Override protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {
         String url = request.getUrl();
         Map<String, Object> params = request.getParams();
@@ -118,10 +121,12 @@ public class HttpPostExecutor extends HttpUrlExecutor {
                 outputStream.flush();
                 reads = copyAndCallback(request, entityHolder.resource.openStream(),
                         outputStream, callBack, reads, count);
+                outputStream.write(CRLF.getBytes());
                 IOUtil.closeQuietly(entityHolder.resource.openStream());
             }
         }
         outputStream.write(boundaryEndLine.getBytes());
+        outputStream.write(CRLF.getBytes());
         outputStream.flush();
         IOUtil.closeQuietly(outputStream);
     }

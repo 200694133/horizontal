@@ -2,7 +2,7 @@ package hyn.com.datastorage.db;
 
 import java.io.InputStream;
 import hyn.com.datastorage.exception.ParseFailedException;
-import hyn.com.lib.android.parser.ObjectParser;
+import hyn.com.lib.parser.ObjectParser;
 import hyn.com.lib.binaryresource.BinaryResource;
 
 /**

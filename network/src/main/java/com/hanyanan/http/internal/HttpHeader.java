@@ -85,18 +85,18 @@ public class HttpHeader {
     }
 
     public HttpHeader(Map<String, List<String>> headers) {
-        if(null == headers || headers.size() <= 0) return ;
+        if(null == headers || headers.isEmpty()) return ;
         Set<Map.Entry<String, List<String>>> entrySet =  headers.entrySet();
-        if(null == entrySet || entrySet.size() <= 0) return ;
+        if(null == entrySet || entrySet.isEmpty()) return ;
         for(Map.Entry<String, List<String>> entry : entrySet){
             if(null == entry || entry.getKey() == null || entry.getValue() == null
-                    || entry.getValue().size() <= 0) continue;
+                    || entry.getValue().isEmpty()) continue;
             StringBuilder value = new StringBuilder();
             for(String val : entry.getValue()){
                 if(!ValueUtil.isEmpty(value)) {
                     value.append(CONNECTOR).append(val);
                 }else{
-                    value.append(value);
+                    value.append(val);
                 }
             }
             this.headers.put(entry.getKey().toLowerCase(Locale.ENGLISH), value.toString());

@@ -195,4 +195,9 @@ public class HttpRequest {
         getRequestHeader().setPriorHeadProperty(key,value);
         return this;
     }
+
+    public String urlString(){
+        //TODO
+        return this.getUrl();
+    }
 }

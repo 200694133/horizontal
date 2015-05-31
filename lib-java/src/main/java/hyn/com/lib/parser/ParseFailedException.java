@@ -1,4 +1,4 @@
-package hyn.com.lib.android.parser;
+package hyn.com.lib.parser;
 
 /**
  * Created by hanyanan on 2015/5/21.

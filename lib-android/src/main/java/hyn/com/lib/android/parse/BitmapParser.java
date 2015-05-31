@@ -1,4 +1,4 @@
-package hyn.com.lib.android.parser;
+package hyn.com.lib.android.parse;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -6,6 +6,8 @@ import java.io.InputStream;
 import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.android.UiUtil;
+import hyn.com.lib.parser.ObjectParser;
+import hyn.com.lib.parser.ParseFailedException;
 
 /**
  * Created by hanyanan on 2015/3/25.
