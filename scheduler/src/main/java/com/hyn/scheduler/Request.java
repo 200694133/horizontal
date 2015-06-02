@@ -132,7 +132,7 @@ public class Request<P, I, R> {
         //TODO
     }
 
-    public void finish(String finish){
+    public final void finish(String finish){
         //TODO
     }
 

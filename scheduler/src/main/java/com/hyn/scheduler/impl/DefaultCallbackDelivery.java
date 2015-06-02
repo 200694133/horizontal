@@ -29,7 +29,7 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
     public <R> void postSuccess(Request<?, ?, R> request, R response) {
         checkNotNull(request);
         request.addMarker("post-response");
-        mResponsePoster.execute(new ResponseDeliveryRunnable(request, response));
+        mResponsePoster.execute(new ResponseDeliveryRunnable<R>(request, response));
     }
 
     @Override
@@ -48,7 +48,9 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
 
     @Override
     public <T> void postIntermediate(Request<?, T, ?> request, T intermediate) {
-
+        checkNotNull(request);
+        request.addMarker("post-intermediate");
+        mResponsePoster.execute(new IntermediateDeliveryRunnable<T>(request, intermediate));
     }
 
     /**
