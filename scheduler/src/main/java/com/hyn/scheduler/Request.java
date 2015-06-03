@@ -5,7 +5,7 @@ import hyn.com.lib.Fingerprint;
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public class Request<P, I, R> {
+public class Request<P, I, R> implements Comparable<Request>{
     private boolean disposeMark = false;
     /**
      * Request callback.
@@ -26,7 +26,7 @@ public class Request<P, I, R> {
     /**
      * the policy priority to decide the request priority.
      */
-    private final PriorityPolicy priorityPolicy;
+    private PriorityPolicy priorityPolicy;
     /**
      * Runnig status to record the running status.
      */
@@ -59,6 +59,10 @@ public class Request<P, I, R> {
         this.priorityPolicy = priorityPolicy;
         this.fingerprint = fingerprint;
         this.requestExecutor = requestExecutor;
+    }
+
+    public void setPriorityPolicy(PriorityPolicy priorityPolicy) {
+        this.priorityPolicy = priorityPolicy;
     }
 
     public RequestCallback<I, R> getCallback() {
@@ -152,8 +156,13 @@ public class Request<P, I, R> {
         //TODO
     }
 
+    @Override
+    public int compareTo(Request o) {
+        return this.priorityPolicy.compareTo(o.priorityPolicy);
+    }
+
     public static class Builder<P, I, R> {
-        protected P param;
+        private P param;
         private RequestCallback callback;
         private CallbackDelivery callbackDelivery;
         private RetryPolicy retryPolicy;
