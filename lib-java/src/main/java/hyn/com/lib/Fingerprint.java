@@ -5,6 +5,13 @@ package hyn.com.lib;
  * The interface to identity the finger print.
  */
 public interface Fingerprint {
+    public static final Fingerprint DEFAULT_FINGERPRINT = new Fingerprint(){
+        @Override
+        public String fingerprint() {
+            return toString();
+        }
+    };
+
     /**
      * Return the unique string to identify the fingerprint!
      */

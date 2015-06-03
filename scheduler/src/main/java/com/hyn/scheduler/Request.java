@@ -1,6 +1,10 @@
 package com.hyn.scheduler;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import hyn.com.lib.Fingerprint;
+import hyn.com.lib.SimpleFingerprint;
 
 /**
  * Created by hanyanan on 2015/5/31.
@@ -10,31 +14,31 @@ public class Request<P, I, R> implements Comparable<Request>{
     /**
      * Request callback.
      */
-    protected final RequestCallback<I, R> callback;
+    @Nullable protected final RequestCallback<I, R> callback;
     /**
      * Request param.
      */
-    protected final P param;
+    @Nullable protected final P param;
     /**
      * used to delivery response.
      */
-    private final CallbackDelivery callbackDelivery;
+    @Nullable private final CallbackDelivery callbackDelivery;
     /**
      * retry policy used to retry current request when request failed occurred.
      */
-    private final RetryPolicy retryPolicy;
+    @NotNull private final RetryPolicy retryPolicy;
     /**
      * the policy priority to decide the request priority.
      */
-    private PriorityPolicy priorityPolicy;
+    @NotNull private PriorityPolicy priorityPolicy = new PriorityPolicy();
     /**
-     * Runnig status to record the running status.
+     * Running status to record the running status.
      */
-    private final RunningStatus runningStatus = new RunningStatus();
+    @NotNull private final RunningStatus runningStatus = new RunningStatus();
     /**
      * The fingerprint of current request.
      */
-    private final Fingerprint fingerprint;
+    @NotNull private final Fingerprint fingerprint;
     /**
      * request status.
      */
@@ -42,7 +46,7 @@ public class Request<P, I, R> implements Comparable<Request>{
     /**
      * Current request executor. {@see RequestExecutor#performRequest}.
      */
-    private final RequestExecutor<R> requestExecutor;
+    @NotNull private final RequestExecutor<R> requestExecutor;
 
     /**
      * An opaque token tagging this request; used for bulk cancellation.
@@ -161,6 +165,22 @@ public class Request<P, I, R> implements Comparable<Request>{
         return this.priorityPolicy.compareTo(o.priorityPolicy);
     }
 
+    @Override
+    public int hashCode() {
+        return fingerprint.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) return true;
+        if(null == obj) return false;
+        if(Request.class.isInstance(obj)) {
+            Request other = (Request)obj;
+            return this.fingerprint.equals(other.fingerprint);
+        }
+        return false;
+    }
+
     public static class Builder<P, I, R> {
         private P param;
         private RequestCallback callback;
@@ -168,7 +188,7 @@ public class Request<P, I, R> implements Comparable<Request>{
         private RetryPolicy retryPolicy;
         private PriorityPolicy priorityPolicy;
         private RunningStatus runningStatus;
-        private Fingerprint fingerprint;
+        private Fingerprint fingerprint = new SimpleFingerprint();
         private RequestExecutor<R> requestExecutor;
 
         public Builder<P, I, R> setCallback(RequestCallback callback) {
