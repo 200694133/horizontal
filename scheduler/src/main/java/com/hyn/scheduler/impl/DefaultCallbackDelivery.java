@@ -25,6 +25,15 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
         mResponsePoster = executor;
     }
 
+    public DefaultCallbackDelivery() {
+        // Make an Executor that just wraps the handler.
+        mResponsePoster = new Executor(){
+            @Override public void execute(Runnable command) {
+                command.run();
+            }
+        };
+    }
+
     @Override
     public <R> void postSuccess(Request<?, ?, R> request, R response) {
         checkNotNull(request);

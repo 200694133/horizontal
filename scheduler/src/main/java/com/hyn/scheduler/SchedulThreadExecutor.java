@@ -1,4 +1,4 @@
-package com.hyn.scheduler.threadExecutor;
+package com.hyn.scheduler;
 
 /**
  * Created by hanyanan on 2015/6/3.

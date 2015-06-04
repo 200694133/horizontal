@@ -9,49 +9,61 @@ import hyn.com.lib.SimpleFingerprint;
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public class Request<P, I, R> implements Comparable<Request>{
+public class Request<P, I, R> implements Comparable<Request> {
     private boolean disposeMark = false;
     /**
      * Request callback.
      */
-    @Nullable protected final RequestCallback<I, R> callback;
+    @Nullable
+    protected final RequestCallback<I, R> callback;
     /**
      * Request param.
      */
-    @Nullable protected final P param;
+    @Nullable
+    protected final P param;
     /**
      * used to delivery response.
      */
-    @Nullable private final CallbackDelivery callbackDelivery;
+    @Nullable
+    private final CallbackDelivery callbackDelivery;
     /**
      * retry policy used to retry current request when request failed occurred.
      */
-    @NotNull private final RetryPolicy retryPolicy;
+    @NotNull
+    private final RetryPolicy retryPolicy;
     /**
      * the policy priority to decide the request priority.
      */
-    @NotNull private PriorityPolicy priorityPolicy = new PriorityPolicy();
+    @NotNull
+    private PriorityPolicy priorityPolicy = new PriorityPolicy();
     /**
      * Running status to record the running status.
      */
-    @NotNull private final RunningStatus runningStatus = new RunningStatus();
+    @NotNull
+    private final RunningStatus runningStatus = new RunningStatus();
     /**
      * The fingerprint of current request.
      */
-    @NotNull private final Fingerprint fingerprint;
+    @NotNull
+    private final Fingerprint fingerprint;
     /**
      * request status.
      */
+    @NotNull
     private RequestStatus requestStatus = RequestStatus.IDLE;
     /**
      * Current request executor. {@see RequestExecutor#performRequest}.
      */
-    @NotNull private final RequestExecutor<R> requestExecutor;
+    @NotNull
+    private final RequestExecutor<R> requestExecutor;
 
     /**
      * An opaque token tagging this request; used for bulk cancellation.
      */
     protected Object tag;
+
+    /** The request queue has binded. */
+    private RequestQueue requestQueue;
 
     public Request(P param, RequestCallback callback, CallbackDelivery callbackDelivery,
                    RetryPolicy retryPolicy, PriorityPolicy priorityPolicy,
@@ -89,7 +101,7 @@ public class Request<P, I, R> implements Comparable<Request>{
         return priorityPolicy;
     }
 
-    public RunningStatus getRunningStatus() {
+    public final RunningStatus getRunningStatus() {
         return runningStatus;
     }
 
@@ -132,32 +144,43 @@ public class Request<P, I, R> implements Comparable<Request>{
         this.tag = tag;
     }
 
-    public void addMarker(String msg){
+    public void addMarker(String msg) {
         //TODO
     }
 
+    public void finish() {
+        //TODO
+    }
+
+    /**
+     * Called when afrer delivery the response success.
+     */
     public void markDelivered(){
         //TODO
     }
 
-    public final void finish(String finish){
-        //TODO
-    }
-
-    public final void deliverCanceled(){
-        //TODO
+    public final void deliverCanceled() {
+        if (null != callback) {
+            callback.onCanceled(this);
+        }
     }
 
     public final void deliverResponse(R response) {
-        //TODO
+        if (null != callback) {
+            callback.onSuccess(this, response);
+        }
     }
 
     public final void deliverError(String msg, Throwable throwable) {
-        //TODO
+        if (null != callback) {
+            callback.onFailed(this, msg, throwable);
+        }
     }
 
     public final void deliverIntermediate(I intermediate) {
-        //TODO
+        if (null != callback) {
+            callback.onIntermediate(intermediate);
+        }
     }
 
     @Override
@@ -172,13 +195,17 @@ public class Request<P, I, R> implements Comparable<Request>{
 
     @Override
     public boolean equals(Object obj) {
-        if(this == obj) return true;
-        if(null == obj) return false;
-        if(Request.class.isInstance(obj)) {
-            Request other = (Request)obj;
+        if (this == obj) return true;
+        if (null == obj) return false;
+        if (Request.class.isInstance(obj)) {
+            Request other = (Request) obj;
             return this.fingerprint.equals(other.fingerprint);
         }
         return false;
+    }
+
+    void setRequestQueue(RequestQueue requestQueue){
+        this.requestQueue = requestQueue;
     }
 
     public static class Builder<P, I, R> {
