@@ -12,12 +12,99 @@ import java.util.concurrent.BlockingQueue;
  * <p/>
  * Provides a thread for performing network dispatch from a queue of requests.
  */
-public class WorkerThreadExecutor extends Thread {
+public class RequestDispatcher extends Thread implements FullPerformer{
     private static final String TAG = "WorkerThreadExecutor";
     /**
      * The queue of requests to service.
      */
-    private final BlockingQueue<Request> queue;
+    protected final BlockingQueue<Request> queue;
+
+    @Override
+    public Request nextRequest() throws InterruptedException {
+        return queue.take();
+    }
+
+    @Override
+    public void retry(Request request) {
+        queue.add(request);
+    }
+
+    @Override
+    public void fullPerformRequest() {
+        Request request;
+        while (true) {
+            if (isQuit()) {
+                return;
+            }
+            try {
+                // Take a request from the queue.
+                request = nextRequest();
+                if (isQuit()) {
+                    return;
+                }
+                if(request == null) {
+                    return ;
+                }
+            } catch (InterruptedException e) {
+                // We may have been interrupted because it was time to quit.
+                if (isQuit()) {
+                    return;
+                }
+                continue;
+            }
+            RunningStatus runningStatus = request.getRunningStatus();
+            CallbackDelivery delivery = request.getCallbackDelivery();
+            RequestExecutor requestExecutor = request.getRequestExecutor();
+            if (null == delivery) delivery = new DefaultCallbackDelivery();
+            request.addMarker("network-queue-take");
+
+            // If the request was cancelled already, do not perform the current request.
+            if (request.isCanceled()) {
+                request.addMarker("network-discard-cancelled");
+                request.setRequestStatus(RequestStatus.Finish);
+                delivery.postCanceled(request);
+                continue;
+            }
+            request.setRequestStatus(RequestStatus.Running);
+            runningStatus.setRunningTime(currentTimeMillis());
+            try {
+                request.addMarker("network-start-running");
+                Object response = requestExecutor.performRequest(request);
+                if (isQuit()) {
+                    return;
+                }
+                request.setRequestStatus(RequestStatus.Finish);
+                if (request.isCanceled()) {
+                    request.addMarker("network-discard-cancelled");
+                    delivery.postCanceled(request);
+                    continue;
+                }
+                runningStatus.setFinishTime(System.currentTimeMillis());
+                request.addMarker("request-complete");
+                delivery.postSuccess(request, response);
+                request.markDelivered();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+                if (isQuit()) {
+                    return;
+                }
+                runningStatus.failed();
+                RetryPolicy retryPolicy = request.getRetryPolicy();
+                if (retryPolicy.retry(request, throwable)) { // retry again.
+                    // change the priority of current request.
+                    request.setPriorityPolicy(retryPolicy.retryPriority(request, request.getPriorityPolicy()));
+                    retry(request);
+                    request.setRequestStatus(RequestStatus.IDLE);
+                    runningStatus.setAddToQueueTimeStamp(currentTimeMillis());
+                } else { // failed
+                    request.setRequestStatus(RequestStatus.Finish);
+                    delivery.postFailed(request, null, throwable);
+                    runningStatus.setFinishTime(currentTimeMillis());
+                }
+                continue;
+            }
+        }
+    }
 
     private enum Status {
         IDLE, RUNNING, PAUSE, QUIT;
@@ -28,7 +115,7 @@ public class WorkerThreadExecutor extends Thread {
      */
     private volatile Status status = Status.IDLE;
 
-    public WorkerThreadExecutor(BlockingQueue<Request> queue) {
+    protected RequestDispatcher(BlockingQueue<Request> queue) {
         this.queue = queue;
     }
 
@@ -77,71 +164,7 @@ public class WorkerThreadExecutor extends Thread {
     }
 
     public void run() {
-        Request request;
-        while (true) {
-            if (isQuit()) {
-                return;
-            }
-            try {
-                // Take a request from the queue.
-                request = queue.take();
-                if (isQuit()) {
-                    return;
-                }
-            } catch (InterruptedException e) {
-                // We may have been interrupted because it was time to quit.
-                if (isQuit()) {
-                    return;
-                }
-                continue;
-            }
-            RunningStatus runningStatus = request.getRunningStatus();
-            CallbackDelivery delivery = request.getCallbackDelivery();
-            RequestExecutor requestExecutor = request.getRequestExecutor();
-            if (null == delivery) delivery = new DefaultCallbackDelivery();
-            request.addMarker("network-queue-take");
-
-            // If the request was cancelled already, do not perform the current request.
-            if (request.isCanceled()) {
-                request.addMarker("network-discard-cancelled");
-                delivery.postCanceled(request);
-                continue;
-            }
-            runningStatus.setRunningTime(currentTimeMillis());
-            try {
-                request.addMarker("network-start-running");
-                Object response = requestExecutor.performRequest(request);
-                if (isQuit()) {
-                    return;
-                }
-                if (request.isCanceled()) {
-                    request.addMarker("network-discard-cancelled");
-                    delivery.postCanceled(request);
-                    continue;
-                }
-                runningStatus.setFinishTime(System.currentTimeMillis());
-                request.addMarker("request-complete");
-                delivery.postSuccess(request, response);
-                request.markDelivered();
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-                if (isQuit()) {
-                    return;
-                }
-                runningStatus.failed();
-                RetryPolicy retryPolicy = request.getRetryPolicy();
-                if (retryPolicy.retry(request, throwable)) { // retry again.
-                    // change the priority of current request.
-                    request.setPriorityPolicy(retryPolicy.retryPriority(request, request.getPriorityPolicy()));
-                    queue.add(request);
-                    runningStatus.setAddToQueueTimeStamp(currentTimeMillis());
-                } else { // failed
-                    delivery.postFailed(request, null, throwable);
-                    runningStatus.setFinishTime(currentTimeMillis());
-                }
-                continue;
-            }
-        }
+        fullPerformRequest();
     }
 
     private long currentTimeMillis() {

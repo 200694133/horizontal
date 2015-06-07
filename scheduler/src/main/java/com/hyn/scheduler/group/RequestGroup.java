@@ -9,35 +9,64 @@ import com.hyn.scheduler.RequestLoader;
 import com.hyn.scheduler.RetryPolicy;
 import com.hyn.scheduler.RunningStatus;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import hyn.com.lib.Fingerprint;
+import sun.swing.ImageCache;
 
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public abstract class RequestGroup extends Request{
-    public RequestGroup(Object param, RequestCallback callback, CallbackDelivery callbackDelivery, RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint, RequestExecutor requestExecutor) {
+public class RequestGroup extends Request {
+    protected final RequestLoader requestLoader;
+    protected final List<Request> requestList = new LinkedList<Request>();
+    public RequestGroup(RequestLoader requestLoader, Object param, RequestCallback callback, CallbackDelivery callbackDelivery,
+                        RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
+                        RequestGroupExecutor requestExecutor) {
         super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, requestExecutor);
+        this.requestLoader = requestLoader;
     }
 
-    abstract List<Request> getChildren();
+    public List<Request> getChildren(){
+        return Collections.unmodifiableList(requestList);
+    }
 
-    abstract void add(Request request);
+    public void add(Request request){
+        synchronized (requestList) {
+            requestList.add(request);
+        }
+    }
 
-    abstract int getCount();
+    public int getCount(){
+        return requestList.size();
+    }
 
-    abstract Request indexOf(int index);
+    public Request indexOf(int index){
+        synchronized (requestList) {
+            if(index >= requestList.size()) {
+                return null;
+            }
 
-    abstract void cancel();
+            return requestList.get(index);
+        }
+    }
 
-    abstract Request remove(int index);
 
-    abstract void remove(Request request);
+    public Request remove(int index){
+        synchronized (requestList) {
+            if(index >= requestList.size()){
+                return null;
+            }
 
-    abstract RunningStatus getRunningStatus();
+            return requestList.remove(index);
+        }
+    }
 
-    abstract RequestLoader getRequestLoader();
 
-    abstract void dispatchRequest();
+
+    public void remove(Request request){
+        //TODO
+    }
 }

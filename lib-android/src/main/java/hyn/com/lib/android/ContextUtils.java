@@ -12,6 +12,7 @@ import android.text.TextUtils;
  */
 public class ContextUtils {
     public static int getColor(Context context, int c){
+
         if(null == context) return Color.WHITE;
         return context.getResources().getColor(c);
     }

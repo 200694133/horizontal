@@ -159,25 +159,25 @@ public class Request<P, I, R> implements Comparable<Request> {
         //TODO
     }
 
-    public final void deliverCanceled() {
+    final void deliverCanceled() {
         if (null != callback) {
             callback.onCanceled(this);
         }
     }
 
-    public final void deliverResponse(R response) {
+    final void deliverResponse(R response) {
         if (null != callback) {
             callback.onSuccess(this, response);
         }
     }
 
-    public final void deliverError(String msg, Throwable throwable) {
+    final void deliverError(String msg, Throwable throwable) {
         if (null != callback) {
             callback.onFailed(this, msg, throwable);
         }
     }
 
-    public final void deliverIntermediate(I intermediate) {
+    final void deliverIntermediate(I intermediate) {
         if (null != callback) {
             callback.onIntermediate(intermediate);
         }

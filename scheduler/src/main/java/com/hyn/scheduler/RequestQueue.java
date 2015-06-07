@@ -1,12 +1,7 @@
 package com.hyn.scheduler;
 
-import com.hyn.scheduler.Request;
 
-
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -17,7 +12,7 @@ import hyn.com.lib.TimeUtils;
 /**
  * Created by hanyanan on 2015/6/3.
  */
-public class RequestQueue {
+class RequestQueue {
     public static final String TAG = "RequestDispatcher";
     public static final int DEFAULT_THREAD_POOL_SIZE = 4;
 
@@ -32,14 +27,14 @@ public class RequestQueue {
      */
     private final Map<Fingerprint, Request> fingerprintRequestHashMap = new WeakHashMap<Fingerprint, Request>();
     private final int threadPoolSize;
-    private final WorkerThreadExecutor []workerThreadExecutors;
+    private final RequestDispatcher[] requestDispatchers;
 
-    public RequestQueue(int threadPoolSize){
+    RequestQueue(int threadPoolSize){
         this.threadPoolSize = threadPoolSize;
-        workerThreadExecutors = new WorkerThreadExecutor[threadPoolSize];
+        requestDispatchers = new RequestDispatcher[threadPoolSize];
     }
 
-    public RequestQueue(){
+    RequestQueue(){
         this(DEFAULT_THREAD_POOL_SIZE);
     }
 
@@ -50,16 +45,16 @@ public class RequestQueue {
         stop();  // Make sure any currently running dispatchers are stopped.
         // Create network dispatchers (and corresponding threads) up to the pool size.
         for (int i = 0; i < threadPoolSize; i++) {
-            WorkerThreadExecutor workerThreadExecutor = new WorkerThreadExecutor(mCurrentRequests);
-            workerThreadExecutors[i] = workerThreadExecutor;
-            workerThreadExecutor.start();
+            RequestDispatcher requestDispatcher = new RequestDispatcher(mCurrentRequests);
+            requestDispatchers[i] = requestDispatcher;
+            requestDispatcher.start();
         }
     }
 
     public synchronized void stop(){
-        for (int i = 0; i < workerThreadExecutors.length; i++) {
-            if (workerThreadExecutors[i] != null) {
-                workerThreadExecutors[i].quit();
+        for (int i = 0; i < requestDispatchers.length; i++) {
+            if (requestDispatchers[i] != null) {
+                requestDispatchers[i].quit();
             }
         }
     }
