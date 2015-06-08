@@ -1,8 +1,8 @@
-package com.hyn.scheduler.impl;
+package com.hyn.job.impl;
 
-import com.hyn.scheduler.PriorityPolicy;
-import com.hyn.scheduler.Request;
-import com.hyn.scheduler.RetryPolicy;
+import com.hyn.job.PriorityPolicy;
+import com.hyn.job.AsyncJob;
+import com.hyn.job.RetryPolicy;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -19,7 +19,7 @@ public class CounterRetryPolicy implements RetryPolicy {
         counter = count;
     }
     @Override
-    public boolean retry(Request request, Throwable throwable) {
+    public boolean retry(AsyncJob asyncJob, Throwable throwable) {
         --counter;
         if(counter <= 0) return false;
         return true;
@@ -27,11 +27,11 @@ public class CounterRetryPolicy implements RetryPolicy {
 
     /**
      * If need change the priority if current
-     * @param request
+     * @param asyncJob
      * @param oldPriority
      * @return
      */
-    @Override public PriorityPolicy retryPriority(Request request, @NotNull PriorityPolicy oldPriority) {
+    @Override public PriorityPolicy retryPriority(AsyncJob asyncJob, @NotNull PriorityPolicy oldPriority) {
         return oldPriority;
     }
 }

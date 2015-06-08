@@ -1,4 +1,4 @@
-package com.hyn.scheduler;
+package com.hyn.job;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,13 +9,13 @@ import hyn.com.lib.SimpleFingerprint;
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public class Request<P, I, R> implements Comparable<Request> {
+public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
     private boolean disposeMark = false;
     /**
      * Request callback.
      */
     @Nullable
-    protected final RequestCallback<I, R> callback;
+    protected final JobCallback<I, R> callback;
     /**
      * Request param.
      */
@@ -40,7 +40,7 @@ public class Request<P, I, R> implements Comparable<Request> {
      * Running status to record the running status.
      */
     @NotNull
-    private final RunningStatus runningStatus = new RunningStatus();
+    private final RunningTrace runningTrace = new RunningTrace();
     /**
      * The fingerprint of current request.
      */
@@ -50,12 +50,12 @@ public class Request<P, I, R> implements Comparable<Request> {
      * request status.
      */
     @NotNull
-    private RequestStatus requestStatus = RequestStatus.IDLE;
+    private JobStatus jobStatus = JobStatus.IDLE;
     /**
      * Current request executor. {@see RequestExecutor#performRequest}.
      */
     @NotNull
-    private final RequestExecutor<R> requestExecutor;
+    private final JobExecutor<R> jobExecutor;
 
     /**
      * An opaque token tagging this request; used for bulk cancellation.
@@ -63,25 +63,25 @@ public class Request<P, I, R> implements Comparable<Request> {
     protected Object tag;
 
     /** The request queue has binded. */
-    private RequestQueue requestQueue;
+    private JobQueue jobQueue;
 
-    public Request(P param, RequestCallback callback, CallbackDelivery callbackDelivery,
-                   RetryPolicy retryPolicy, PriorityPolicy priorityPolicy,
-                   Fingerprint fingerprint, RequestExecutor<R> requestExecutor) {
+    public AsyncJob(P param, JobCallback callback, CallbackDelivery callbackDelivery,
+                    RetryPolicy retryPolicy, PriorityPolicy priorityPolicy,
+                    Fingerprint fingerprint, JobExecutor<R> jobExecutor) {
         this.param = param;
         this.callback = callback;
         this.callbackDelivery = callbackDelivery;
         this.retryPolicy = retryPolicy;
         this.priorityPolicy = priorityPolicy;
         this.fingerprint = fingerprint;
-        this.requestExecutor = requestExecutor;
+        this.jobExecutor = jobExecutor;
     }
 
     public void setPriorityPolicy(PriorityPolicy priorityPolicy) {
         this.priorityPolicy = priorityPolicy;
     }
 
-    public RequestCallback<I, R> getCallback() {
+    public JobCallback<I, R> getCallback() {
         return callback;
     }
 
@@ -101,27 +101,27 @@ public class Request<P, I, R> implements Comparable<Request> {
         return priorityPolicy;
     }
 
-    public final RunningStatus getRunningStatus() {
-        return runningStatus;
+    public final RunningTrace getRunningTrace() {
+        return runningTrace;
     }
 
     public Fingerprint getFingerprint() {
         return fingerprint;
     }
 
-    public RequestExecutor<R> getRequestExecutor() {
-        return requestExecutor;
+    public JobExecutor<R> getJobExecutor() {
+        return jobExecutor;
     }
 
-    public RequestStatus getRequestStatus() {
+    public JobStatus getJobStatus() {
         synchronized (this) {
-            return requestStatus;
+            return jobStatus;
         }
     }
 
-    public void setRequestStatus(RequestStatus status) {
+    public void setJobStatus(JobStatus status) {
         synchronized (this) {
-            requestStatus = status;
+            jobStatus = status;
         }
     }
 
@@ -184,7 +184,7 @@ public class Request<P, I, R> implements Comparable<Request> {
     }
 
     @Override
-    public int compareTo(Request o) {
+    public int compareTo(AsyncJob o) {
         return this.priorityPolicy.compareTo(o.priorityPolicy);
     }
 
@@ -197,28 +197,28 @@ public class Request<P, I, R> implements Comparable<Request> {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (null == obj) return false;
-        if (Request.class.isInstance(obj)) {
-            Request other = (Request) obj;
+        if (AsyncJob.class.isInstance(obj)) {
+            AsyncJob other = (AsyncJob) obj;
             return this.fingerprint.equals(other.fingerprint);
         }
         return false;
     }
 
-    void setRequestQueue(RequestQueue requestQueue){
-        this.requestQueue = requestQueue;
+    void setJobQueue(JobQueue jobQueue){
+        this.jobQueue = jobQueue;
     }
 
     public static class Builder<P, I, R> {
         private P param;
-        private RequestCallback callback;
+        private JobCallback callback;
         private CallbackDelivery callbackDelivery;
         private RetryPolicy retryPolicy;
         private PriorityPolicy priorityPolicy;
-        private RunningStatus runningStatus;
+        private RunningTrace runningTrace;
         private Fingerprint fingerprint = new SimpleFingerprint();
-        private RequestExecutor<R> requestExecutor;
+        private JobExecutor<R> jobExecutor;
 
-        public Builder<P, I, R> setCallback(RequestCallback callback) {
+        public Builder<P, I, R> setCallback(JobCallback callback) {
             this.callback = callback;
             return this;
         }
@@ -243,8 +243,8 @@ public class Request<P, I, R> implements Comparable<Request> {
             return this;
         }
 
-        public Builder<P, I, R> setRunningStatus(RunningStatus runningStatus) {
-            this.runningStatus = runningStatus;
+        public Builder<P, I, R> setRunningTrace(RunningTrace runningTrace) {
+            this.runningTrace = runningTrace;
             return this;
         }
 
@@ -253,14 +253,14 @@ public class Request<P, I, R> implements Comparable<Request> {
             return this;
         }
 
-        public Builder<P, I, R> setRequestExecutor(RequestExecutor<R> requestExecutor) {
-            this.requestExecutor = requestExecutor;
+        public Builder<P, I, R> setJobExecutor(JobExecutor<R> jobExecutor) {
+            this.jobExecutor = jobExecutor;
             return this;
         }
 
-        public Request<P, I, R> build() {
-            return new Request(param, callback, callbackDelivery, retryPolicy, priorityPolicy,
-                    fingerprint, requestExecutor);
+        public AsyncJob<P, I, R> build() {
+            return new AsyncJob(param, callback, callbackDelivery, retryPolicy, priorityPolicy,
+                    fingerprint, jobExecutor);
         }
     }
 }

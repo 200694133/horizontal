@@ -1,9 +1,9 @@
-package com.hyn.scheduler;
+package com.hyn.job;
 
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public class RunningStatus {
+public class RunningTrace {
     /** record the last add to queue time stamp */
     private long lastAddToQueueTimeStamp = 0;
 
@@ -48,7 +48,7 @@ public class RunningStatus {
         return finishTimeStamp;
     }
 
-    RunningStatus(){
+    RunningTrace(){
 
     }
 

@@ -1,7 +1,7 @@
-package com.hyn.scheduler.impl;
+package com.hyn.job.impl;
 
-import com.hyn.scheduler.CallbackDelivery;
-import com.hyn.scheduler.Request;
+import com.hyn.job.CallbackDelivery;
+import com.hyn.job.AsyncJob;
 
 import java.util.concurrent.Executor;
 
@@ -35,31 +35,31 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
     }
 
     @Override
-    public <R> void postSuccess(Request<?, ?, R> request, R response) {
-        checkNotNull(request);
-        request.addMarker("post-response");
-        mResponsePoster.execute(new ResponseDeliveryRunnable<R>(request, response));
+    public <R> void postSuccess(AsyncJob<?, ?, R> asyncJob, R response) {
+        checkNotNull(asyncJob);
+        asyncJob.addMarker("post-response");
+        mResponsePoster.execute(new ResponseDeliveryRunnable<R>(asyncJob, response));
     }
 
     @Override
-    public void postCanceled(Request request) {
-        checkNotNull(request);
-        request.addMarker("post-Canceled");
-        mResponsePoster.execute(new ResponseDeliveryRunnable(request, null));
+    public void postCanceled(AsyncJob asyncJob) {
+        checkNotNull(asyncJob);
+        asyncJob.addMarker("post-Canceled");
+        mResponsePoster.execute(new ResponseDeliveryRunnable(asyncJob, null));
     }
 
     @Override
-    public void postFailed(Request request, String msg, Throwable throwable) {
-        checkNotNull(request);
-        request.addMarker("post-error");
-        mResponsePoster.execute(new FailedMessageDeliveryRunnable(request, msg, throwable));
+    public void postFailed(AsyncJob asyncJob, String msg, Throwable throwable) {
+        checkNotNull(asyncJob);
+        asyncJob.addMarker("post-error");
+        mResponsePoster.execute(new FailedMessageDeliveryRunnable(asyncJob, msg, throwable));
     }
 
     @Override
-    public <T> void postIntermediate(Request<?, T, ?> request, T intermediate) {
-        checkNotNull(request);
-        request.addMarker("post-intermediate");
-        mResponsePoster.execute(new IntermediateDeliveryRunnable<T>(request, intermediate));
+    public <T> void postIntermediate(AsyncJob<?, T, ?> asyncJob, T intermediate) {
+        checkNotNull(asyncJob);
+        asyncJob.addMarker("post-intermediate");
+        mResponsePoster.execute(new IntermediateDeliveryRunnable<T>(asyncJob, intermediate));
     }
 
     /**
@@ -69,11 +69,11 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
      */
     @SuppressWarnings("rawtypes")
     private class ResponseDeliveryRunnable<T> implements Runnable {
-        private final Request request;
+        private final AsyncJob asyncJob;
         private final T response;
 
-        public ResponseDeliveryRunnable(Request request, T response) {
-            this.request = request;
+        public ResponseDeliveryRunnable(AsyncJob asyncJob, T response) {
+            this.asyncJob = asyncJob;
             this.response = response;
         }
 
@@ -81,14 +81,14 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
         @Override
         public void run() {
             // If this request has canceled, finish it and don't deliver.
-            if (request.isCanceled()) {
-                request.finish("canceled-at-delivery");
-                request.deliverCanceled();
+            if (asyncJob.isCanceled()) {
+                asyncJob.finish("canceled-at-delivery");
+                asyncJob.deliverCanceled();
                 return ;
             }
 
-            request.finish("finished-at-success");
-            request.deliverResponse(response);
+            asyncJob.finish("finished-at-success");
+            asyncJob.deliverResponse(response);
         }
     }
 
@@ -96,12 +96,12 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
      * Delivery under failed status.
      */
     private class FailedMessageDeliveryRunnable implements Runnable {
-        private final Request request;
+        private final AsyncJob asyncJob;
         private final String errorMsg;
         private final Throwable throwable;
 
-        public FailedMessageDeliveryRunnable(Request request, String msg, Throwable throwable) {
-            this.request = request;
+        public FailedMessageDeliveryRunnable(AsyncJob asyncJob, String msg, Throwable throwable) {
+            this.asyncJob = asyncJob;
             this.throwable = throwable;
             this.errorMsg = msg;
         }
@@ -109,13 +109,13 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
         @Override
         public void run() {
             // If this request has canceled, finish it and don't deliver.
-            if (request.isCanceled()) {
-                request.finish("canceled-at-delivery");
-                request.deliverCanceled();
+            if (asyncJob.isCanceled()) {
+                asyncJob.finish("canceled-at-delivery");
+                asyncJob.deliverCanceled();
                 return ;
             }
-            request.finish("finished-at-error");
-            request.deliverError(errorMsg, throwable);
+            asyncJob.finish("finished-at-error");
+            asyncJob.deliverError(errorMsg, throwable);
         }
     }
 
@@ -123,24 +123,24 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
      * Delivery under failed status.
      */
     private class IntermediateDeliveryRunnable<I> implements Runnable {
-        private final Request request;
+        private final AsyncJob asyncJob;
         private final I intermediate;
 
-        public IntermediateDeliveryRunnable(Request request, I intermediate) {
-            this.request = request;
+        public IntermediateDeliveryRunnable(AsyncJob asyncJob, I intermediate) {
+            this.asyncJob = asyncJob;
             this.intermediate = intermediate;
         }
 
         @Override
         public void run() {
             // If this request has canceled, finish it and don't deliver.
-            if (request.isCanceled()) {
-                request.finish("canceled-at-delivery");
-                request.deliverCanceled();
+            if (asyncJob.isCanceled()) {
+                asyncJob.finish("canceled-at-delivery");
+                asyncJob.deliverCanceled();
                 return ;
             }
-            request.addMarker("intermediate-response");
-            request.deliverIntermediate(intermediate);
+            asyncJob.addMarker("intermediate-response");
+            asyncJob.deliverIntermediate(intermediate);
         }
     }
 }

@@ -1,8 +1,8 @@
-package com.hyn.scheduler;
+package com.hyn.job;
 
 
-import com.hyn.scheduler.impl.DefaultCallbackDelivery;
-import com.hyn.scheduler.log.Log;
+import com.hyn.job.impl.DefaultCallbackDelivery;
+import com.hyn.job.log.Log;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -12,37 +12,37 @@ import java.util.concurrent.BlockingQueue;
  * <p/>
  * Provides a thread for performing network dispatch from a queue of requests.
  */
-public class RequestDispatcher extends Thread implements FullPerformer{
+public class JobDispatcher extends Thread implements FullPerformer{
     private static final String TAG = "WorkerThreadExecutor";
     /**
      * The queue of requests to service.
      */
-    protected final BlockingQueue<Request> queue;
+    protected final BlockingQueue<AsyncJob> queue;
 
     @Override
-    public Request nextRequest() throws InterruptedException {
+    public AsyncJob nextRequest() throws InterruptedException {
         return queue.take();
     }
 
     @Override
-    public void retry(Request request) {
-        queue.add(request);
+    public void retry(AsyncJob asyncJob) {
+        queue.add(asyncJob);
     }
 
     @Override
     public void fullPerformRequest() {
-        Request request;
+        AsyncJob asyncJob;
         while (true) {
             if (isQuit()) {
                 return;
             }
             try {
                 // Take a request from the queue.
-                request = nextRequest();
+                asyncJob = nextRequest();
                 if (isQuit()) {
                     return;
                 }
-                if(request == null) {
+                if(asyncJob == null) {
                     return ;
                 }
             } catch (InterruptedException e) {
@@ -52,54 +52,54 @@ public class RequestDispatcher extends Thread implements FullPerformer{
                 }
                 continue;
             }
-            RunningStatus runningStatus = request.getRunningStatus();
-            CallbackDelivery delivery = request.getCallbackDelivery();
-            RequestExecutor requestExecutor = request.getRequestExecutor();
+            RunningTrace runningTrace = asyncJob.getRunningTrace();
+            CallbackDelivery delivery = asyncJob.getCallbackDelivery();
+            JobExecutor jobExecutor = asyncJob.getJobExecutor();
             if (null == delivery) delivery = new DefaultCallbackDelivery();
-            request.addMarker("network-queue-take");
+            asyncJob.addMarker("network-queue-take");
 
             // If the request was cancelled already, do not perform the current request.
-            if (request.isCanceled()) {
-                request.addMarker("network-discard-cancelled");
-                request.setRequestStatus(RequestStatus.Finish);
-                delivery.postCanceled(request);
+            if (asyncJob.isCanceled()) {
+                asyncJob.addMarker("network-discard-cancelled");
+                asyncJob.setJobStatus(JobStatus.Finish);
+                delivery.postCanceled(asyncJob);
                 continue;
             }
-            request.setRequestStatus(RequestStatus.Running);
-            runningStatus.setRunningTime(currentTimeMillis());
+            asyncJob.setJobStatus(JobStatus.Running);
+            runningTrace.setRunningTime(currentTimeMillis());
             try {
-                request.addMarker("network-start-running");
-                Object response = requestExecutor.performRequest(request);
+                asyncJob.addMarker("network-start-running");
+                Object response = jobExecutor.performRequest(asyncJob);
                 if (isQuit()) {
                     return;
                 }
-                request.setRequestStatus(RequestStatus.Finish);
-                if (request.isCanceled()) {
-                    request.addMarker("network-discard-cancelled");
-                    delivery.postCanceled(request);
+                asyncJob.setJobStatus(JobStatus.Finish);
+                if (asyncJob.isCanceled()) {
+                    asyncJob.addMarker("network-discard-cancelled");
+                    delivery.postCanceled(asyncJob);
                     continue;
                 }
-                runningStatus.setFinishTime(System.currentTimeMillis());
-                request.addMarker("request-complete");
-                delivery.postSuccess(request, response);
-                request.markDelivered();
+                runningTrace.setFinishTime(System.currentTimeMillis());
+                asyncJob.addMarker("request-complete");
+                delivery.postSuccess(asyncJob, response);
+                asyncJob.markDelivered();
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
                 if (isQuit()) {
                     return;
                 }
-                runningStatus.failed();
-                RetryPolicy retryPolicy = request.getRetryPolicy();
-                if (retryPolicy.retry(request, throwable)) { // retry again.
+                runningTrace.failed();
+                RetryPolicy retryPolicy = asyncJob.getRetryPolicy();
+                if (retryPolicy.retry(asyncJob, throwable)) { // retry again.
                     // change the priority of current request.
-                    request.setPriorityPolicy(retryPolicy.retryPriority(request, request.getPriorityPolicy()));
-                    retry(request);
-                    request.setRequestStatus(RequestStatus.IDLE);
-                    runningStatus.setAddToQueueTimeStamp(currentTimeMillis());
+                    asyncJob.setPriorityPolicy(retryPolicy.retryPriority(asyncJob, asyncJob.getPriorityPolicy()));
+                    retry(asyncJob);
+                    asyncJob.setJobStatus(JobStatus.IDLE);
+                    runningTrace.setAddToQueueTimeStamp(currentTimeMillis());
                 } else { // failed
-                    request.setRequestStatus(RequestStatus.Finish);
-                    delivery.postFailed(request, null, throwable);
-                    runningStatus.setFinishTime(currentTimeMillis());
+                    asyncJob.setJobStatus(JobStatus.Finish);
+                    delivery.postFailed(asyncJob, null, throwable);
+                    runningTrace.setFinishTime(currentTimeMillis());
                 }
                 continue;
             }
@@ -115,7 +115,7 @@ public class RequestDispatcher extends Thread implements FullPerformer{
      */
     private volatile Status status = Status.IDLE;
 
-    protected RequestDispatcher(BlockingQueue<Request> queue) {
+    protected JobDispatcher(BlockingQueue<AsyncJob> queue) {
         this.queue = queue;
     }
 

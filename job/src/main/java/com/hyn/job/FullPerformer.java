@@ -1,14 +1,12 @@
-package com.hyn.scheduler;
-
-import java.util.Queue;
+package com.hyn.job;
 
 /**
  * Created by hanyanan on 2015/6/7.
  */
 public interface FullPerformer {
-    public Request nextRequest() throws InterruptedException;
+    public AsyncJob nextRequest() throws InterruptedException;
 
-    public void retry(Request request);
+    public void retry(AsyncJob asyncJob);
 
     /**
      * perform next request and delivery rsponse if success, or try to run again if it's failed.

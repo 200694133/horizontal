@@ -1,4 +1,4 @@
-package com.hyn.scheduler.log;
+package com.hyn.job.log;
 
 /**
  * Created by hanyanan on 2015/6/4.

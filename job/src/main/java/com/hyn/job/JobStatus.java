@@ -1,10 +1,10 @@
-package com.hyn.scheduler;
+package com.hyn.job;
 
 /**
  * Created by hanyanan on 2015/6/2.
  * A enum to record the current request status.
  */
-public enum RequestStatus {
+public enum JobStatus {
     /**
      * It's idle status, it forbid to running.
      */
@@ -25,7 +25,7 @@ public enum RequestStatus {
      * description for current status.
      */
     private final String status;
-    private RequestStatus(String status){
+    private JobStatus(String status){
         this.status = status;
     }
 

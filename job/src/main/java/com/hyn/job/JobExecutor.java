@@ -1,11 +1,11 @@
-package com.hyn.scheduler;
+package com.hyn.job;
 
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public interface RequestExecutor<R> {
+public interface JobExecutor<R> {
     /**
      * Perform current request and return the result.It's a execution unit.
      */
-    R performRequest(Request request) throws Throwable;
+    R performRequest(AsyncJob asyncJob) throws Throwable;
 }

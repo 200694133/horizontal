@@ -1,4 +1,4 @@
-package com.hyn.scheduler;
+package com.hyn.job;
 
 
 import java.util.Map;
@@ -12,7 +12,7 @@ import hyn.com.lib.TimeUtils;
 /**
  * Created by hanyanan on 2015/6/3.
  */
-class RequestQueue {
+class JobQueue {
     public static final String TAG = "RequestDispatcher";
     public static final int DEFAULT_THREAD_POOL_SIZE = 4;
 
@@ -21,20 +21,20 @@ class RequestQueue {
      * will be in this set if it is waiting in any queue or currently being processed by
      * any dispatcher.
      */
-    private final PriorityBlockingQueue<Request> mCurrentRequests = new PriorityBlockingQueue<Request>();
+    private final PriorityBlockingQueue<AsyncJob> mCurrentAsyncJobs = new PriorityBlockingQueue<AsyncJob>();
     /**
      * The fingerprint and
      */
-    private final Map<Fingerprint, Request> fingerprintRequestHashMap = new WeakHashMap<Fingerprint, Request>();
+    private final Map<Fingerprint, AsyncJob> fingerprintRequestHashMap = new WeakHashMap<Fingerprint, AsyncJob>();
     private final int threadPoolSize;
-    private final RequestDispatcher[] requestDispatchers;
+    private final JobDispatcher[] jobDispatchers;
 
-    RequestQueue(int threadPoolSize){
+    JobQueue(int threadPoolSize){
         this.threadPoolSize = threadPoolSize;
-        requestDispatchers = new RequestDispatcher[threadPoolSize];
+        jobDispatchers = new JobDispatcher[threadPoolSize];
     }
 
-    RequestQueue(){
+    JobQueue(){
         this(DEFAULT_THREAD_POOL_SIZE);
     }
 
@@ -45,22 +45,22 @@ class RequestQueue {
         stop();  // Make sure any currently running dispatchers are stopped.
         // Create network dispatchers (and corresponding threads) up to the pool size.
         for (int i = 0; i < threadPoolSize; i++) {
-            RequestDispatcher requestDispatcher = new RequestDispatcher(mCurrentRequests);
-            requestDispatchers[i] = requestDispatcher;
-            requestDispatcher.start();
+            JobDispatcher jobDispatcher = new JobDispatcher(mCurrentAsyncJobs);
+            jobDispatchers[i] = jobDispatcher;
+            jobDispatcher.start();
         }
     }
 
     public synchronized void stop(){
-        for (int i = 0; i < requestDispatchers.length; i++) {
-            if (requestDispatchers[i] != null) {
-                requestDispatchers[i].quit();
+        for (int i = 0; i < jobDispatchers.length; i++) {
+            if (jobDispatchers[i] != null) {
+                jobDispatchers[i].quit();
             }
         }
     }
 
     public synchronized void cancelAll(){
-        mCurrentRequests.clear();
+        mCurrentAsyncJobs.clear();
     }
 
     public synchronized void cancel(){
@@ -69,32 +69,32 @@ class RequestQueue {
 
     public synchronized void cancel(Fingerprint fingerprint){
         Preconditions.checkNotNull(fingerprint);
-        Request request = null;
-        request = fingerprintRequestHashMap.get(fingerprint);
-        if(null != request) {
-            request.cancel();
+        AsyncJob asyncJob = null;
+        asyncJob = fingerprintRequestHashMap.get(fingerprint);
+        if(null != asyncJob) {
+            asyncJob.cancel();
         }
     }
 
-    public synchronized void add(Request request) {
-        fingerprintRequestHashMap.put(request.getFingerprint(), request);
-        mCurrentRequests.add(request);
+    public synchronized void add(AsyncJob asyncJob) {
+        fingerprintRequestHashMap.put(asyncJob.getFingerprint(), asyncJob);
+        mCurrentAsyncJobs.add(asyncJob);
 
         // Process requests in the order they are added.
-        request.addMarker("add-to-queue");
-        request.getRunningStatus().setLoadingTime(TimeUtils.getCurrentWallClockTime());
-        request.setRequestStatus(RequestStatus.Pending);
+        asyncJob.addMarker("add-to-queue");
+        asyncJob.getRunningTrace().setLoadingTime(TimeUtils.getCurrentWallClockTime());
+        asyncJob.setJobStatus(JobStatus.Pending);
     }
 
     /**
-     * Called from {@link Request#finish(String)}, indicating that processing of the given request
+     * Called from {@link AsyncJob#finish(String)}, indicating that processing of the given request
      * has finished.
      *
      * <p>Releases waiting requests for <code>request.getCacheKey()</code> if
      *      <code>request.shouldCache()</code>.</p>
      */
-    public synchronized void finish(Request request) {
+    public synchronized void finish(AsyncJob asyncJob) {
         // Remove from the set of requests currently being processed.
-        mCurrentRequests.remove(request);
+        mCurrentAsyncJobs.remove(asyncJob);
     }
 }
