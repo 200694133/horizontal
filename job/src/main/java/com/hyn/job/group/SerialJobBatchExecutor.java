@@ -29,7 +29,7 @@ public class SerialJobBatchExecutor extends JobBatchExecutor<Void> {
         final BlockingQueue<AsyncJob> blockingQueue = new LinkedBlockingQueue<AsyncJob>(asyncJobList);
         fullPerformer = new JobDispatcher(blockingQueue){
             @Override
-            public AsyncJob nextRequest() throws InterruptedException {
+            public AsyncJob nextJob() throws InterruptedException {
                 return queue.poll();
             }
         };

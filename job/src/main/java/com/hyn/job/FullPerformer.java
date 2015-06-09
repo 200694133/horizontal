@@ -4,7 +4,12 @@ package com.hyn.job;
  * Created by hanyanan on 2015/6/7.
  */
 public interface FullPerformer {
-    public AsyncJob nextRequest() throws InterruptedException;
+    /**
+     * Get the next job, null means that no any job.
+     * @return
+     * @throws InterruptedException
+     */
+    public AsyncJob nextJob() throws InterruptedException;
 
     public void retry(AsyncJob asyncJob);
 

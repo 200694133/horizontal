@@ -20,7 +20,7 @@ public class JobDispatcher extends Thread implements FullPerformer{
     protected final BlockingQueue<AsyncJob> queue;
 
     @Override
-    public AsyncJob nextRequest() throws InterruptedException {
+    public AsyncJob nextJob() throws InterruptedException {
         return queue.take();
     }
 
@@ -38,7 +38,7 @@ public class JobDispatcher extends Thread implements FullPerformer{
             }
             try {
                 // Take a request from the queue.
-                asyncJob = nextRequest();
+                asyncJob = nextJob();
                 if (isQuit()) {
                     return;
                 }

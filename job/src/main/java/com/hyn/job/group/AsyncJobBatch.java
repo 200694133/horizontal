@@ -64,6 +64,8 @@ public class AsyncJobBatch extends AsyncJob {
 
 
     public void remove(AsyncJob asyncJob){
-        //TODO
+        synchronized (asyncJobList) {
+            asyncJobList.remove(asyncJob);
+        }
     }
 }

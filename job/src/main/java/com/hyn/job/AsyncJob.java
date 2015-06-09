@@ -62,8 +62,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
      */
     protected Object tag;
 
-    /** The request queue has binded. */
-    private JobQueue jobQueue;
+    private JobResult<R> result;
 
     public AsyncJob(P param, JobCallback callback, CallbackDelivery callbackDelivery,
                     RetryPolicy retryPolicy, PriorityPolicy priorityPolicy,
@@ -202,10 +201,6 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
             return this.fingerprint.equals(other.fingerprint);
         }
         return false;
-    }
-
-    void setJobQueue(JobQueue jobQueue){
-        this.jobQueue = jobQueue;
     }
 
     public static class Builder<P, I, R> {

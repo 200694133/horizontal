@@ -15,7 +15,12 @@ public class ConcurrentPendingJobBatchExecutor extends JobBatchExecutor {
         return null;
     }
 
-    public void onRequestSuccess(){
+    public void onJobSuccess(){
 
     }
+
+    public void onJobFailed(AsyncJob job) {
+
+    }
+
 }

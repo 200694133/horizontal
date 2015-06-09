@@ -12,7 +12,7 @@ public interface JobCallback<I, R> {
     /**
      * Called when a response is received.It's called when get result success.
      */
-    void onSuccess(AsyncJob asyncJob, R result);
+    void onSuccess(AsyncJob asyncJob, R response);
 
     /**
      * Callback method that an error has been occurred with the

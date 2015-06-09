@@ -67,8 +67,18 @@ public class HttpService {
         return loadObjectHttpRequest(httpRequest, new ByteArrayParser());
     }
 
-    public InputStream loadResourceHttpRequest(HttpRequest httpRequest) throws Throwable{
-        //TODO
+    public TwoTuple<Integer, InputStream> loadResourceHttpRequest(HttpRequest httpRequest) throws Throwable{
+        try {
+            HttpResponse response = loadHttpRequest(httpRequest);
+            if(!response.isSuccessful()){
+                System.out.println(response.toString());
+                return new TwoTuple<>(response.getCode(), null);
+            }
+            BinaryResource resource = response.body().getResource();
+            return new TwoTuple<>(response.getCode(), resource.openStream());
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
         return null;
     }
 
