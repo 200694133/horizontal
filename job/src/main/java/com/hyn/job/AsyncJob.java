@@ -147,9 +147,11 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
         //TODO
     }
 
-    public void finish() {
-        //TODO
-    }
+//    public void finish() {
+//        synchronized (this) {
+//            this.setJobStatus(JobStatus.Finish);
+//        }
+//    }
 
     /**
      * Called when afrer delivery the response success.
