@@ -55,7 +55,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
      * Current request executor. {@see RequestExecutor#performRequest}.
      */
     @NotNull
-    private final JobExecutor<R> jobExecutor;
+    private final JobExecutor<? extends AsyncJob, R> jobExecutor;
 
     /**
      * An opaque token tagging this request; used for bulk cancellation.
@@ -66,7 +66,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
 
     public AsyncJob(P param, JobCallback callback, CallbackDelivery callbackDelivery,
                     RetryPolicy retryPolicy, PriorityPolicy priorityPolicy,
-                    Fingerprint fingerprint, JobExecutor<R> jobExecutor) {
+                    Fingerprint fingerprint, JobExecutor<? extends AsyncJob, R> jobExecutor) {
         this.param = param;
         this.callback = callback;
         this.callbackDelivery = callbackDelivery;
@@ -108,7 +108,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
         return fingerprint;
     }
 
-    public JobExecutor<R> getJobExecutor() {
+    public JobExecutor<? extends AsyncJob, R> getJobExecutor() {
         return jobExecutor;
     }
 
@@ -213,7 +213,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
         private PriorityPolicy priorityPolicy;
         private RunningTrace runningTrace;
         private Fingerprint fingerprint = new SimpleFingerprint();
-        private JobExecutor<R> jobExecutor;
+        private JobExecutor<? extends AsyncJob, R> jobExecutor;
 
         public Builder<P, I, R> setCallback(JobCallback callback) {
             this.callback = callback;
@@ -250,7 +250,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
             return this;
         }
 
-        public Builder<P, I, R> setJobExecutor(JobExecutor<R> jobExecutor) {
+        public Builder<P, I, R> setJobExecutor(JobExecutor<? extends AsyncJob, R> jobExecutor) {
             this.jobExecutor = jobExecutor;
             return this;
         }

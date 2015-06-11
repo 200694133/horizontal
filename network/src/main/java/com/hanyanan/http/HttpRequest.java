@@ -130,7 +130,7 @@ public class HttpRequest {
         return tag;
     }
 
-    public HttpRequest addBodyEntity(BinaryResource resource){
+    public HttpRequest addBodyEntity(String param, BinaryResource resource){
         //TODO
 
         return this;
