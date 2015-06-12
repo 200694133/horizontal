@@ -1,4 +1,4 @@
-package com.hyn.job.impl;
+package com.hyn.job;
 
 import com.hyn.job.CallbackDelivery;
 import com.hyn.job.AsyncJob;
@@ -13,6 +13,7 @@ import static hyn.com.lib.Preconditions.checkNotNull;
  * Delivers result and all information, include response, failed message, canceling information.
  */
 public class DefaultCallbackDelivery implements CallbackDelivery {
+
     /** Used for posting responses, typically to the main thread. */
     private final Executor mResponsePoster;
 
@@ -82,12 +83,12 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
         public void run() {
             // If this request has canceled, finish it and don't deliver.
             if (asyncJob.isCanceled()) {
-                asyncJob.finish("canceled-at-delivery");
+                asyncJob.addMarker("canceled-at-delivery");
                 asyncJob.deliverCanceled();
                 return ;
             }
 
-            asyncJob.finish("finished-at-success");
+            asyncJob.addMarker("finished-at-success");
             asyncJob.deliverResponse(response);
         }
     }
@@ -110,11 +111,11 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
         public void run() {
             // If this request has canceled, finish it and don't deliver.
             if (asyncJob.isCanceled()) {
-                asyncJob.finish("canceled-at-delivery");
+                asyncJob.addMarker("canceled-at-delivery");
                 asyncJob.deliverCanceled();
                 return ;
             }
-            asyncJob.finish("finished-at-error");
+            asyncJob.addMarker("finished-at-error");
             asyncJob.deliverError(errorMsg, throwable);
         }
     }
@@ -135,7 +136,7 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
         public void run() {
             // If this request has canceled, finish it and don't deliver.
             if (asyncJob.isCanceled()) {
-                asyncJob.finish("canceled-at-delivery");
+                asyncJob.addMarker("canceled-at-delivery");
                 asyncJob.deliverCanceled();
                 return ;
             }

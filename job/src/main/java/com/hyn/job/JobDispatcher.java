@@ -1,7 +1,6 @@
 package com.hyn.job;
 
 
-import com.hyn.job.impl.DefaultCallbackDelivery;
 import com.hyn.job.log.Log;
 
 import java.util.concurrent.BlockingQueue;

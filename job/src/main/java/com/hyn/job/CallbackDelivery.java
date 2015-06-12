@@ -4,6 +4,8 @@ package com.hyn.job;
  * Created by hanyanan on 2015/6/2.
  */
 public interface CallbackDelivery {
+    public final static CallbackDelivery DEFAULT_CALLBACK_DELIVERY = new DefaultCallbackDelivery();
+
     /**
      * Post the result to the request
      */

@@ -44,7 +44,7 @@ public class HttpRequest {
     /**  */
     private final Map<String, Object> params = new HashMap<String, Object>();
     /** The callback bind to current request. */
-    private CallBack callBack;
+    private TransportProgress transportProgress;
     /** The finger print of current request. */
     private String fingerPrint;
 
@@ -66,13 +66,13 @@ public class HttpRequest {
         this(url, Method.GET, Protocol.HTTP_1_1);
     }
 
-    public HttpRequest setCallBack(CallBack callBack) {
-        this.callBack = callBack;
+    public HttpRequest setTransportProgress(TransportProgress transportProgress) {
+        this.transportProgress = transportProgress;
         return this;
     }
 
-    public CallBack getCallBack(){
-        return callBack;
+    public TransportProgress getTransportProgress(){
+        return transportProgress;
     }
 
     public HttpRequest setForwardUrl(String url) {

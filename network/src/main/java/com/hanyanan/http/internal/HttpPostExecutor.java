@@ -1,6 +1,6 @@
 package com.hanyanan.http.internal;
 
-import com.hanyanan.http.CallBack;
+import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody.EntityHolder;
 
@@ -11,7 +11,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,7 +94,7 @@ public class HttpPostExecutor extends HttpUrlExecutor {
 
 
         if(null != entityHolders && entityHolders.size() > 0) {
-            CallBack callBack = request.getCallBack();
+            TransportProgress transportProgress = request.getTransportProgress();
 //            --ZnGpDtePMx0KrHh_G0X99Yef9r8JZsRJSXC
 //            Content-Disposition: form-data;name="pic"; filename="photo.jpg"
 //            Content-Type: application/octet-stream
@@ -120,7 +119,7 @@ public class HttpPostExecutor extends HttpUrlExecutor {
                 outputStream.write(data.toString().getBytes());
                 outputStream.flush();
                 reads = copyAndCallback(request, entityHolder.resource.openStream(),
-                        outputStream, callBack, reads, count);
+                        outputStream, transportProgress, reads, count);
                 outputStream.write(CRLF.getBytes());
                 IOUtil.closeQuietly(entityHolder.resource.openStream());
             }
@@ -145,11 +144,11 @@ public class HttpPostExecutor extends HttpUrlExecutor {
      * Copy data from inputStream to outputStream.
      * @param inputStream the data come from
      * @param outputStream the data output
-     * @param callBack the callback
+     * @param transportProgress the callback
      * @param maxSize the max size of the data transport
      */
     private long copyAndCallback(HttpRequest request, InputStream inputStream, OutputStream outputStream,
-                      CallBack callBack, long reads, long maxSize) throws IOException{
+                      TransportProgress transportProgress, long reads, long maxSize) throws IOException{
         Preconditions.checkNotNull(inputStream);
         Preconditions.checkNotNull(outputStream);
         int buffSize = 1024;//1k
@@ -159,8 +158,8 @@ public class HttpPostExecutor extends HttpUrlExecutor {
             if (read <= 0) break;//读取完毕
             outputStream.write(buf, 0, (int) read);
             reads += read;
-            if (null != callBack) {
-                callBack.onTransportProgress(request, reads, maxSize);
+            if (null != transportProgress) {
+                transportProgress.onTransportProgress(request, reads, maxSize);
             }
         } while (true);
         return reads;

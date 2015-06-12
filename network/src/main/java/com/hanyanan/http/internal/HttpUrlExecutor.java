@@ -1,6 +1,6 @@
 package com.hanyanan.http.internal;
 
-import com.hanyanan.http.CallBack;
+import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.Headers;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody;
@@ -129,15 +129,15 @@ public class HttpUrlExecutor implements HttpExecutor {
 
     protected HttpResponseBody readResponseBody(final HttpRequest httpRequest, HttpURLConnection connection)
             throws IOException {
-        final CallBack callBack = httpRequest.getCallBack();
+        final TransportProgress transportProgress = httpRequest.getTransportProgress();
         final long contentLength = connection.getContentLengthLong();//TODO
         InputStream inputStream = connection.getInputStream();
         InputStreamWrapper inputStreamWrapper = new InputStreamWrapper(inputStream, connection) {
             @Override
             protected void onRead(long readCount) {
                 System.out.println("Read count " + readCount);
-                if (null != callBack) {
-                    callBack.onTransportProgress(httpRequest, readCount, contentLength);
+                if (null != transportProgress) {
+                    transportProgress.onTransportProgress(httpRequest, readCount, contentLength);
                 }
             }
         };
