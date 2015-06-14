@@ -33,23 +33,4 @@ public class RedirectedResponse {
     public String getMsg() {
         return msg;
     }
-
-
-//    static class Builder {
-//        private HttpResponseHeader responseHeader;
-//        private int code;
-//        private String location;
-//        private String msg;
-//        Builder(){}
-//
-//        public Builder setStatusCode(int code) {
-//            this.code = code;
-//            return this;
-//        }
-//
-//        public Builder
-//        RedirectedResponse build(){
-//            return null;
-//        }
-//    }
 }

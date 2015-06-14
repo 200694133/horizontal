@@ -19,11 +19,11 @@ public class JobLoader {
     private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
     private JobQueue jobQueue = new JobQueue();
     private JobLoader(){
-
+        jobQueue.start();
     }
 
     public synchronized void load(AsyncJob asyncJob){
-        //TODO
+        jobQueue.add(asyncJob);
     }
 
     public synchronized void loadDelayed(AsyncJob asyncJob, TimeUnit timeUnit, long time) {

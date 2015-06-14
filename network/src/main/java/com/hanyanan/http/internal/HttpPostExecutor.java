@@ -1,8 +1,8 @@
 package com.hanyanan.http.internal;
 
-import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody.EntityHolder;
+import com.hanyanan.http.TransportProgress;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -155,12 +155,10 @@ public class HttpPostExecutor extends HttpUrlExecutor {
         byte[] buf = new byte[buffSize];
         do {
             long read = inputStream.read(buf);
-            if (read <= 0) break;//读取完毕
+            if (read <= 0) break; // 读取完毕
             outputStream.write(buf, 0, (int) read);
             reads += read;
-            if (null != transportProgress) {
-                transportProgress.onTransportProgress(request, reads, maxSize);
-            }
+            onTransportProgress(request, false, reads, maxSize);
         } while (true);
         return reads;
     }

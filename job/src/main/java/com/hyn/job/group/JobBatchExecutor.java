@@ -7,16 +7,7 @@ import hyn.com.lib.Preconditions;
 /**
  * Created by hanyanan on 2015/6/4.
  */
-public abstract class JobBatchExecutor<R> implements JobExecutor<R> {
+public abstract class JobBatchExecutor<R> implements JobExecutor<AsyncJobBatch, R> {
 
     public abstract R performRequest(AsyncJobBatch request) throws Throwable;
-
-    @Override
-    public R performRequest(AsyncJob asyncJob) throws Throwable {
-        Preconditions.checkNotNull(asyncJob);
-        if(!AsyncJobBatch.class.isInstance(asyncJob)) {
-            throw new IllegalArgumentException();
-        }
-        return performRequest((AsyncJobBatch) asyncJob);
-    }
 }

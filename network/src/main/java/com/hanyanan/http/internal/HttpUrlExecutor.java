@@ -1,11 +1,11 @@
 package com.hanyanan.http.internal;
 
-import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.Headers;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody;
 import com.hanyanan.http.HttpRequestHeader;
 import com.hanyanan.http.Method;
+import com.hanyanan.http.TransportProgress;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +34,20 @@ public class HttpUrlExecutor implements HttpExecutor {
     public static final String COLONSPACE = ": ";
     public static final String DASHDASH = "--";
     public static final String CRLF = "\r\n";
+    protected void onTransportProgress(HttpRequest request, boolean download, long position, long count){
+
+    }
+
+    /**
+     * Prepare redirect to the next url, invoke this method after finish a redirect request and before redirect to the
+     * specify url.
+     * @param request
+     * @param redirectedResponse
+     * @throws InterruptedException to abort current request
+     */
+    protected void onPrepareRedirect(HttpRequest request, RedirectedResponse redirectedResponse) throws InterruptedException{
+
+    }
 
     @Override
     public HttpResponse run(HttpRequest request) throws Throwable {
@@ -53,20 +67,19 @@ public class HttpUrlExecutor implements HttpExecutor {
             address_url = new URL(url);
             connection = (HttpURLConnection) address_url.openConnection();
             connection.setRequestMethod(request.methodString());
-            connection.setInstanceFollowRedirects(false);
-            setTimeout(connection);//set timeout for connection
+            connection.setInstanceFollowRedirects(true);
+            setTimeout(connection); // set timeout for connection
             if (isMultipart(request)) {
                 request.getRequestHeader().remove(Headers.CONTENT_LENGTH);
             }
             writeRequestHeader(request, connection);//set http request header
             writeRequestBody(request, connection);//send request body to server
-            connection.connect();
+            connection.connect();//connection to server
 
-//            connection.setDoInput(true);
             int statusCode = connection.getResponseCode();
             String msg = connection.getResponseMessage();
             HttpResponseHeader responseHeader = readResponseHeaders(request, connection);
-            if (isRedirect(statusCode)) {
+            if (isRedirect(statusCode)) { //redirect to next url
                 int count = builder.increaseAndGetRedirectCount();
                 if (count > MAX_REDIRECT_COUNT) {
                     //TODO
@@ -80,9 +93,9 @@ public class HttpUrlExecutor implements HttpExecutor {
                 request.setForwardUrl(forwardUrl);
                 RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwardUrl, responseHeader);
                 builder.addRedirectedResponse(redirectedResponse);
-                //TODO, setCookie, Others
+                onPrepareRedirect(request, redirectedResponse);//TODO, setCookie, Others
                 connection.disconnect();
-                return performRequest(request, builder);
+                return performRequest(request, builder); //redirect to next request
             } else if (isSuccess(statusCode)) {
                 builder.setMessage(msg);
                 builder.setStatusCode(statusCode);
@@ -106,6 +119,13 @@ public class HttpUrlExecutor implements HttpExecutor {
             }
             throw e;
         } catch (IOException e) {
+            e.printStackTrace();
+            releaseBodyResource(request);
+            if (null != connection) {
+                connection.disconnect();
+            }
+            throw e;
+        } catch (InterruptedException e) {
             e.printStackTrace();
             releaseBodyResource(request);
             if (null != connection) {
@@ -136,9 +156,7 @@ public class HttpUrlExecutor implements HttpExecutor {
             @Override
             protected void onRead(long readCount) {
                 System.out.println("Read count " + readCount);
-                if (null != transportProgress) {
-                    transportProgress.onTransportProgress(httpRequest, readCount, contentLength);
-                }
+                onTransportProgress(httpRequest, true, readCount, contentLength);
             }
         };
 
