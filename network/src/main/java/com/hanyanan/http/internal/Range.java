@@ -4,13 +4,33 @@ package com.hanyanan.http.internal;
  * Created by hanyanan on 2015/5/14.
  */
 public class Range {
-    public final long start;
-    public final long count;
-    public final long fullLength;
+    private final long start;
+    private final long end;
+    private final long fullLength;
 
-    public Range(long start, long count, long fullLength) {
+    public Range(long start, long end, long fullLength) {
         this.start = start;
-        this.count = count;
+        this.end = end;
         this.fullLength = fullLength;
+    }
+
+    public long getFullLength(){
+        return fullLength;
+    }
+
+    public long getStart(){
+        return start;
+    }
+
+    public long getEnd(){
+        if(end <= 0 ){
+            if(fullLength > 0) {
+                return fullLength - 1;
+            }
+            return end;
+        } else {
+            return end;
+        }
+
     }
 }

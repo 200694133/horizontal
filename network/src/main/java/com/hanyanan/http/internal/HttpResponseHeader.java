@@ -22,6 +22,7 @@ import static hyn.com.lib.Preconditions.checkNotNull;
 public class HttpResponseHeader extends HttpHeader {
     private MimeType mimeType;
     private CacheControl cacheControl;
+    private Range range = null;
     public HttpResponseHeader(Map<String, List<String>> headers) {
         super(headers);
     }
@@ -45,6 +46,9 @@ public class HttpResponseHeader extends HttpHeader {
 
     ////Content-Range: bytes 21010-47021/47022
     public Range getRange() {
+        if (null != this.range) {
+            return this.range;
+        }
         String range = value(Headers.CONTENT_RANGE);
         if (null == range) return null;
         Pattern pattern = Pattern.compile("bytes\\s*(\\d*)-?(\\d)*/?(\\d*)");
@@ -56,10 +60,16 @@ public class HttpResponseHeader extends HttpHeader {
             long s = ValueUtil.parseLong(start, -1);
             long e = ValueUtil.parseLong(end, -1);
             long f = ValueUtil.parseLong(full, -1);
-            return new Range(s, e, f);
+            this.range = new Range(s, e, f);
         }
-        return null;
+        return this.range;
     }
+
+    public long getFullSize() {
+        Range range = getRange();
+        return range.getFullLength();
+    }
+
 
     public boolean isSupportCache() {
         return false;
@@ -197,22 +207,5 @@ public class HttpResponseHeader extends HttpHeader {
 
     public String getForwardUrl() {
         return value(Headers.LOCATION);
-    }
-
-
-    static class Builder {
-        Builder(){
-
-        }
-
-        Builder setHeaders(Map<String, List<String>> headers){
-
-            return this;
-        }
-
-        HttpResponseHeader build(){
-
-            return null;
-        }
     }
 }
