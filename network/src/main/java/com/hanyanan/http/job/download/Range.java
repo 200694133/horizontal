@@ -10,4 +10,5 @@ public class Range {
         this.offset = offset;
         this.length = length;
     }
+    boolean deliveryed = false;
 }

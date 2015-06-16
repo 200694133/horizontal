@@ -1,5 +1,6 @@
 package com.hanyanan.http.job.download;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -40,7 +41,7 @@ public class FileMapper {
      * 没有被覆盖的区域
      * */
     private final List<Range> blockHoleList = new LinkedList<Range>();
-    private final SortedMap<Long, Range> blockLengthMap = Collections.synchronizedSortedMap(new TreeMap<Long, Range>());
+    private final SortedMap<Range, Range> blockLengthMap = Collections.synchronizedSortedMap(new TreeMap<Range, Range>(LENGTH_COMPARATOR));
     private final long length;
     private final long blockSize;
     public FileMapper(long length, long blockSize){
@@ -49,9 +50,11 @@ public class FileMapper {
         this.blockSize = blockSize;
         Range range = new Range(0, length);
         blockHoleList.add(range);
-        blockLengthMap.put(length, range);
         Collections.sort(blockHoleList, POSITION_COMPARATOR); // 按起始位置排序
         merge();
+        for(Range r : blockHoleList){
+            blockLengthMap.put(r, r);
+        }
     }
 
     /**
@@ -60,6 +63,9 @@ public class FileMapper {
     private void merge(){
         for(int index = 0; index < blockHoleList.size() - 1;){
             Range r1 = blockHoleList.get(index);
+            if(r1.deliveryed) {
+                continue;
+            }
             Range r2 = blockHoleList.get(index + 1);
             if(r1.length + r1.offset == r2.offset) {
                 // 合并两个模块
@@ -69,12 +75,6 @@ public class FileMapper {
         }
     }
 
-    public Range deliveryRange(long expectLength){
-        long blockSize = this.blockSize;
-        synchronized (this) {
-            return null;
-        }
-    }
 
     /**
      * 有三种情况：
@@ -84,28 +84,48 @@ public class FileMapper {
      * @param expectLength
      * @return
      */
-    private Range findBest(long expectLength){
-        Iterator iter = blockLengthMap.entrySet().iterator();
-        while(iter.hasNext()) {
-            Map.Entry<Long,Range> entry = (Map.Entry<Long,Range>)iter.next();
-            if(entry.getKey().longValue() == expectLength) {
-
+    public Range deliveryRange(long expectLength){
+        synchronized (this) {
+            Collection<Range> rangeList = blockLengthMap.values();
+            long size = rangeList.size();
+            Range last = null;
+            for (Range range : rangeList) {
+                if(range.deliveryed) {
+                    continue;
+                }
+                if (range.length == expectLength) {
+                    range.deliveryed = true;
+                    return range;
+                }
+                if (range.length > expectLength) {
+                    // 符合情况2， 将一个区域拆分成两个
+                    Range o = new Range(range.offset + expectLength, range.length - expectLength);
+                    blockLengthMap.put(o, o);
+                    range.length = expectLength;
+                    range.deliveryed = true;
+                    return range;
+                }
+                last = range;
             }
+            // 第三种情况，返回最后面一个区域
+            last.deliveryed = true;
+            return last;
         }
-        return null;
     }
 
 
     public void finish(Range range){
-
+        if(!blockLengthMap.containsKey(range)) throw new IllegalArgumentException("");
+        blockLengthMap.remove(range);
     }
 
-    public void recover(byte[] data){
-
-    }
 
     public byte[] store(){
         return null;
+    }
+
+    public static FileMapper create(byte[] data){
+        Gson gson = new Gson();
     }
 
     /**
