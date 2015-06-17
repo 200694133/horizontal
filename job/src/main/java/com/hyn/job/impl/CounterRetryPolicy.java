@@ -1,5 +1,6 @@
 package com.hyn.job.impl;
 
+import com.hyn.job.CanceledException;
 import com.hyn.job.PriorityPolicy;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.RetryPolicy;
@@ -20,6 +21,10 @@ public class CounterRetryPolicy implements RetryPolicy {
     }
     @Override
     public boolean retry(AsyncJob asyncJob, Throwable throwable) {
+        if(CanceledException.class.isInstance(throwable)){
+            // current job has canceled. not support retry again.
+            return false;
+        }
         --counter;
         if(counter <= 0) return false;
         return true;

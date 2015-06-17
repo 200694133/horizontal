@@ -1,6 +1,5 @@
 package com.hanyanan.http.job.download;
 
-import java.io.File;
 import java.io.OutputStream;
 
 /**
@@ -16,5 +15,9 @@ public interface VirtualFileDescriptor {
 
     long offset();
 
-    void adjustNewLength(long newLength);
+    void adjustNewLength(long newLength) throws ResizeConflictException;
+
+    void finish();
+
+    void abort();
 }

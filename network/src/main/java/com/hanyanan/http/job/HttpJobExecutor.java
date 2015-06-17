@@ -8,6 +8,7 @@ import com.hanyanan.http.internal.HttpResponse;
 import com.hanyanan.http.internal.HttpUrlExecutor;
 import com.hanyanan.http.internal.RedirectedResponse;
 import com.hyn.job.CallbackDelivery;
+import com.hyn.job.CanceledException;
 import com.hyn.job.JobExecutor;
 
 /**
@@ -22,13 +23,18 @@ public class HttpJobExecutor implements JobExecutor<HttpRequestJob, HttpResponse
             httpUrlExecutor = new HttpGetExecutor() {
                 @Override
                 protected void onPrepareRedirect(HttpRequest request, RedirectedResponse redirectedResponse) throws InterruptedException {
-                    if(asyncJob.isCanceled()) throw new InterruptedException("Cancel redirect0 ");
+                    if(asyncJob.isCanceled()) {
+                        throw new InterruptedException("Cancel redirect0 ");
+                    }
                     super.onPrepareRedirect(request, redirectedResponse);
                 }
 
-                protected void onTransportProgress(HttpRequest request, boolean download, long offfset, long count){
+                protected void onTransportProgress(HttpRequest request, boolean download, long offset, long count){
+                    if(asyncJob.isCanceled()){ // current request job has canceled, then dispose cancel
+                        throw new CanceledException();
+                    }
                     CallbackDelivery delivery = asyncJob.getCallbackDelivery();
-                    delivery.postIntermediate(asyncJob, new SimpleHttpProgress(download, asyncJob, request, offfset, count));
+                    delivery.postIntermediate(asyncJob, new SimpleHttpProgress(download, asyncJob, request, offset, count));
                 }
             };
         }else{
