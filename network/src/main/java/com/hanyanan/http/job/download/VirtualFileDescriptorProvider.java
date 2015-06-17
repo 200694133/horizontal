@@ -7,10 +7,4 @@ import hyn.com.lib.Disposeable;
  */
 public interface VirtualFileDescriptorProvider extends Disposeable {
     VirtualFileDescriptor deliveryAndLock();
-
-    void unlock(VirtualFileDescriptor descriptor) throws InterruptedException;
-
-    void completeAndUnlock(VirtualFileDescriptor descriptor);
-
-    void failedAndUnlock(VirtualFileDescriptor descriptor);
 }

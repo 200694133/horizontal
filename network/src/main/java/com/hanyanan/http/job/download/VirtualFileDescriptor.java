@@ -1,5 +1,6 @@
 package com.hanyanan.http.job.download;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -11,7 +12,9 @@ public interface VirtualFileDescriptor {
 
     long length();
 
-    OutputStream getWriterStream();
+    void write(byte[] buff, int offset, int length) throws IOException;
+
+    void write(byte[] buff) throws IOException;
 
     long offset();
 

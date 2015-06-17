@@ -1,5 +1,6 @@
 package com.hanyanan.http.job.download;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -7,11 +8,14 @@ import java.io.OutputStream;
  */
 abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     final VirtualFileDescriptorProvider provider;
-    final OutputStream outputStream;
     final Range range;
-    AbstractVirtualFileDescriptor(VirtualFileDescriptorProvider provider, OutputStream outputStream, Range range){
+
+    /**
+     * The length has written to the file.
+     */
+    long hasWritten = 0;
+    AbstractVirtualFileDescriptor(VirtualFileDescriptorProvider provider, Range range){
         this.provider = provider;
-        this.outputStream = outputStream;
         this.range = range;
     }
 
@@ -26,13 +30,13 @@ abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     }
 
     @Override
-    public OutputStream getWriterStream() {
-        return outputStream;
+    public long offset() {
+        return range.offset;
     }
 
     @Override
-    public long offset() {
-        return range.offset;
+    public void write(byte[] buff) throws IOException {
+        write(buff, 0, buff.length);
     }
 
     @Override

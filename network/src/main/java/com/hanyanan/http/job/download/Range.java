@@ -13,4 +13,9 @@ class Range {
     }
 
     boolean deliveryed = false;
+
+    @Override
+    public String toString() {
+        return "Start from "+offset+" to "+(offset+length-1);
+    }
 }

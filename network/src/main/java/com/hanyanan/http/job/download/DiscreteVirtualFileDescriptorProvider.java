@@ -1,13 +1,15 @@
 package com.hanyanan.http.job.download;
 
+import com.hanyanan.http.HttpLog;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
 import hyn.com.lib.IOUtil;
+import hyn.com.lib.Preconditions;
 
 /**
  * Created by hanyanan on 2015/6/16.
@@ -27,7 +29,7 @@ public class DiscreteVirtualFileDescriptorProvider implements VirtualFileDescrip
      */
     private final long fileSize;
 
-    private final RandomAccessFile randomAccessFile;
+    private final RandomAccessFile randomAccessDestFile;
     /**
      * The dest file will store the data.
      */
@@ -40,8 +42,8 @@ public class DiscreteVirtualFileDescriptorProvider implements VirtualFileDescrip
         this.blockSize = blockSize;
         this.fileSize = size;
         this.file = dstFile;
-        randomAccessFile = new RandomAccessFile(dstFile, "rw");
-        randomAccessFile.setLength(size);
+        randomAccessDestFile = new RandomAccessFile(dstFile, "rw");
+        randomAccessDestFile.setLength(size);
 
         configFile = new File(file.getAbsolutePath()+".config");
         if(null == configFile || !configFile.exists()) {
@@ -50,51 +52,68 @@ public class DiscreteVirtualFileDescriptorProvider implements VirtualFileDescrip
         }
         FileInputStream fileInputStream = new FileInputStream(configFile);
         byte[] data = IOUtil.getBytesFromStream(fileInputStream);
-        this.fileMapper = FileMapper.create(data);
+        this.fileMapper = FileMapper.create(blockSize, data);
         IOUtil.closeQuietly(fileInputStream);
     }
-=
+
+    private String getLogName(){
+        return file.getAbsolutePath();
+    }
     @Override
     public VirtualFileDescriptor deliveryAndLock() {
-        Range range = fileMapper.
-        return null;
+        HttpLog.d("Http", "deliveryAndLock try delivery " + blockSize + " length");
+        Range range = fileMapper.deliveryRange(blockSize);
+        HttpLog.d("Http", "deliveryAndLock range " + range);
+        return create(range);
     }
 
-    @Override
-    public void unlock(VirtualFileDescriptor descriptor) throws InterruptedException {
-
-    }
-
-    @Override
-    public void completeAndUnlock(VirtualFileDescriptor descriptor) {
-
-    }
-
-    @Override
-    public void failedAndUnlock(VirtualFileDescriptor descriptor) {
-
-    }
 
     @Override
     public void dispose() {
-
+        synchronized (this) {
+            byte[] config = fileMapper.store();
+            configFile.w
+            IOUtil.closeQuietly(randomAccessDestFile);
+        }
     }
 
-    private VirtualFileDescriptor create(Range rage, OutputStream outputStream){
-        VirtualFileDescriptor descriptor = new AbstractVirtualFileDescriptor(this, outputStream, rage){
+    private VirtualFileDescriptor create(Range rage){
+        VirtualFileDescriptor descriptor = new AbstractVirtualFileDescriptor(this, rage){
+            @Override
+            public void write(byte[] buff, int offset, int length) throws IOException {
+                synchronized (DiscreteVirtualFileDescriptorProvider.this) {
+                    synchronized (this) {
+                        randomAccessDestFile.seek(range.offset+hasWritten);
+                        randomAccessDestFile.write(buff, offset, length);
+                        hasWritten += length;
+                        HttpLog.d("Http", getLogName()+"\t"+range.toString()+"write hasWritten " + hasWritten);
+                    }
+                }
+            }
+
             @Override
             public void adjustNewLength(long newLength) throws ResizeConflictException {
-                fileMapper.resize(this.range, newLength);
+                synchronized (this) {
+                    Preconditions.checkState(hasWritten <= 0, "The descriptor has written to the file, cannot change the size.");
+                    fileMapper.resize(this.range, newLength);
+                    HttpLog.d("Http", getLogName() + "\tadjustNewLength " + newLength);
+                }
             }
 
             @Override
             public void finish() {
-                fileMapper.finish(this.range);
+                synchronized (this) {
+                    fileMapper.finish(this.range);
+                    HttpLog.d("Http", getLogName() + "\tfinish " + range);
+                }
             }
 
             @Override
             public void abort() {
-                fileMapper.abort(this.range);
+                synchronized (this) {
+                    fileMapper.abort(this.range);
+                    HttpLog.d("Http", getLogName() + "\tabort " + range);
+                }
             }
         };
         return descriptor;

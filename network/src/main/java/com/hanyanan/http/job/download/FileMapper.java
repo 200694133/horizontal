@@ -6,10 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -50,7 +47,7 @@ public class FileMapper {
         Preconditions.checkArgument(length > 0, "Must be large than 1 byte!");
         this.length = length;
         if(null == blockHoleList) {
-            Range range = new Range(this, 0, length);
+            Range range = new Range(0, length);
             blockHoleList.add(range);
         }
         Collections.sort(blockHoleList, POSITION_COMPARATOR); // 按起始位置排序
@@ -103,7 +100,7 @@ public class FileMapper {
                 }
                 if (range.length > expectLength) {
                     // 符合情况2， 将一个区域拆分成两个
-                    Range o = new Range(this, range.offset + expectLength, range.length - expectLength);
+                    Range o = new Range(range.offset + expectLength, range.length - expectLength);
                     blockLengthMap.put(o, o);
                     range.length = expectLength;
                     range.deliveryed = true;
@@ -136,7 +133,7 @@ public class FileMapper {
             }
             if(newLength < range.length) {
                 //change the length of current range
-                Range newRange = new Range(this, range.offset + newLength, range.length - newLength);
+                Range newRange = new Range(range.offset + newLength, range.length - newLength);
                 blockLengthMap.put(newRange, newRange);
                 range.length = newLength;
                 return true;
@@ -171,7 +168,7 @@ public class FileMapper {
         return gson.toJson(store).getBytes();
     }
 
-    public static FileMapper create(byte[] data) {
+    public static FileMapper create(long length, byte[] data) {
         if (null == data || data.length <= 0) {
             return null;
         }
