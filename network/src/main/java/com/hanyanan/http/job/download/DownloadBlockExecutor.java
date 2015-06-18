@@ -26,16 +26,25 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
         this.descriptor = descriptor;
     }
 
+    private boolean checkOver(HttpRequestJob asyncJob, HttpResponse response){
+        if(descriptor.isClosed()){
+            asyncJob.cancel();
+            response.dispose();
+            return true;
+        }
+        if (asyncJob.isCanceled()) { // check if it's canceled
+            descriptor.abort();
+            response.dispose();
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public Void performRequest(HttpRequestJob asyncJob) throws Throwable {
         HttpRequest request = asyncJob.getParam();
         HttpJobExecutor baseJobExecutor = HttpJobExecutor.DEFAULT_EXECUTOR;
         HttpResponse response = baseJobExecutor.performRequest(asyncJob);
-        if (asyncJob.isCanceled()) {
-            response.dispose();
-            descriptor.abort();
-            return null;
-        }
         HttpResponseHeader responseHeader = response.getResponseHeader();
         com.hanyanan.http.internal.Range range = responseHeader.getRange();
 
@@ -45,9 +54,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
         checkPrecondition(response, range);
 
         InputStream inputStream = response.body().getResource().openStream();
-        if (asyncJob.isCanceled()) { // check if it's canceled
-            descriptor.abort();
-            response.dispose();
+        if(checkOver(asyncJob, response)) {
             return null;
         }
 
@@ -60,9 +67,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
             int read = 0;
             try {
                 while (left > 0 && (read = inputStream.read(buff)) > 0) {
-                    if (asyncJob.isCanceled()) { // check if it's canceled
-                        descriptor.abort();
-                        response.dispose();
+                    if(checkOver(asyncJob, response)) {
                         return null;
                     }
                     // 数据操作
@@ -71,22 +76,16 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
                 }
             } catch (IOException e) {
                 response.dispose();
-                if(descriptor.isClosed()) {
-                    throw new UnRetryRunTimeException(""+descriptor+" is closed!");
-                }
                 /*
                 * 读取失败，可能是网络原因，可能是写操作被关闭了
                 * */
-                descriptor.abort();
-
-                if (asyncJob.isCanceled()) {
-                    return null; // 任务没取消，
+                if(checkOver(asyncJob, response)) {
+                    return null;
                 }
-                //TODO
+
+                throw e;
             }
-            if (asyncJob.isCanceled()) { // check if it's canceled
-                descriptor.abort();
-                response.dispose();
+            if(checkOver(asyncJob, response)) {
                 return null;
             }
             if (left > 0) {
@@ -95,7 +94,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
                 * */
                 descriptor.abort();
                 response.dispose();
-                return null;
+                throw new UnRetryRunTimeException("Cannot read the expect length!Download failed!");
             }
         }
         /*
