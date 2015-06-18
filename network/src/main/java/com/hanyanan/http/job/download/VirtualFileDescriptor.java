@@ -23,4 +23,6 @@ public interface VirtualFileDescriptor {
     void finish();
 
     void abort();
+
+    boolean isClosed();
 }

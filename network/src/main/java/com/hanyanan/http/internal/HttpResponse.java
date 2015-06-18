@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import hyn.com.lib.IOUtil;
 import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
@@ -181,6 +182,15 @@ public class HttpResponse implements Closeable{
 //                + '}';
 //    }
 
+    public void dispose(){
+        if(null != bodyResource && bodyResource.getResource() != null){
+            try {
+                IOUtil.safeClose(bodyResource.getResource().openStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     final static class Builder {
         /** The raw http request */
         private HttpRequest httpRequest;

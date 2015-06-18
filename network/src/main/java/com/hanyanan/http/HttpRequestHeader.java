@@ -106,4 +106,12 @@ public class HttpRequestHeader extends HttpHeader {
         setHeadProperty(Headers.IF_MODIFIED_SINCE.value(), DateUtils.formatDate(date));
         return this;
     }
+
+    public HttpRequestHeader clone(){
+        HttpRequestHeader res = new HttpRequestHeader();
+        res.headers.putAll(this.headers);
+        res.priorHeaders.putAll(this.priorHeaders);
+        res.mimeType = this.mimeType;
+        return res;
+    }
 }

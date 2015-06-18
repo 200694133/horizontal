@@ -10,6 +10,8 @@ abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     final VirtualFileDescriptorProvider provider;
     final Range range;
 
+    boolean finished = false;
+
     /**
      * The length has written to the file.
      */
@@ -43,8 +45,17 @@ abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     public abstract void adjustNewLength(long newLength) throws ResizeConflictException;
 
     @Override
-    public abstract void finish();
+    public boolean isClosed() {
+        return finished;
+    }
 
     @Override
-    public abstract void abort() ;
+    public void finish(){
+        finished = true;
+    }
+
+    @Override
+    public void abort() {
+        finished = true;
+    }
 }

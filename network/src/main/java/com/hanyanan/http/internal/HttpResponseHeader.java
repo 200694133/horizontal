@@ -57,7 +57,7 @@ public class HttpResponseHeader extends HttpHeader {
             String start = m.group(0);
             String end = m.group(1);
             String full = m.group(2);
-            long s = ValueUtil.parseLong(start, -1);
+            long s = ValueUtil.parseLong(start, 0);
             long e = ValueUtil.parseLong(end, -1);
             long f = ValueUtil.parseLong(full, -1);
             this.range = new Range(s, e, f);

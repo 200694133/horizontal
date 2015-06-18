@@ -144,14 +144,14 @@ public class FileMapper {
 
     public void finish(Range range) {
         synchronized (this) {
-            if (!blockLengthMap.containsKey(range)) throw new IllegalArgumentException("");
+//            if (!blockLengthMap.containsKey(range)) throw new IllegalArgumentException("");
             blockLengthMap.remove(range);
         }
     }
 
     public void abort(Range range){
         synchronized (this) {
-            if (!blockLengthMap.containsKey(range)) throw new IllegalArgumentException("");
+//            if (!blockLengthMap.containsKey(range)) throw new IllegalArgumentException("");
             range.deliveryed = false;
         }
     }

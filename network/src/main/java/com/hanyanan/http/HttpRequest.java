@@ -21,7 +21,7 @@ import hyn.com.lib.binaryresource.BinaryResource;
  * Created by hanyanan on 2015/5/13.
  * The main http request.
  */
-public class HttpRequest {
+public class HttpRequest implements Cloneable{
     /** http request body, it it's a  */
     private HttpRequestBody requestBody;
 
@@ -58,6 +58,19 @@ public class HttpRequest {
         this.timeStatus = new TimeStatus();
     }
 
+    /**
+     * Clone a nearly totally same request from current, just clone request param/body/param. do not copy any other
+     * attributes.
+     * @return
+     */
+    public HttpRequest clone(){
+        HttpRequest res = new HttpRequest(this.getUrl(), this.method, this.protocol);
+        res.setRequestHeader(this.getRequestHeader().clone());
+        res.params.putAll(this.params);
+        res.setHttpRequestBody(this.getRequestBody());
+
+        return res;
+    }
     public HttpRequest(String url, Method method) {
         this(url, method, Protocol.HTTP_1_1);
     }
@@ -106,6 +119,10 @@ public class HttpRequest {
         return requestHeader;
     }
 
+    public void setRequestHeader(HttpRequestHeader requestHeader) {
+        checkNotNull(requestHeader);
+        this.requestHeader = requestHeader;
+    }
     final public String getUrl() {
         return url;
     }

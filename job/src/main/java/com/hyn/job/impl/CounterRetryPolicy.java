@@ -4,6 +4,8 @@ import com.hyn.job.CanceledException;
 import com.hyn.job.PriorityPolicy;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.RetryPolicy;
+import com.hyn.job.UnRetryable;
+
 import org.jetbrains.annotations.NotNull;
 
 
@@ -21,6 +23,10 @@ public class CounterRetryPolicy implements RetryPolicy {
     }
     @Override
     public boolean retry(AsyncJob asyncJob, Throwable throwable) {
+        if(UnRetryable.class.isInstance(throwable)) {
+            // current job has canceled. not support retry again.
+            return false;
+        }
         if(CanceledException.class.isInstance(throwable)){
             // current job has canceled. not support retry again.
             return false;
