@@ -1,6 +1,7 @@
 package com.hanyanan.http.job.download;
 
 import com.hanyanan.http.internal.HttpResponse;
+import com.hanyanan.http.job.HttpJobExecutor;
 import com.hanyanan.http.job.HttpRequestJob;
 import com.hyn.job.JobExecutor;
 
@@ -18,6 +19,19 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
 
     @Override
     public Integer performRequest(HttpRequestJob asyncJob) throws Throwable {
+        HttpJobExecutor httpJobExecutor = HttpJobExecutor.DEFAULT_EXECUTOR;
+        HttpResponse response = httpJobExecutor.performRequest(asyncJob);
+        try{
+            if(!response.isSuccessful()) {
+                return null;
+            }
+        }finally {
+            response.dispose();
+        }
+
+
+
+
         return null;
     }
 }

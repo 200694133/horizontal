@@ -172,9 +172,9 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
         }
     }
 
-    final void deliverError(String msg, Throwable throwable) {
+    final void deliverError(R response, String msg, Throwable throwable) {
         if (null != callback) {
-            callback.onFailed(this, msg, throwable);
+            callback.onFailed(this, response, msg, throwable);
         }
     }
 

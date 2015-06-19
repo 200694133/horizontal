@@ -18,7 +18,7 @@ public interface JobCallback<I, R> {
      * Callback method that an error has been occurred with the
      * provided error code and optional user-readable message.
      */
-    void onFailed(AsyncJob asyncJob, String msg, Throwable throwable);
+    void onFailed(AsyncJob asyncJob, R response,  String msg, Throwable throwable);
 
     /**
      * Called when delivery intermediate data.

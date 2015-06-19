@@ -60,7 +60,7 @@ public class MainJobTest {
             }
 
             @Override
-            public void onFailed(AsyncJob asyncJob, String msg, Throwable throwable) {
+            public void onFailed(AsyncJob asyncJob, HttpResponse response, String msg, Throwable throwable) {
 
             }
 

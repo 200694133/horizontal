@@ -21,7 +21,7 @@ public interface CallbackDelivery {
      * @param msg
      * @param throwable
      */
-    void postFailed(AsyncJob asyncJob, String msg, Throwable throwable);
+    <R> void postFailed(AsyncJob asyncJob, R response, String msg, Throwable throwable);
 
     /**
      *

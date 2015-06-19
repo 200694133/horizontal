@@ -50,10 +50,10 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
     }
 
     @Override
-    public void postFailed(AsyncJob asyncJob, String msg, Throwable throwable) {
+    public  <R> void postFailed(AsyncJob asyncJob, R response, String msg, Throwable throwable) {
         checkNotNull(asyncJob);
         asyncJob.addMarker("post-error");
-        mResponsePoster.execute(new FailedMessageDeliveryRunnable(asyncJob, msg, throwable));
+        mResponsePoster.execute(new FailedMessageDeliveryRunnable(asyncJob, response, msg, throwable));
     }
 
     @Override
@@ -96,15 +96,17 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
     /**
      * Delivery under failed status.
      */
-    private class FailedMessageDeliveryRunnable implements Runnable {
+    private class FailedMessageDeliveryRunnable<T> implements Runnable {
         private final AsyncJob asyncJob;
         private final String errorMsg;
         private final Throwable throwable;
+        private final T response;
 
-        public FailedMessageDeliveryRunnable(AsyncJob asyncJob, String msg, Throwable throwable) {
+        public FailedMessageDeliveryRunnable(AsyncJob asyncJob, T response, String msg, Throwable throwable) {
             this.asyncJob = asyncJob;
             this.throwable = throwable;
             this.errorMsg = msg;
+            this.response = response;
         }
 
         @Override
@@ -116,7 +118,7 @@ public class DefaultCallbackDelivery implements CallbackDelivery {
                 return ;
             }
             asyncJob.addMarker("finished-at-error");
-            asyncJob.deliverError(errorMsg, throwable);
+            asyncJob.deliverError(response, errorMsg, throwable);
         }
     }
 

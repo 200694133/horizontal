@@ -66,9 +66,10 @@ public class JobDispatcher extends Thread implements FullPerformer{
             }
             asyncJob.setJobStatus(JobStatus.Running);
             runningTrace.setRunningTime(currentTimeMillis());
+            Object response = null;
             try {
                 asyncJob.addMarker("network-start-running");
-                Object response = jobExecutor.performRequest(asyncJob);
+                response = jobExecutor.performRequest(asyncJob);
                 if (isQuit()) {
                     return;
                 }
@@ -82,6 +83,19 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 asyncJob.addMarker("request-complete");
                 delivery.postSuccess(asyncJob, response);
                 asyncJob.markDelivered();
+            } catch (DeliveryFailedException exception) {
+                /*
+                * force make failed.
+                * */
+                runningTrace.failed();
+                asyncJob.setJobStatus(JobStatus.Finish);
+                Object tmp = null;
+                if(null != exception.getTmp()) {
+                    tmp = exception.getTmp().getValue();
+                }
+                delivery.postFailed(asyncJob, tmp, null, exception);
+                runningTrace.setFinishTime(currentTimeMillis());
+                continue;
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
                 if (isQuit()) {
@@ -97,7 +111,7 @@ public class JobDispatcher extends Thread implements FullPerformer{
                     runningTrace.setAddToQueueTimeStamp(currentTimeMillis());
                 } else { // failed
                     asyncJob.setJobStatus(JobStatus.Finish);
-                    delivery.postFailed(asyncJob, null, throwable);
+                    delivery.postFailed(asyncJob, null, null, throwable);
                     runningTrace.setFinishTime(currentTimeMillis());
                 }
                 continue;
