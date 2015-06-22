@@ -72,6 +72,13 @@ public class HttpResponse implements Closeable{
 //        source().close();
 //    }
 
+    /**
+     *
+     */
+    public final Protocol getProtocol(){
+        return protocol;
+    }
+
     public final HttpRequest getHttpRequest() {
         return httpRequest;
     }
@@ -191,6 +198,13 @@ public class HttpResponse implements Closeable{
             }
         }
     }
+
+    @Override
+    protected final void finalize() throws Throwable {
+        dispose();
+        super.finalize();
+    }
+
     final static class Builder {
         /** The raw http request */
         private HttpRequest httpRequest;

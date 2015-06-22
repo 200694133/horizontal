@@ -7,6 +7,7 @@ import com.hanyanan.http.internal.HttpResponse;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.CallbackDelivery;
 import com.hyn.job.JobCallback;
+import com.hyn.job.JobExecutor;
 import com.hyn.job.PriorityPolicy;
 
 /**
@@ -16,5 +17,11 @@ public class HttpRequestJob extends AsyncJob<HttpRequest, TransportProgress, Htt
     public HttpRequestJob(HttpRequest request, JobCallback<TransportProgress, HttpResponse> callback) {
         super(request, callback, CallbackDelivery.DEFAULT_CALLBACK_DELIVERY, new DefaultHttpRetryPolicy(),
                 PriorityPolicy.DEFAULT_PRIORITY_POLICY, new HttpFingerPrint(request), new HttpJobExecutor());
+    }
+
+    public HttpRequestJob(HttpRequest request, JobExecutor jobExecutor, JobCallback<TransportProgress,
+            HttpResponse> callback) {
+        super(request, callback, CallbackDelivery.DEFAULT_CALLBACK_DELIVERY, new DefaultHttpRetryPolicy(),
+                PriorityPolicy.DEFAULT_PRIORITY_POLICY, new HttpFingerPrint(request), jobExecutor);
     }
 }

@@ -110,6 +110,13 @@ public class DiscreteVirtualFileDescriptorProvider implements VirtualFileDescrip
         }
     }
 
+
+
+    public void onFragmentComplete(long length){
+        backup();
+    }
+
+
     private VirtualFileDescriptor create(Range rage) {
         VirtualFileDescriptor descriptor = new AbstractVirtualFileDescriptor(this, rage) {
             @Override
@@ -156,6 +163,7 @@ public class DiscreteVirtualFileDescriptorProvider implements VirtualFileDescrip
                         return ;
                     }
                     fileMapper.finish(this.range);
+                    onFragmentComplete(this.length());
                     super.finish();
                     HttpLog.d("Http", getLogName() + "\tfinish " + range);
                 }

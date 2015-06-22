@@ -10,4 +10,8 @@ public class UnRetryRunTimeException extends RuntimeException implements UnRetry
     public UnRetryRunTimeException(String message) {
         super(message);
     }
+
+    public UnRetryRunTimeException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -83,15 +83,15 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 asyncJob.addMarker("request-complete");
                 delivery.postSuccess(asyncJob, response);
                 asyncJob.markDelivered();
-            } catch (DeliveryFailedException exception) {
+            } catch (UnexpectedResponseException exception) {
                 /*
                 * force make failed.
                 * */
                 runningTrace.failed();
                 asyncJob.setJobStatus(JobStatus.Finish);
                 Object tmp = null;
-                if(null != exception.getTmp()) {
-                    tmp = exception.getTmp().getValue();
+                if(null != exception.getUnexpectedResponse()) {
+                    tmp = exception.getUnexpectedResponse().getValue();
                 }
                 delivery.postFailed(asyncJob, tmp, null, exception);
                 runningTrace.setFinishTime(currentTimeMillis());
@@ -102,6 +102,18 @@ public class JobDispatcher extends Thread implements FullPerformer{
                     return;
                 }
                 runningTrace.failed();
+
+                if(throwable instanceof UnRetryable) {
+                    /*
+                    * Cannot running again. execute failed.
+                    * */
+                    asyncJob.setJobStatus(JobStatus.Finish);
+                    delivery.postFailed(asyncJob, null, null, throwable);
+                    runningTrace.setFinishTime(currentTimeMillis());
+                    continue;
+                }
+
+
                 RetryPolicy retryPolicy = asyncJob.getRetryPolicy();
                 if (retryPolicy.retry(asyncJob, throwable)) { // retry again.
                     // change the priority of current request.
