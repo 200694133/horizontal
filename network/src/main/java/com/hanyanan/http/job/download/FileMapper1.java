@@ -2,18 +2,14 @@ package com.hanyanan.http.job.download;
 
 import com.hanyanan.http.HttpLog;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by hanyanan on 2015/6/22.
@@ -50,7 +46,7 @@ public class FileMapper1 {
         // TODO
     }
 
-    protected synchronized boolean storeFinish(long offset, long length) {
+    protected synchronized boolean saveFinishState(long offset, long length) {
         // TODO
         return true;
     }
@@ -70,7 +66,7 @@ public class FileMapper1 {
         /*
         * 第二步，保存完成信息
         * */
-        if (needStore && !storeFinish(offset, length)) {
+        if (needStore && !saveFinishState(offset, length)) {
             /*
             * 保存信息失败, 重新下载
             * */
@@ -79,7 +75,7 @@ public class FileMapper1 {
         }
 
         for (FileRange range : conflictRange) {
-            if(range.locked) {
+            if (range.locked) {
                 /*
                 * 被锁定，存在重复下载
                 * */
@@ -97,9 +93,26 @@ public class FileMapper1 {
             }
 
             /*
-             * 左边部分被覆盖
+             * 部分被覆盖
              */
+            long left = offset - range.offset; // 左边的间距
+            long right = range.length + range.offset - 1 - (offset + length - 1); // 右边的间距
+            blockHoleLengthList.remove(range);
+            blockHoleOffsetList.remove(range);
+            HttpLog.d(LOG_TAG, "Remove conflict range: " + range);
+            if (left > 0) {
+                FileRange fileRange = new FileRange(tag, range.offset, left);
+                blockHoleLengthList.put(fileRange, fileRange);
+                blockHoleOffsetList.put(fileRange, fileRange);
+                HttpLog.d(LOG_TAG, "Add from conflict range: " + fileRange);
+            }
 
+            if (right > 0) {
+                FileRange fileRange = new FileRange(tag, offset + length, right);
+                blockHoleLengthList.put(fileRange, fileRange);
+                blockHoleOffsetList.put(fileRange, fileRange);
+                HttpLog.d(LOG_TAG, "Add from conflict range: " + fileRange);
+            }
         }
     }
 
@@ -114,10 +127,11 @@ public class FileMapper1 {
         /*
         * 保存下载索引信息
         * */
-        if (!storeFinish(range.offset, range.length)) {
+        if (!saveFinishState(range.offset, range.length)) {
             /*
             * 保存信息失败, 重新下载
             * */
+            HttpLog.w(LOG_TAG, "SaveFinishState failed, retry again.");
             return;
         }
         /*
@@ -125,6 +139,7 @@ public class FileMapper1 {
         * */
         blockHoleLengthList.remove(range);
         blockHoleOffsetList.remove(range);
+        HttpLog.d(LOG_TAG, "Save range success : " + range);
     }
 
     public synchronized void abort(FileRange range) {
@@ -138,7 +153,28 @@ public class FileMapper1 {
         // TODO
     }
 
-    public synchronized FileRange delivery(long length) {
+    public synchronized FileRange delivery(long maxLength) {
+        Collection<FileRange> fileRanges = blockHoleOffsetList.values();
+        if (null == fileRanges || fileRanges.isEmpty()) {
+            return null;
+        }
+        List<FileRange> fileRangeList = new LinkedList<FileRange>(fileRanges);
+        FileRange res = null;
+        int size = fileRangeList.size();
+        for(int i=0;i<size;++i){
+            FileRange fileRange = fileRangeList.get(i);
+            if(fileRange.locked) {
+                continue;
+            }
+            if(fileRange.length <= maxLength) {
+                res = fileRange;
+                break;
+            }
+
+        }
+
+
+
 
         return null;
     }
