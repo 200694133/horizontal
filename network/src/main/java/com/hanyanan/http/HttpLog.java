@@ -7,4 +7,8 @@ public class HttpLog {
     public static void d(String tag, String msg){
         System.out.println(tag + " : " +msg);
     }
+
+    public static void w(String tag, String msg){
+        System.out.println(tag + " : " +msg);
+    }
 }
