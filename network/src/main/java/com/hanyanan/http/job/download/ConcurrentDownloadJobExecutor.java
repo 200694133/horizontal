@@ -16,6 +16,7 @@ import com.hyn.job.UnexpectedResponseException;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import hyn.com.lib.IOUtil;
@@ -33,7 +34,7 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
     private long position = 0;
     private long length = 0;
     private VirtualFileDescriptorProvider descriptorProvider;
-    private final
+
     public ConcurrentDownloadJobExecutor(File dest) {
         this.destFile = dest;
     }
@@ -82,7 +83,7 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
     }
 
 
-    private void downloadDirect(HttpResponse response) {
+    private void downloadDirect(HttpResponse response) throws IOException {
         FileOutputStream fileOutputStream = new FileOutputStream(destFile);
         InputStream inputStream = response.body().getResource().openStream();
         IOUtil.copy(inputStream, fileOutputStream);

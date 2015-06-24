@@ -44,6 +44,7 @@ public class FileMapper1 {
     }
 
     protected synchronized boolean saveFinishState(long offset, long length) {
+        HttpLog.d(LOG_TAG, "saveFinishState From "+offset+" To "+(length+offset-1));
         // TODO
         return true;
     }
@@ -228,9 +229,9 @@ public class FileMapper1 {
         List<FileRange> fileRangeList = new LinkedList<FileRange>(fileRanges);
         final List<FileRange> res = new LinkedList<FileRange>();
         FileRange prev;
-        for (int index = 0; index < fileRangeList.size() - 1; ++index) {
+        for (int index = 0; index < fileRangeList.size(); ++index) {
             FileRange range = fileRangeList.get(index);
-            if (range.offset < offset || range.offset + range.length < offset) {
+            if (range.offset >= offset+length || range.offset + range.length - 1 < offset) {
                 continue;
             }
             if (range.offset > offset + length) {
@@ -267,6 +268,51 @@ public class FileMapper1 {
             }
             ++index;
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Collection<FileRange> fileRanges = blockHoleOffsetList.values();
+        if (null == fileRanges || fileRanges.isEmpty()) {
+            return super.toString();
+        }
+        List<FileRange> fileRangeList = new LinkedList<FileRange>(fileRanges);
+
+        for (int index = 0; index < fileRangeList.size(); ++index) {
+            FileRange r1 = fileRangeList.get(index);
+            if (r1.locked) {
+                sb.append("[locked ");
+            }else{
+                sb.append("[unlock ");
+            }
+            sb.append(r1.offset)
+                    .append(" , ")
+                    .append(r1.offset+r1.length-1)
+                    .append("]\t");
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] argv) {
+        final long length = 1000;
+        FileMapper1 mapper1 = new FileMapper1(length);
+        mapper1.finish(0,2, true);
+        mapper1.finish(7, 20, true);
+        mapper1.finish(56, 12, true);
+        mapper1.finish(23, 56, true);
+        mapper1.finish(98, 12, true);
+        mapper1.finish(102, 20, true);
+        mapper1.finish(125, 4 , true);
+        mapper1.finish(189, 100, true);
+        mapper1.finish(458, 100, true);
+        mapper1.finish(89, 20, true);
+        mapper1.finish(526, 30, true);
+        mapper1.finish(685, 80, true);
+        mapper1.finish(795, 5, true);
+        mapper1.finish(500, 47, true);
+        mapper1.finish(879, 47, true);
+        System.out.println(mapper1.toString());
     }
 
     /**
