@@ -11,6 +11,8 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import hyn.com.lib.Preconditions;
+
 /**
  * Created by hanyanan on 2015/6/22.
  */
@@ -39,11 +41,6 @@ public class FileMapper1 {
         FileRange range = new FileRange(tag, 0, totalLength);
         blockHoleLengthList.put(range, range);
         blockHoleOffsetList.put(range, range);
-    }
-
-
-    protected synchronized void onFinish(long offset, long length) {
-        // TODO
     }
 
     protected synchronized boolean saveFinishState(long offset, long length) {
@@ -143,40 +140,77 @@ public class FileMapper1 {
     }
 
     public synchronized void abort(FileRange range) {
-        if (range.tag != tag) {
-            throw new IllegalArgumentException("Current rang is not delivery from current provider!");
-        }
+        Preconditions.checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
         range.locked = false;
+        HttpLog.d(LOG_TAG, "Abort range : " + range);
     }
 
     public synchronized void partlyDone(FileRange range, long partlyLength) {
-        // TODO
+        Preconditions.checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
+        range.locked = false;
+        /*
+        * 保存下载索引信息
+        * */
+        if (!saveFinishState(range.offset, partlyLength)) {
+            /*
+            * 保存信息失败, 重新下载
+            * */
+            HttpLog.w(LOG_TAG, "SaveFinishState failed, retry again.");
+            return;
+        }
+
+        /*
+        * 当前区域部分下载成功，删除节点
+        * */
+        blockHoleLengthList.remove(range);
+        blockHoleOffsetList.remove(range);
+
+        if (partlyLength >= range.length) {
+            return;
+        }
+
+        range.offset = range.offset + partlyLength;
+        range.length = range.length - partlyLength;
+
+        blockHoleLengthList.put(range, range);
+        blockHoleOffsetList.put(range, range);
     }
 
     public synchronized FileRange delivery(long maxLength) {
-        Collection<FileRange> fileRanges = blockHoleOffsetList.values();
+        Collection<FileRange> fileRanges = blockHoleLengthList.values();
         if (null == fileRanges || fileRanges.isEmpty()) {
             return null;
         }
         List<FileRange> fileRangeList = new LinkedList<FileRange>(fileRanges);
         FileRange res = null;
         int size = fileRangeList.size();
-        for(int i=0;i<size;++i){
+        for (int i = 0; i < size; ++i) {
             FileRange fileRange = fileRangeList.get(i);
-            if(fileRange.locked) {
+            if (fileRange.locked) {
                 continue;
             }
-            if(fileRange.length <= maxLength) {
+            if (fileRange.length <= maxLength) {
                 res = fileRange;
+                fileRange.locked = true;
                 break;
             }
-
+            /**
+             * 拆分，将一个大的，拆成两个小的
+             */
+            FileRange expect = new FileRange(tag, fileRange.offset, maxLength);
+            FileRange leave = new FileRange(tag, fileRange.offset + maxLength, fileRange.length - maxLength);
+            expect.locked = true;
+            res = expect;
+            blockHoleLengthList.remove(fileRange);
+            blockHoleOffsetList.remove(fileRange);
+            blockHoleLengthList.put(fileRange, fileRange);
+            blockHoleOffsetList.put(fileRange, fileRange);
+            blockHoleLengthList.put(leave, leave);
+            blockHoleOffsetList.put(leave, leave);
+            break;
         }
 
-
-
-
-        return null;
+        return res;
     }
 
     /**
