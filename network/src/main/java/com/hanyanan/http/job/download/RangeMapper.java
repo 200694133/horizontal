@@ -12,11 +12,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import hyn.com.lib.Preconditions;
+import static hyn.com.lib.Preconditions.checkArgument;
 
 /**
  * Created by hanyanan on 2015/6/22.
  */
-public class FileMapper1 {
+public class RangeMapper {
     public static final String LOG_TAG = "FileMapper1";
     /**
      * Current file tag to identity current map attribute.
@@ -35,7 +36,7 @@ public class FileMapper1 {
     private final SortedMap<FileRange, FileRange> blockHoleOffsetList = Collections.synchronizedSortedMap(new TreeMap<FileRange, FileRange>(POSITION_COMPARATOR));
 
 
-    public FileMapper1(long totalLength) {
+    public RangeMapper(long totalLength) {
         this.length = totalLength;
         tag = new Random().nextInt();
         FileRange range = new FileRange(tag, 0, totalLength);
@@ -115,9 +116,7 @@ public class FileMapper1 {
     }
 
     public synchronized void finish(FileRange range) {
-        if (range.tag != tag) {
-            throw new IllegalArgumentException("Current rang is not delivery from current provider!");
-        }
+        checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
         /*
         * 恢复当前锁，使之可以重用
         * */
@@ -141,13 +140,13 @@ public class FileMapper1 {
     }
 
     public synchronized void abort(FileRange range) {
-        Preconditions.checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
+        checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
         range.locked = false;
         HttpLog.d(LOG_TAG, "Abort range : " + range);
     }
 
     public synchronized void partlyDone(FileRange range, long partlyLength) {
-        Preconditions.checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
+        checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
         range.locked = false;
         /*
         * 保存下载索引信息
@@ -212,6 +211,27 @@ public class FileMapper1 {
         }
 
         return res;
+    }
+
+    public synchronized FileRange adjustDeliveryedRange(FileRange range, long partlyLength){
+        checkArgument(range.tag == tag && range.locked, "Current rang is not delivery from current provider!");
+        if(partlyLength >= range.length){
+            // TODO
+            return range;
+        }
+
+        blockHoleLengthList.remove(range);
+        blockHoleOffsetList.remove(range);
+
+        FileRange range1 = new FileRange(tag, range.offset, partlyLength);
+        range1.locked = true;
+        blockHoleLengthList.put(range1, range1);
+        blockHoleOffsetList.put(range1, range1);
+
+        FileRange range2 = new FileRange(tag, range.offset+partlyLength, range.length - partlyLength);
+        blockHoleLengthList.put(range2, range2);
+        blockHoleOffsetList.put(range2, range2);
+        return range1;
     }
 
     /**
@@ -296,7 +316,7 @@ public class FileMapper1 {
 
     public static void main(String[] argv) {
         final long length = 1000;
-        FileMapper1 mapper1 = new FileMapper1(length);
+        RangeMapper mapper1 = new RangeMapper(length);
         mapper1.finish(0,2, true);
         mapper1.finish(7, 20, true);
         mapper1.finish(56, 12, true);
