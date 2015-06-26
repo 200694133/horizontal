@@ -8,15 +8,15 @@ import java.io.OutputStream;
  */
 abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     final VirtualFileDescriptorProvider provider;
-    final Range range;
-
-    boolean finished = false;
+    final RangeMapper.FileRange range;
+    protected boolean finished = false;
 
     /**
      * The length has written to the file.
      */
     long hasWritten = 0;
-    AbstractVirtualFileDescriptor(VirtualFileDescriptorProvider provider, Range range){
+
+    AbstractVirtualFileDescriptor(VirtualFileDescriptorProvider provider, RangeMapper.FileRange range){
         this.provider = provider;
         this.range = range;
     }
@@ -42,7 +42,7 @@ abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     }
 
     @Override
-    public abstract void adjustNewLength(long newLength) throws ResizeConflictException;
+    public abstract void adjustNewLength(long newLength);
 
     @Override
     public boolean isClosed() {
@@ -50,7 +50,7 @@ abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     }
 
     @Override
-    public void finish(){
+    public void finish() throws IOException {
         finished = true;
     }
 
