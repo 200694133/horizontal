@@ -2,18 +2,14 @@ package com.hanyanan.http.job.download;
 
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.internal.HttpResponse;
-import com.hanyanan.http.internal.HttpResponseBody;
 import com.hanyanan.http.internal.HttpResponseHeader;
 import com.hanyanan.http.job.HttpJobExecutor;
 import com.hanyanan.http.job.HttpRequestJob;
 import com.hyn.job.JobExecutor;
-import com.hyn.job.UnRetryRunTimeException;
+import com.hyn.job.UnRetryException;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import hyn.com.lib.IOUtil;
-import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
  * Created by hanyanan on 2015/6/18.
@@ -26,22 +22,12 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
         this.descriptor = descriptor;
     }
 
-    private boolean checkOver(HttpRequestJob asyncJob, HttpResponse response){
-        if(descriptor.isClosed()){
-            asyncJob.cancel();
-            response.dispose();
-            return true;
-        }
-        if (asyncJob.isCanceled()) { // check if it's canceled
-            descriptor.abort();
-            response.dispose();
-            return true;
-        }
-        return false;
+    private boolean checkAbort(HttpRequestJob asyncJob, HttpResponse response) {
+        return asyncJob.isCanceled() || descriptor.isClosed();
     }
 
     @Override
-    public Void performRequest(HttpRequestJob asyncJob) throws Throwable {
+    public Void performRequest(HttpRequestJob asyncJob) {
         HttpRequest request = asyncJob.getParam();
         HttpJobExecutor baseJobExecutor = HttpJobExecutor.DEFAULT_EXECUTOR;
         HttpResponse response = baseJobExecutor.performRequest(asyncJob);
@@ -54,7 +40,10 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
         checkPrecondition(response, range);
 
         InputStream inputStream = response.body().getResource().openStream();
-        if(checkOver(asyncJob, response)) {
+        if (checkAbort(asyncJob, response)) {
+            asyncJob.cancel();
+            descriptor.abort();
+            response.dispose();
             return null;
         }
 
@@ -65,11 +54,16 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
             byte[] buff = new byte[64 * 1024]; // 64K
             long left = descriptor.length();
             int read = 0;
+            long totalRead = 0;
             try {
                 while (left > 0 && (read = inputStream.read(buff)) > 0) {
-                    if(checkOver(asyncJob, response)) {
-                        return null;
-                    }
+//                    if (checkAbort(asyncJob, response)) {
+//                        asyncJob.cancel();
+//                        descriptor.abort();
+//                        response.dispose();
+//                        return null;
+//                    }
+
                     // 数据操作
                     descriptor.write(buff, 0, read);
                     left -= read;
@@ -79,13 +73,19 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
                 /*
                 * 读取失败，可能是网络原因，可能是写操作被关闭了
                 * */
-                if(checkOver(asyncJob, response)) {
+                if (checkAbort(asyncJob, response)) {
+                    asyncJob.cancel();
+                    descriptor.abort();
+                    response.dispose();
                     return null;
                 }
 
-                throw e;
+                throw new UnRetryException(e);
             }
-            if(checkOver(asyncJob, response)) {
+            if (checkAbort(asyncJob, response)) {
+                asyncJob.cancel();
+                descriptor.abort();
+                response.dispose();
                 return null;
             }
             if (left > 0) {
@@ -94,7 +94,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
                 * */
                 descriptor.abort();
                 response.dispose();
-                throw new UnRetryRunTimeException("Cannot read the expect length!Download failed!");
+                throw new UnRetryException("Cannot read the expect length!Download failed!");
             }
         }
         /*
@@ -108,6 +108,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
 
     /**
      * 进行先决条件的检测, 当与期望的大小不同时，则会尝试重新设置大小。
+     *
      * @param response
      * @param range
      * @throws Throwable 当无法调整大小或起始位置不匹配时，会抛出无法重试的异常。
@@ -123,7 +124,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
              */
             response.dispose();
             descriptor.abort();
-            throw new UnRetryRunTimeException("Conflict start position!");
+            throw new UnRetryException("Conflict start position!");
         }
 
 

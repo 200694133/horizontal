@@ -5,7 +5,7 @@ import hyn.com.lib.Disposeable;
 /**
  * Created by hanyanan on 2015/6/16.
  */
-public interface VirtualFileDescriptorProvider extends Disposeable {
+public interface VirtualFileDescriptorProvider {
     VirtualFileDescriptor deliveryAndLock();
 
     void close();

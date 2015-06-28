@@ -11,7 +11,6 @@ import com.hyn.job.AsyncJob;
 import com.hyn.job.JobCallback;
 import com.hyn.job.JobExecutor;
 import com.hyn.job.JobLoader;
-import com.hyn.job.UnRetryRunTimeException;
 import com.hyn.job.UnexpectedResponseException;
 
 import java.io.File;

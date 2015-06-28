@@ -20,7 +20,12 @@ public interface VirtualFileDescriptor {
 
     void adjustNewLength(long newLength) throws ResizeConflictException;
 
-    void finish();
+    void finish() throws IOException;
+
+    /**
+     * Save current state when current job not finished. Avoid download repeat.
+     */
+    void safeSave();
 
     void abort();
 

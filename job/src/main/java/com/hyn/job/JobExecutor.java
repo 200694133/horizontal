@@ -26,7 +26,7 @@ public interface JobExecutor<J extends AsyncJob, R> {
      *          {@link JobCallback#onCanceled(AsyncJob)} callback.
      *     </li>
      *     <li>
-     *         {@link UnRetryRunTimeException} is a runtime exception, which implement {@code UnRetryable}. This is
+     *         {@link UnRetryException} is a runtime exception, which implement {@code UnRetryable}. This is
      *         default exception for interrupt current job and do not retry again, will notify
      *         {@link JobCallback#onFailed(AsyncJob, Object, String, Throwable)} or
      *         {@link JobCallback#onCanceled(AsyncJob)} callback.
@@ -75,7 +75,7 @@ public interface JobExecutor<J extends AsyncJob, R> {
      * <hr>
      * @see UnexpectedResponseException
      * @see UnRetryable
-     * @see UnRetryRunTimeException
+     * @see UnRetryException
      * @param asyncJob the specify job will be running.
      * @return the <b><i>expect</i></b> response.
      * @throws Throwable intterupt current job, running retry or post failed response.
