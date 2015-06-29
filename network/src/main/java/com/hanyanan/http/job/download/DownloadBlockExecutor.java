@@ -39,12 +39,27 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
          */
         checkPrecondition(response, range);
 
-        InputStream inputStream = response.body().getResource().openStream();
-        if (checkAbort(asyncJob, response)) {
-            asyncJob.cancel();
-            descriptor.abort();
+        InputStream inputStream = null;
+        try {
+            inputStream = response.body().getResource().openStream();
+        } catch (IOException e) {
+            e.printStackTrace();
             response.dispose();
-            return null;
+            throw e;
+        }
+
+        {
+            /*
+            * 检查当前状态
+            * */
+            if (checkAbort(asyncJob, response)) {
+                response.dispose();
+                descriptor.abort();
+                if (!asyncJob.isCanceled()) {
+                    asyncJob.cancel();
+                }
+                return null;
+            }
         }
 
         {
@@ -57,16 +72,24 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
             long totalRead = 0;
             try {
                 while (left > 0 && (read = inputStream.read(buff)) > 0) {
-//                    if (checkAbort(asyncJob, response)) {
-//                        asyncJob.cancel();
-//                        descriptor.abort();
-//                        response.dispose();
-//                        return null;
-//                    }
+                    {
+                        /*
+                        * 检查当前状态
+                        * */
+                        if (checkAbort(asyncJob, response)) {
+                            response.dispose();
+                            descriptor.abort();
+                            if (!asyncJob.isCanceled()) {
+                                asyncJob.cancel();
+                            }
+                            return null;
+                        }
+                    }
 
                     // 数据操作
                     descriptor.write(buff, 0, read);
                     left -= read;
+                    totalRead += read;
                 }
             } catch (IOException e) {
                 response.dispose();

@@ -18,14 +18,14 @@ public interface VirtualFileDescriptor {
 
     long offset();
 
-    void adjustNewLength(long newLength) throws ResizeConflictException;
+    void adjustNewLength(long newLength);
 
     void finish() throws IOException;
 
     /**
      * Save current state when current job not finished. Avoid download repeat.
      */
-    void safeSave();
+    void saveCurrentState();
 
     void abort();
 

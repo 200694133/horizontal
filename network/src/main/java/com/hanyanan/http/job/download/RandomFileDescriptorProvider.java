@@ -3,11 +3,8 @@ package com.hanyanan.http.job.download;
 import com.hanyanan.http.HttpLog;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +20,6 @@ import hyn.com.lib.ValueUtil;
  * Created by hanyanan on 2015/6/16.
  */
 public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvider {
-    public static final int SAVE_INVIDER = 64 * 1024;
     /**
      * create a rangeMapper to manege the file hole state.
      */
@@ -38,6 +34,9 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
      */
     private final long fileSize;
 
+    /**
+     * Dest file.
+     */
     private final RandomAccessFile randomAccessDestFile;
     /**
      * The dest file will store the data.
@@ -101,7 +100,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
                 rangeMaps.put(p, l);
             }
 
-            for(Map.Entry<Long, Long> entry : rangeMaps.entrySet()) {
+            for (Map.Entry<Long, Long> entry : rangeMaps.entrySet()) {
                 rangeMapper.finish(entry.getKey(), entry.getValue(), false);
             }
         } catch (FileNotFoundException e) {
@@ -116,10 +115,10 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
 
     private void saveFinishState(long offset, long length) throws IOException {
         synchronized (this) {
-            if(isClosed) {
+            if (isClosed) {
                 throw new IOException("Cannot saveFinishState after closed!");
             }
-            configWriter.write(offset+"-"+length);
+            configWriter.write(offset + "-" + length);
         }
     }
 
@@ -145,10 +144,10 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         }
     }
 
-    private void tryFinish(RangeMapper.FileRange range, long partlyLength) {
+    private void saveCurrent(RangeMapper.FileRange range, long partlyLength) {
         synchronized (this) {
-            if(partlyLength<=0) {
-                return ;
+            if (partlyLength <= 0) {
+                return;
             }
             rangeMapper.partlyDone(range, partlyLength);
         }
@@ -170,13 +169,6 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         synchronized (this) {
             randomAccessDestFile.seek(fileOffset);
             randomAccessDestFile.write(buff, offset, length);
-            onProgress(fileOffset, length);
-        }
-    }
-
-    protected void onProgress(long offset, int length){
-        synchronized (this) {
-            // TODO
         }
     }
 
@@ -224,14 +216,15 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             }
 
             @Override
-            public void safeSave() {
+            public void saveCurrentState() {
                 synchronized (this) {
                     if (isClosed()) {
-                        throw new IOException("Current Descriptor has closed!");
+                        HttpLog.w("Http","Call saveCurrentState after descriptor has closed!");
+                        return ;
                     }
-                    RandomFileDescriptorProvider.this.tryFinish(this.range, hasWritten);
-                    super.finish();
-                    HttpLog.d("Http", getLogName() + "\tfinish " + range);
+                    RandomFileDescriptorProvider.this.saveCurrent(this.range, hasWritten);
+                    finished = true;
+                    HttpLog.d("Http", getLogName() + "\tsaveCurrentState " + range + " current state " + hasWritten);
                 }
             }
 
@@ -239,8 +232,8 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             @Override
             public void abort() {
                 synchronized (this) {
-                    if(isClosed()) {
-                        return ;
+                    if (isClosed()) {
+                        return;
                     }
                     RandomFileDescriptorProvider.this.abort(this.range);
                     super.abort();
