@@ -34,13 +34,22 @@ public class HttpUrlExecutor implements HttpExecutor {
     public static final String COLONSPACE = ": ";
     public static final String DASHDASH = "--";
     public static final String CRLF = "\r\n";
-    protected void onTransportProgress(HttpRequest request, boolean download, long position, long count){
+
+    /**
+     *
+     * @param request
+     * @param download
+     * @param position
+     * @param count
+     * @throws InterruptedException
+     */
+    protected void onTransportProgress(HttpRequest request, boolean download, long position, long count) throws InterruptedException{
 
     }
 
     /**
      * Prepare redirect to the next url, invoke this method after finish a redirect request and before redirect to the
-     * specify url.
+     * specify url. The imlments may be throw a InterruptedException to interrupted current request..
      * @param request
      * @param redirectedResponse
      * @throws InterruptedException to abort current request

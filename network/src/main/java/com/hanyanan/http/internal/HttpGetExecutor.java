@@ -11,10 +11,13 @@ import hyn.com.lib.ValueUtil;
  * Created by hanyanan on 2015/5/27.
  */
 public class HttpGetExecutor extends HttpUrlExecutor {
-    /** Return the url will be request. */
-    @Override protected String getUrl(HttpRequest request){
+    /**
+     * Return the url will be request.
+     */
+    @Override
+    protected String getUrl(HttpRequest request) {
         String url = request.getForwardUrl();
-        if(ValueUtil.isEmpty(url)){
+        if (ValueUtil.isEmpty(url)) {
             url = request.getUrl();
         }
 
