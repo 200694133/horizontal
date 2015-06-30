@@ -35,43 +35,23 @@ public class HttpUrlExecutor implements HttpExecutor {
     public static final String DASHDASH = "--";
     public static final String CRLF = "\r\n";
 
-    /**
-     *
-     * @param request
-     * @param download
-     * @param position
-     * @param count
-     * @throws InterruptedException
-     */
-    protected void onTransportProgress(HttpRequest request, boolean download, long position, long count) throws InterruptedException{
-
-    }
-
-    /**
-     * Prepare redirect to the next url, invoke this method after finish a redirect request and before redirect to the
-     * specify url. The imlments may be throw a InterruptedException to interrupted current request..
-     * @param request
-     * @param redirectedResponse
-     * @throws InterruptedException to abort current request
-     */
-    protected void onPrepareRedirect(HttpRequest request, RedirectedResponse redirectedResponse) throws InterruptedException{
-
-    }
 
     @Override
     public HttpResponse run(HttpRequest request) throws Throwable {
         HttpResponse.Builder builder = new HttpResponse.Builder(request);
         builder = performRequest(request, builder);
-        return builder.build();
+        HttpResponse response = builder.build();
+        response = onAfterRunning(request, response);
+        return response;
     }
 
-    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder)
-            throws Throwable {
+    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder) {
         Preconditions.checkNotNull(request);
         Preconditions.checkNotNull(builder);
         String url = getUrl(request);
         URL address_url = null;
         HttpURLConnection connection = null;
+        onPrepareRunning(request);
         try {
             address_url = new URL(url);
             connection = (HttpURLConnection) address_url.openConnection();
@@ -81,13 +61,17 @@ public class HttpUrlExecutor implements HttpExecutor {
             if (isMultipart(request)) {
                 request.getRequestHeader().remove(Headers.CONTENT_LENGTH);
             }
+            onPropertyInit(request);
             writeRequestHeader(request, connection);//set http request header
+            onWriteRequestHeaderFinish(request);
             writeRequestBody(request, connection);//send request body to server
+            onWriteRequestBodyFinish(request);
+
             connection.connect();//connection to server
 
-            int statusCode = connection.getResponseCode();
+            int statusCode = onReadResponseCode(request, connection.getResponseCode());
             String msg = connection.getResponseMessage();
-            HttpResponseHeader responseHeader = readResponseHeaders(request, connection);
+            HttpResponseHeader responseHeader = onReadResponseHeader(request, readResponseHeaders(request, connection));
             if (isRedirect(statusCode)) { //redirect to next url
                 int count = builder.increaseAndGetRedirectCount();
                 if (count > MAX_REDIRECT_COUNT) {
@@ -98,17 +82,18 @@ public class HttpUrlExecutor implements HttpExecutor {
                 if (ValueUtil.isEmpty(forwardUrl)) {
                     //TODO
                 }
-                System.out.println(request.urlString()+" Code "+statusCode + ", redirect to "+forwardUrl);
+                System.out.println(request.urlString() + " Code " + statusCode + ", redirect to " + forwardUrl);
                 request.setForwardUrl(forwardUrl);
                 RedirectedResponse redirectedResponse = new RedirectedResponse(statusCode, msg, forwardUrl, responseHeader);
+                redirectedResponse = onPrepareRedirect(request, redirectedResponse, count);//TODO, setCookie, Others
                 builder.addRedirectedResponse(redirectedResponse);
-                onPrepareRedirect(request, redirectedResponse);//TODO, setCookie, Others
                 connection.disconnect();
                 return performRequest(request, builder); //redirect to next request
             } else if (isSuccess(statusCode)) {
                 builder.setMessage(msg);
                 builder.setStatusCode(statusCode);
                 HttpResponseBody responseBody = readResponseBody(request, connection);
+                responseBody = onReadRequestBodyFinish(request, responseBody);
                 builder.setBody(responseBody);
                 builder.setHttpResponseHeader(responseHeader);
                 return builder;

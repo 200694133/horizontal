@@ -12,39 +12,154 @@ public interface HttpExecutor extends Asyncable<HttpRequest, HttpResponse> {
     public static final int HTTP_PERM_REDIRECT = 308;
     public static final int MAX_REDIRECT_COUNT = 10;
 
+    /**
+     * The callback before current request running.
+     * @param request the specify http request.
+     * @throws InterruptedException interrupt current request exception.
+     */
     public void onPrepareRunning(HttpRequest request) throws InterruptedException;
 
-    public void onPropertyInitFinish(HttpRequest request) throws InterruptedException;
+    /**
+     * The callback after the property has been setted.
+     * @param request the specify http request on running.
+     * @throws InterruptedException interrupt current request exception.
+     */
+    public void onPropertyInit(HttpRequest request) throws InterruptedException;
 
+    /**
+     * The callback after request param has sent to server.
+     * @param request the specify http request on running.
+     * @throws InterruptedException interrupt current request exception.
+     */
     public void onWriteRequestHeaderFinish(HttpRequest request) throws InterruptedException;
 
     /**
-     * @param request
-     * @param position
-     * @param count
-     * @throws InterruptedException
+     * The progress callback for current upload transport.
+     * @param request the specify http request on running.
+     * @param position the cursor of current position.
+     * @param count the size of body need send to server.
+     * @throws InterruptedException interrupt current request exception.
      */
     public void onTransportUpProgress(HttpRequest request, long position, long count) throws InterruptedException;
 
+    /**
+     * The callback when send body complete.
+     * @param request the specify http request on running.
+     * @throws InterruptedException interrupt current request exception.
+     */
     public void onWriteRequestBodyFinish(HttpRequest request) throws InterruptedException;
 
-    public void onReadResponseCode(HttpRequest request, int code) throws InterruptedException;
+    /**
+     * The callback when get the response code from server.
+     * @param request the specify http request on running.
+     * @param code the response code from server
+     * @return the response code.
+     * @throws InterruptedException interrupt current request exception.
+     */
+    public int onReadResponseCode(HttpRequest request, int code) throws InterruptedException;
 
+    /**
+     * The callback after read the response from server.
+     * @param request the specify http request on running.
+     * @param responseHeader the response header from server
+     * @return return the finally response header
+     * @throws InterruptedException interrupt current request exception.
+     */
     public HttpResponseHeader onReadResponseHeader(HttpRequest request, HttpResponseHeader responseHeader) throws InterruptedException;
 
     /**
      * Prepare redirect to the next url, invoke this method after finish a redirect request and before redirect to the
      * specify url. The imlments may be throw a InterruptedException to interrupted current request..
      *
-     * @param request
-     * @param redirectedResponse
+     * @param request the specify http request on running.
+     * @param redirectedResponse the redirectedResponse parsed from server.
+     * @return the target redirectedResponse
      * @throws InterruptedException to abort current request
      */
     public RedirectedResponse onPrepareRedirect(HttpRequest request, RedirectedResponse redirectedResponse, int currCount) throws InterruptedException;
 
+    /**
+     * The progress callback for current download transport.
+     * @param request the specify http request on running.
+     * @param position the cursor of current position.
+     * @param count the size of body need send to server.
+     * @throws InterruptedException interrupt current request exception.
+     */
     public void onTransportDownProgress(HttpRequest request, long position, long count) throws InterruptedException;
 
+    /**
+     * The callback after get request body from server.
+     * @param request the specify http request on running.
+     * @param responseBody the body received from server.
+     * @return the finally body received from server.
+     * @throws InterruptedException interrupt current request exception.
+     */
     public HttpResponseBody onReadRequestBodyFinish(HttpRequest request, HttpResponseBody responseBody) throws InterruptedException;
 
+    /**
+     * The callback after finish current request.
+     * @param request the specify http request on running.
+     * @param response the response get from server.
+     * @return the finally response.
+     * @throws InterruptedException interrupt current request exception.
+     */
     public HttpResponse onAfterRunning(HttpRequest request, HttpResponse response) throws InterruptedException;
+
+    public static abstract class BaseHttpExecutor implements HttpExecutor {
+
+        @Override
+        public void onPrepareRunning(HttpRequest request) throws InterruptedException {
+
+        }
+
+        @Override
+        public void onPropertyInit(HttpRequest request) throws InterruptedException {
+
+        }
+
+        @Override
+        public void onWriteRequestHeaderFinish(HttpRequest request) throws InterruptedException {
+
+        }
+
+        @Override
+        public void onTransportUpProgress(HttpRequest request, long position, long count) throws InterruptedException {
+
+        }
+
+        @Override
+        public void onWriteRequestBodyFinish(HttpRequest request) throws InterruptedException {
+
+        }
+
+        @Override
+        public int onReadResponseCode(HttpRequest request, int code) throws InterruptedException {
+            return code;
+        }
+
+        @Override
+        public HttpResponseHeader onReadResponseHeader(HttpRequest request, HttpResponseHeader responseHeader) throws InterruptedException {
+            return responseHeader;
+        }
+
+        @Override
+        public RedirectedResponse onPrepareRedirect(HttpRequest request, RedirectedResponse redirectedResponse, int currCount) throws InterruptedException {
+            return redirectedResponse;
+        }
+
+        @Override
+        public void onTransportDownProgress(HttpRequest request, long position, long count) throws InterruptedException {
+
+        }
+
+        @Override
+        public HttpResponseBody onReadRequestBodyFinish(HttpRequest request, HttpResponseBody responseBody) throws InterruptedException {
+            return responseBody;
+        }
+
+        @Override
+        public HttpResponse onAfterRunning(HttpRequest request, HttpResponse response) throws InterruptedException {
+            return response;
+        }
+    }
 }
