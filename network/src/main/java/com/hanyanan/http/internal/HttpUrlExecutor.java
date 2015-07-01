@@ -30,14 +30,11 @@ import static java.net.HttpURLConnection.HTTP_SEE_OTHER;
 /**
  * Created by hanyanan on 2015/5/22.
  */
-public class HttpUrlExecutor implements HttpExecutor {
-    public static final String COLONSPACE = ": ";
-    public static final String DASHDASH = "--";
-    public static final String CRLF = "\r\n";
+public class HttpUrlExecutor extends HttpExecutor.BaseHttpExecutor implements HttpExecutor {
 
 
     @Override
-    public HttpResponse run(HttpRequest request) throws Throwable {
+    public HttpResponse performRequest(HttpRequest request) throws Throwable {
         HttpResponse.Builder builder = new HttpResponse.Builder(request);
         builder = performRequest(request, builder);
         HttpResponse response = builder.build();
@@ -45,14 +42,14 @@ public class HttpUrlExecutor implements HttpExecutor {
         return response;
     }
 
-    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder) {
+    protected HttpResponse.Builder performRequest(final HttpRequest request, final HttpResponse.Builder builder) throws Throwable{
         Preconditions.checkNotNull(request);
         Preconditions.checkNotNull(builder);
         String url = getUrl(request);
         URL address_url = null;
         HttpURLConnection connection = null;
-        onPrepareRunning(request);
         try {
+            onPrepareRunning(request);
             address_url = new URL(url);
             connection = (HttpURLConnection) address_url.openConnection();
             connection.setRequestMethod(request.methodString());
@@ -62,12 +59,12 @@ public class HttpUrlExecutor implements HttpExecutor {
                 request.getRequestHeader().remove(Headers.CONTENT_LENGTH);
             }
             onPropertyInit(request);
-            writeRequestHeader(request, connection);//set http request header
+            writeRequestHeader(request, connection); // set http request header
             onWriteRequestHeaderFinish(request);
-            writeRequestBody(request, connection);//send request body to server
+            writeRequestBody(request, connection); // send request body to server
             onWriteRequestBodyFinish(request);
 
-            connection.connect();//connection to server
+            connection.connect(); // connection to server
 
             int statusCode = onReadResponseCode(request, connection.getResponseCode());
             String msg = connection.getResponseMessage();
@@ -97,7 +94,7 @@ public class HttpUrlExecutor implements HttpExecutor {
                 builder.setBody(responseBody);
                 builder.setHttpResponseHeader(responseHeader);
                 return builder;
-            } else {//failed
+            } else { // failed
                 builder.setMessage(msg);
                 builder.setStatusCode(statusCode);
                 builder.setBody(null);
@@ -148,9 +145,9 @@ public class HttpUrlExecutor implements HttpExecutor {
         InputStream inputStream = connection.getInputStream();
         InputStreamWrapper inputStreamWrapper = new InputStreamWrapper(inputStream, connection) {
             @Override
-            protected void onRead(long readCount) {
+            protected void onRead(long readCount) throws IOException {
                 System.out.println("Read count " + readCount);
-                onTransportProgress(httpRequest, true, readCount, contentLength);
+                onTransportDownProgress(httpRequest, readCount, contentLength);
             }
         };
 
@@ -220,20 +217,6 @@ public class HttpUrlExecutor implements HttpExecutor {
     protected void setTimeout(URLConnection connection) {
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
-    }
-
-
-    protected final boolean supportRequestBody(HttpRequest request) {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkNotNull(request.methodString());
-        String method = request.methodString();
-        return HttpPreconditions.permitsRequestBody(method);
-    }
-
-    protected final boolean containRequestBody(HttpRequest request) {
-        if (null == request) return false;
-
-        return request.getRequestBody().hasContent();
     }
 
     /**

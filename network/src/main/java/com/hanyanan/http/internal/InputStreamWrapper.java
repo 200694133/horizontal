@@ -72,7 +72,7 @@ public class InputStreamWrapper extends InputStream{
         return inputStream.markSupported();
     }
 
-    protected void onRead(long readCount){
+    protected void onRead(long readCount) throws IOException{
         
     }
 }

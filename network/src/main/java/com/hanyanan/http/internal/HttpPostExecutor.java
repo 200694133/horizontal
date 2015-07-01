@@ -3,7 +3,6 @@ package com.hanyanan.http.internal;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpRequestBody.EntityHolder;
 import com.hanyanan.http.TransportProgress;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import hyn.com.lib.IOUtil;
 import hyn.com.lib.Preconditions;
 import hyn.com.lib.ValueUtil;
@@ -27,8 +25,9 @@ public class HttpPostExecutor extends HttpUrlExecutor {
     public boolean isMultipart(HttpRequest httpRequest) {
         return true;
     }
-    @Override protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {
-        String url = request.getUrl();
+
+    @Override
+    protected void writeRequestBody(HttpRequest request, URLConnection connection) throws IOException {
         Map<String, Object> params = request.getParams();
         List<EntityHolder> entityHolders = request.getRequestBody().getResources();
         if(params.size() <= 0 && entityHolders.size() <= 0) {
@@ -43,6 +42,14 @@ public class HttpPostExecutor extends HttpUrlExecutor {
         writeRequestParam(request, params, connection);
     }
 
+    /**
+     * Send request param, encode with utf-8 charset, the Content-Type is "application/x-www-form-urlencoded;charset=utf-8"
+     *
+     * @param request the specify request on running
+     * @param params the param need send to server with request body.
+     * @param connection http connection.
+     * @throws IOException
+     */
     private void writeRequestParam(HttpRequest request, Map<String, Object> params, URLConnection connection)
                                                                 throws IOException{
         if(null == params || params.isEmpty()) return ;
@@ -60,6 +67,16 @@ public class HttpPostExecutor extends HttpUrlExecutor {
         outputStream.flush();
         outputStream.close();
     }
+
+
+    /**
+     * Send both request param and body to server, with Content-Type is "multipart/form-data;boundary=......"
+     * @param request the specify request on running
+     * @param params the param need send to server with request body.
+     * @param entityHolders
+     * @param connection http connection.
+     * @throws IOException
+     */
     private void writeRequestBodyMultipart(HttpRequest request, Map<String, Object> params, List<EntityHolder> entityHolders,
                                            URLConnection connection) throws IOException {
         String boundary = UUID.randomUUID().toString();
