@@ -148,9 +148,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
     }
 
 //    public void finish() {
-//        synchronized (this) {
-//            this.setJobStatus(JobStatus.Finish);
-//        }
+//        // finish current job, dispose all resources has been holder.
 //    }
 
     /**
@@ -161,26 +159,30 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob> {
     }
 
     final void deliverCanceled() {
-        if (null != callback) {
-            callback.onCanceled(this);
+        CallbackDelivery delivery = getCallbackDelivery();
+        if(null != delivery){
+            delivery.postCanceled(this);
         }
     }
 
     final void deliverResponse(R response) {
-        if (null != callback) {
-            callback.onSuccess(this, response);
+        CallbackDelivery delivery = getCallbackDelivery();
+        if(null != delivery){
+            delivery.postSuccess(this,response);
         }
     }
 
     final void deliverError(R response, String msg, Throwable throwable) {
-        if (null != callback) {
-            callback.onFailed(this, response, msg, throwable);
+        CallbackDelivery delivery = getCallbackDelivery();
+        if(null != delivery){
+            delivery.postFailed(this, response, msg, throwable);
         }
     }
 
     final void deliverIntermediate(I intermediate) {
-        if (null != callback) {
-            callback.onIntermediate(intermediate);
+        CallbackDelivery delivery = getCallbackDelivery();
+        if(null != delivery){
+            delivery.postIntermediate(this, intermediate);
         }
     }
 

@@ -51,6 +51,8 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
 
     private final FileWriter configWriter;
 
+    private long currentFinish = 0;
+
     public RandomFileDescriptorProvider(File dstFile, long size, long blockSize) throws IOException {
         this.blockSize = blockSize;
         this.fileSize = size;
@@ -102,6 +104,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
 
             for (Map.Entry<Long, Long> entry : rangeMaps.entrySet()) {
                 rangeMapper.finish(entry.getKey(), entry.getValue(), false);
+                currentFinish += entry.getValue() - entry.getKey() + 1;
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -136,7 +139,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         synchronized (this) {
             isClosed = true;
             IOUtil.closeQuietly(randomAccessDestFile);
@@ -144,12 +147,22 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         }
     }
 
-    private void saveCurrent(RangeMapper.FileRange range, long partlyLength) {
+    @Override
+    public synchronized boolean isClosed() {
+        return isClosed;
+    }
+
+
+    private void unSureSaveState(RangeMapper.FileRange range, long partlyLength) {
         synchronized (this) {
             if (partlyLength <= 0) {
                 return;
             }
-            rangeMapper.partlyDone(range, partlyLength);
+            try {
+                saveFinishState(range.offset, partlyLength);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -159,9 +172,13 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         }
     }
 
-    private synchronized void abort(RangeMapper.FileRange range) {
+    private synchronized void abort(RangeMapper.FileRange range, long currentFinish) {
         synchronized (this) {
-            rangeMapper.abort(range);
+            if(currentFinish <= 0){
+                rangeMapper.abort(range);
+                return ;
+            }
+            rangeMapper.partlyDone(range, currentFinish);
         }
     }
 
@@ -219,10 +236,10 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             public void saveCurrentState() {
                 synchronized (this) {
                     if (isClosed()) {
-                        HttpLog.w("Http","Call saveCurrentState after descriptor has closed!");
-                        return ;
+                        HttpLog.w("Http", "Call saveCurrentState after descriptor has closed!");
+                        return;
                     }
-                    RandomFileDescriptorProvider.this.saveCurrent(this.range, hasWritten);
+                    RandomFileDescriptorProvider.this.unSureSaveState(this.range, hasWritten);
                     finished = true;
                     HttpLog.d("Http", getLogName() + "\tsaveCurrentState " + range + " current state " + hasWritten);
                 }
@@ -232,11 +249,8 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             @Override
             public void abort() {
                 synchronized (this) {
-                    if (isClosed()) {
-                        return;
-                    }
-                    RandomFileDescriptorProvider.this.abort(this.range);
-                    super.abort();
+                    RandomFileDescriptorProvider.this.abort(this.range, this.hasWritten);
+                    finished = true;
                     HttpLog.d("Http", getLogName() + "\tabort " + range);
                 }
             }

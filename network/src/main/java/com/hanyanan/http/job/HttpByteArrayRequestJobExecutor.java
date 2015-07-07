@@ -15,7 +15,7 @@ public class HttpByteArrayRequestJobExecutor implements JobExecutor<HttpRequestJ
     public static HttpByteArrayRequestJobExecutor DEFAULT_BYTE_JOB_EXECUTOR = new HttpByteArrayRequestJobExecutor();
     @Override
     public byte[] performRequest(HttpRequestJob asyncJob) throws Throwable {
-        HttpJobExecutor executor = HttpJobExecutor.DEFAULT_EXECUTOR;
+        HttpJobLoaderProxy executor = HttpJobLoaderProxy.DEFAULT_EXECUTOR;
         HttpResponse response = executor.performRequest(asyncJob);
         BinaryResource resource = response.body().getResource();
         InputStream stream = resource.openStream();

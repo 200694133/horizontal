@@ -18,13 +18,18 @@ import static hyn.com.lib.Preconditions.checkArgument;
  * Created by hanyanan on 2015/6/22.
  */
 public class RangeMapper {
-    public static final String LOG_TAG = "FileMapper1";
+    public static final String LOG_TAG = "RangeMapper";
+
     /**
      * Current file tag to identity current map attribute.
      */
     public final int tag;
 
+    /**
+     * Total file length.
+     */
     private final long length;
+
     /**
      * 没有被覆盖的区域,按照区域大小排序
      */
@@ -35,14 +40,24 @@ public class RangeMapper {
      */
     private final SortedMap<FileRange, FileRange> blockHoleOffsetList = Collections.synchronizedSortedMap(new TreeMap<FileRange, FileRange>(POSITION_COMPARATOR));
 
+    /**
+     * The hole size
+     */
+    private long holeSize = 0;
 
     public RangeMapper(long totalLength) {
         this.length = totalLength;
+        this.holeSize = this.length;
         tag = new Random().nextInt();
         FileRange range = new FileRange(tag, 0, totalLength);
         blockHoleLengthList.put(range, range);
         blockHoleOffsetList.put(range, range);
     }
+
+    public synchronized long getHoleSize(){
+        return holeSize;
+    }
+
 
     protected synchronized boolean saveFinishState(long offset, long length) {
         HttpLog.d(LOG_TAG, "saveFinishState From "+offset+" To "+(length+offset-1));
@@ -235,7 +250,7 @@ public class RangeMapper {
     }
 
     /**
-     * 找到重叠区，如果没有重叠，则返回当前区域，否则返回重叠区。
+     * 找到重叠区，如果没有重叠，则返回null，否则返回重叠区。
      *
      * @param offset
      * @param length
@@ -263,7 +278,9 @@ public class RangeMapper {
         return res;
     }
 
-
+    /**
+     * 合并相邻的区域
+     */
     public synchronized void merge() {
         Collection<FileRange> fileRanges = blockHoleOffsetList.values();
         if (null == fileRanges || fileRanges.isEmpty()) {

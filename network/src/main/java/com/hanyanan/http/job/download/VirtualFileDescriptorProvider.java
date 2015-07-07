@@ -16,10 +16,12 @@ public interface VirtualFileDescriptorProvider {
      */
     void close();
 
-    /**
-     * delay close current provider, it will not closed until all descriptors has been closed.
-     */
-    void delayClose();
+    boolean isClosed();
 
-    List<VirtualFileDescriptor> getVirtualFileDescriptors();
+//    /**
+//     * delay close current provider, it will not closed until all descriptors has been closed.
+//     */
+//    void delayClose();
+
+//    List<VirtualFileDescriptor> getVirtualFileDescriptors();
 }

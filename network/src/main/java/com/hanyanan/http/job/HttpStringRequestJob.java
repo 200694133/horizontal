@@ -3,7 +3,6 @@ package com.hanyanan.http.job;
 import com.hanyanan.http.DefaultHttpRetryPolicy;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.TransportProgress;
-import com.hanyanan.http.internal.HttpResponse;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.CallbackDelivery;
 import com.hyn.job.JobCallback;

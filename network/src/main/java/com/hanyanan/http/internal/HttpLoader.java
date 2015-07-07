@@ -8,7 +8,7 @@ import java.io.IOException;
 /**
  * Created by hanyanan on 2015/5/13.
  */
-public interface HttpExecutor {
+public interface HttpLoader {
     public static final int HTTP_TEMP_REDIRECT = 307;
     public static final int HTTP_PERM_REDIRECT = 308;
     public static final int MAX_REDIRECT_COUNT = 10;
@@ -122,7 +122,7 @@ public interface HttpExecutor {
 
     public HttpResponse performRequest(HttpRequest request) throws Throwable;
 
-    abstract class BaseHttpExecutor implements HttpExecutor {
+    abstract class BaseHttpLoader implements HttpLoader {
 
         @Override
         public void onPrepareRunning(HttpRequest request) throws InterruptedException {

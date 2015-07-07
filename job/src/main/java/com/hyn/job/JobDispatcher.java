@@ -52,16 +52,14 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 continue;
             }
             RunningTrace runningTrace = asyncJob.getRunningTrace();
-            CallbackDelivery delivery = asyncJob.getCallbackDelivery();
             JobExecutor jobExecutor = asyncJob.getJobExecutor();
-            if (null == delivery) delivery = new DefaultCallbackDelivery();
             asyncJob.addMarker("network-queue-take");
 
             // If the request was cancelled already, do not perform the current request.
             if (asyncJob.isCanceled()) {
                 asyncJob.addMarker("network-discard-cancelled");
                 asyncJob.setJobStatus(JobStatus.Finish);
-                delivery.postCanceled(asyncJob);
+                asyncJob.deliverCanceled();
                 continue;
             }
             asyncJob.setJobStatus(JobStatus.Running);
@@ -76,12 +74,12 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 asyncJob.setJobStatus(JobStatus.Finish);
                 if (asyncJob.isCanceled()) {
                     asyncJob.addMarker("network-discard-cancelled");
-                    delivery.postCanceled(asyncJob);
+                    asyncJob.deliverCanceled();
                     continue;
                 }
                 runningTrace.setFinishTime(System.currentTimeMillis());
                 asyncJob.addMarker("request-complete");
-                delivery.postSuccess(asyncJob, response);
+                asyncJob.deliverResponse(response);
                 asyncJob.markDelivered();
             } catch (UnexpectedResponseException exception) {
                 /*
@@ -93,7 +91,7 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 if(null != exception.getUnexpectedResponse()) {
                     tmp = exception.getUnexpectedResponse().getValue();
                 }
-                delivery.postFailed(asyncJob, tmp, null, exception);
+                asyncJob.deliverError(tmp, null, exception);
                 runningTrace.setFinishTime(currentTimeMillis());
                 continue;
             } catch (Throwable throwable) {
@@ -108,7 +106,7 @@ public class JobDispatcher extends Thread implements FullPerformer{
                     * Cannot running again. execute failed.
                     * */
                     asyncJob.setJobStatus(JobStatus.Finish);
-                    delivery.postFailed(asyncJob, null, null, throwable);
+                    asyncJob.deliverError(null,null,throwable);
                     runningTrace.setFinishTime(currentTimeMillis());
                     continue;
                 }
@@ -123,7 +121,7 @@ public class JobDispatcher extends Thread implements FullPerformer{
                     runningTrace.setAddToQueueTimeStamp(currentTimeMillis());
                 } else { // failed
                     asyncJob.setJobStatus(JobStatus.Finish);
-                    delivery.postFailed(asyncJob, null, null, throwable);
+                    asyncJob.deliverError(null, null, throwable);
                     runningTrace.setFinishTime(currentTimeMillis());
                 }
                 continue;

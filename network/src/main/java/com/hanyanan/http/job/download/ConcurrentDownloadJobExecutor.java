@@ -6,6 +6,7 @@ import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.*;
 import com.hanyanan.http.internal.Range;
 import com.hanyanan.http.job.HttpJobExecutor;
+import com.hanyanan.http.job.HttpJobLoaderProxy;
 import com.hanyanan.http.job.HttpRequestJob;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.JobCallback;
@@ -73,9 +74,12 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
         return null;
     }
 
-    private HttpRequestJob nextFragment(HttpRequest request, VirtualFileDescriptor descriptor){
-        HttpRequest nextRequest = request.clone();
-        nextRequest.range(descriptor.offset(), descriptor.length());
+    private HttpRequestJob nextFragment(HttpRequestJob parentJob){
+        if(descriptorProvider.isClosed()) {
+            return null;
+        }
+        HttpRequest nextRequest = parentJob.getParam().clone();
+        nextRequest.range(parentJob.offset(), descriptor.length());
         DownloadBlockExecutor executor = new DownloadBlockExecutor(descriptor); // TODO
         HttpRequestJob job = new HttpRequestJob(nextRequest, executor, null);
         return job;

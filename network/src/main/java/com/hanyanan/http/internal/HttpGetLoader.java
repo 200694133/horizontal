@@ -3,14 +3,12 @@ package com.hanyanan.http.internal;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.HttpUtil;
 
-import java.net.URLConnection;
-
 import hyn.com.lib.ValueUtil;
 
 /**
  * Created by hanyanan on 2015/5/27.
  */
-public class HttpGetExecutor extends HttpUrlExecutor {
+public class HttpGetLoader extends HttpUrlLoader {
     /**
      * Return the url will be request.
      */

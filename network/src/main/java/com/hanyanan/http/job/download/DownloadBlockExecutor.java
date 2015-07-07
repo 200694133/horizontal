@@ -1,131 +1,84 @@
 package com.hanyanan.http.job.download;
 
-import com.hanyanan.http.HttpRequest;
+
 import com.hanyanan.http.internal.HttpResponse;
 import com.hanyanan.http.internal.HttpResponseHeader;
 import com.hanyanan.http.job.HttpJobExecutor;
 import com.hanyanan.http.job.HttpRequestJob;
 import com.hyn.job.JobExecutor;
 import com.hyn.job.UnRetryException;
-
-import java.io.IOException;
 import java.io.InputStream;
+
+import hyn.com.lib.IOUtil;
 
 /**
  * Created by hanyanan on 2015/6/18.
  * 分段下载具体的某一部分的区域。
  */
 public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> {
+    public static final int MAX_NOT_SAVED_SIZE = 1024 * 1024; // 2M
     private final VirtualFileDescriptor descriptor;
 
     DownloadBlockExecutor(VirtualFileDescriptor descriptor) {
         this.descriptor = descriptor;
     }
 
-    private boolean checkAbort(HttpRequestJob asyncJob, HttpResponse response) {
-        return asyncJob.isCanceled() || descriptor.isClosed();
-    }
-
     @Override
-    public Void performRequest(HttpRequestJob asyncJob) {
-        HttpRequest request = asyncJob.getParam();
-        HttpJobExecutor baseJobExecutor = HttpJobExecutor.DEFAULT_EXECUTOR;
-        HttpResponse response = baseJobExecutor.performRequest(asyncJob);
-        HttpResponseHeader responseHeader = response.getResponseHeader();
-        com.hanyanan.http.internal.Range range = responseHeader.getRange();
-
-        /**
-         * 先决判断,如果失败，会抛出不可重试的异常。
-         */
-        checkPrecondition(response, range);
-
+    public Void performRequest(HttpRequestJob asyncJob) throws Throwable{
+        if (asyncJob.isCanceled()) {
+            descriptor.abort();
+            return null;
+        }
+        if (descriptor.isClosed()) {
+            asyncJob.cancel();
+            return null;
+        }
+        HttpJobExecutor executor = HttpJobExecutor.DEFAULT_EXECUTOR;
+        HttpResponse response = null;
         InputStream inputStream = null;
         try {
-            inputStream = response.body().getResource().openStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-            response.dispose();
-            throw e;
-        }
+            response = executor.performRequest(asyncJob);
+            HttpResponseHeader responseHeader = response.getResponseHeader();
+            com.hanyanan.http.internal.Range range = responseHeader.getRange();
+            /**
+             * 先决判断,如果失败，会抛出不可重试的异常。
+             */
+            checkPrecondition(response, range);
 
-        {
-            /*
-            * 检查当前状态
-            * */
-            if (checkAbort(asyncJob, response)) {
-                response.dispose();
-                descriptor.abort();
-                if (!asyncJob.isCanceled()) {
-                    asyncJob.cancel();
-                }
-                return null;
-            }
-        }
-
-        {
             /*
             * 数据拷贝
             * */
             byte[] buff = new byte[64 * 1024]; // 64K
             long left = descriptor.length();
             int read = 0;
-            long totalRead = 0;
-            try {
-                while (left > 0 && (read = inputStream.read(buff)) > 0) {
-                    {
-                        /*
-                        * 检查当前状态
-                        * */
-                        if (checkAbort(asyncJob, response)) {
-                            response.dispose();
-                            descriptor.abort();
-                            if (!asyncJob.isCanceled()) {
-                                asyncJob.cancel();
-                            }
-                            return null;
-                        }
-                    }
-
-                    // 数据操作
-                    descriptor.write(buff, 0, read);
-                    left -= read;
-                    totalRead += read;
+            long countOfNotSaved = 0;
+            inputStream = response.body().getResource().openStream();
+            while (left > 0 && (read = inputStream.read(buff)) > 0) {
+                // 数据操作
+                descriptor.write(buff, 0, read);
+                left -= read;
+                countOfNotSaved += read;
+                if (countOfNotSaved >= MAX_NOT_SAVED_SIZE) {
+                    descriptor.saveCurrentState();
+                    countOfNotSaved = 0;
                 }
-            } catch (IOException e) {
-                response.dispose();
-                /*
-                * 读取失败，可能是网络原因，可能是写操作被关闭了
-                * */
-                if (checkAbort(asyncJob, response)) {
-                    asyncJob.cancel();
-                    descriptor.abort();
-                    response.dispose();
-                    return null;
-                }
-
-                throw new UnRetryException(e);
             }
-            if (checkAbort(asyncJob, response)) {
-                asyncJob.cancel();
-                descriptor.abort();
-                response.dispose();
-                return null;
+            descriptor.finish();
+            return null;
+        }catch (Throwable throwable) {
+            // 不可重试
+            if(!descriptor.isClosed()) {
+                descriptor.saveCurrentState();
             }
-            if (left > 0) {
-                /*
-                * 没有读取期望的大小，读取失败
-                * */
-                descriptor.abort();
+            descriptor.abort();
+            asyncJob.cancel();
+            throw new UnRetryException("");
+        }finally {
+            IOUtil.closeQuietly(inputStream);
+            if(null != response) {
                 response.dispose();
-                throw new UnRetryException("Cannot read the expect length!Download failed!");
             }
         }
-        /*
-        * 操作成功
-        * */
-        descriptor.finish();
-        response.dispose();
-        return null;
     }
 
 
@@ -172,17 +125,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
             /*
              * 比期望的小， 则调整期望值
              * */
-            try {
-                descriptor.adjustNewLength(length);
-            } catch (ResizeConflictException e) {
-                /*
-                 * 调整失败，则取消当前的下载，并且不能重试
-                 * */
-                e.printStackTrace();
-                response.dispose();
-                descriptor.abort();
-                throw e;
-            }
+            descriptor.adjustNewLength(length);
         }
         // 调整成功
     }

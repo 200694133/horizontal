@@ -1,9 +1,6 @@
 package com.hanyanan.http;
 
-import com.hanyanan.http.internal.HttpGetExecutor;
-import com.hanyanan.http.internal.HttpPostExecutor;
 import com.hanyanan.http.internal.HttpResponse;
-import com.hanyanan.http.internal.HttpUrlExecutor;
 
 import java.io.InputStream;
 import java.util.HashMap;

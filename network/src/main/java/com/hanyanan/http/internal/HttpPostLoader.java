@@ -21,7 +21,7 @@ import hyn.com.lib.ValueUtil;
 /**
  * Created by hanyanan on 2015/5/27.
  */
-public class HttpPostExecutor extends HttpUrlExecutor {
+public class HttpPostLoader extends HttpUrlLoader {
     public boolean isMultipart(HttpRequest httpRequest) {
         return true;
     }
@@ -135,7 +135,7 @@ public class HttpPostExecutor extends HttpUrlExecutor {
                         .append(CRLF);
                 outputStream.write(data.toString().getBytes());
                 outputStream.flush();
-                reads = copyAndCallback(request, entityHolder.resource.openStream(),
+                reads = upload(request, entityHolder.resource.openStream(),
                         outputStream, transportProgress, reads, count);
                 outputStream.write(CRLF.getBytes());
                 IOUtil.closeQuietly(entityHolder.resource.openStream());
@@ -164,8 +164,8 @@ public class HttpPostExecutor extends HttpUrlExecutor {
      * @param transportProgress the callback
      * @param maxSize the max size of the data transport
      */
-    private long copyAndCallback(HttpRequest request, InputStream inputStream, OutputStream outputStream,
-                      TransportProgress transportProgress, long reads, long maxSize) throws IOException{
+    private long upload(HttpRequest request, InputStream inputStream, OutputStream outputStream,
+                        TransportProgress transportProgress, long reads, long maxSize) throws IOException{
         Preconditions.checkNotNull(inputStream);
         Preconditions.checkNotNull(outputStream);
         int buffSize = 1024;//1k
@@ -175,7 +175,7 @@ public class HttpPostExecutor extends HttpUrlExecutor {
             if (read <= 0) break; // 读取完毕
             outputStream.write(buf, 0, (int) read);
             reads += read;
-            onTransportProgress(request, false, reads, maxSize);
+            onTransportUpProgress(request, reads, maxSize);
         } while (true);
         return reads;
     }

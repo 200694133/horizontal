@@ -1,9 +1,9 @@
 package com.hanyanan.http;
 
-import com.hanyanan.http.internal.HttpGetExecutor;
-import com.hanyanan.http.internal.HttpPostExecutor;
+import com.hanyanan.http.internal.HttpGetLoader;
+import com.hanyanan.http.internal.HttpPostLoader;
 import com.hanyanan.http.internal.HttpResponse;
-import com.hanyanan.http.internal.HttpUrlExecutor;
+import com.hanyanan.http.internal.HttpUrlLoader;
 
 import java.io.InputStream;
 
@@ -50,11 +50,11 @@ public class HttpService {
     }
 
     public HttpResponse loadHttpRequest(HttpRequest request) throws Throwable{
-        HttpUrlExecutor httpUrlExecutor = null;//new HttpPostExecutor();
+        HttpUrlLoader httpUrlExecutor = null;//new HttpPostExecutor();
         if(request.getMethod() == Method.GET) {
-            httpUrlExecutor = new HttpGetExecutor();
+            httpUrlExecutor = new HttpGetLoader();
         }else{
-            httpUrlExecutor = new HttpPostExecutor();
+            httpUrlExecutor = new HttpPostLoader();
         }
         return httpUrlExecutor.run(request);
     }

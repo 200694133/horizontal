@@ -30,7 +30,7 @@ import static java.net.HttpURLConnection.HTTP_SEE_OTHER;
 /**
  * Created by hanyanan on 2015/5/22.
  */
-public class HttpUrlExecutor extends HttpExecutor.BaseHttpExecutor implements HttpExecutor {
+public class HttpUrlLoader extends HttpLoader.BaseHttpLoader implements HttpLoader {
 
 
     @Override
