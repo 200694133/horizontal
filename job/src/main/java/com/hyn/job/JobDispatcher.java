@@ -67,7 +67,11 @@ public class JobDispatcher extends Thread implements FullPerformer{
             Object response = null;
             try {
                 asyncJob.addMarker("network-start-running");
-                response = jobExecutor.performRequest(asyncJob);
+                if(null != jobExecutor) {
+                    response = jobExecutor.performRequest(asyncJob);
+                }else{
+                    response = asyncJob.performRequest();
+                }
                 if (isQuit()) {
                     return;
                 }

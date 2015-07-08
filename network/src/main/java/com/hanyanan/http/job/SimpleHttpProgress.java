@@ -4,7 +4,7 @@ import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.TransportProgress;
 
 /**
- * Created by n550 on 2015/6/13.
+ * Created by hanyanan on 2015/6/13.
  */
 class SimpleHttpProgress implements TransportProgress {
     private final HttpRequestJob job;

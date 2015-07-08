@@ -6,6 +6,18 @@ import org.jetbrains.annotations.NotNull;
  * Created by hanyanan on 2015/5/31.
  */
 public interface RetryPolicy {
+    public static RetryPolicy UnRetryPolicy = new RetryPolicy() {
+        @Override
+        public boolean retry(AsyncJob asyncJob, Throwable throwable) {
+            return false;
+        }
+
+        @NotNull
+        @Override
+        public PriorityPolicy retryPriority(AsyncJob asyncJob, @NotNull PriorityPolicy oldPriority) {
+            return oldPriority;
+        }
+    };
     /**
      * If could retry again; {@code true} means support retry again, other with do not retry, delivery failed callback.
      * @param asyncJob

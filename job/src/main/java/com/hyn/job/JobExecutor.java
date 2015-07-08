@@ -8,6 +8,7 @@ package com.hyn.job;
  * A good design for a asyn job architecture need reuse and simple implements. Most of job just implement current
  * interface.
  */
+@Deprecated
 public interface JobExecutor<J extends AsyncJob, R> {
 
     /**
