@@ -7,13 +7,11 @@ import com.hanyanan.http.TransportProgress;
  * Created by hanyanan on 2015/6/13.
  */
 class SimpleHttpProgress implements TransportProgress {
-    private final HttpRequestJob job;
     private final HttpRequest request;
     private final long position;
     private final long count;
     private final boolean down;
-    SimpleHttpProgress(boolean down, HttpRequestJob job, HttpRequest request, long position, long count){
-        this.job = job;
+    SimpleHttpProgress(boolean down, HttpRequest request, long position, long count){
         this.request = request;
         this.position = position;
         this.count = count;

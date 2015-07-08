@@ -59,12 +59,12 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
             }
 
             Range range = response.getRange();
-            descriptorProvider = new DiscreteVirtualFileDescriptorProvider(destFile, range.getFullLength(), blockSize);
+//            descriptorProvider = new DiscreteVirtualFileDescriptorProvider(destFile, range.getFullLength(), blockSize);
             for(int i = 0; i<DEFAULT_FRAGMENT_COUNT; ++i) {
-                VirtualFileDescriptor descriptor = descriptorProvider.deliveryAndLock();
-                HttpRequestJob job = nextFragment(request, descriptor);
-                JobLoader loader = JobLoader.getInstance();
-                loader.load(job);
+//                VirtualFileDescriptor descriptor = descriptorProvider.deliveryAndLock();
+//                HttpRequestJob job = nextFragment(request, descriptor);
+//                JobLoader loader = JobLoader.getInstance();
+//                loader.load(job);
             }
         } finally {
             response.dispose();
@@ -74,16 +74,16 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
         return null;
     }
 
-    private HttpRequestJob nextFragment(HttpRequestJob parentJob){
-        if(descriptorProvider.isClosed()) {
-            return null;
-        }
-        HttpRequest nextRequest = parentJob.getParam().clone();
-        nextRequest.range(parentJob.offset(), descriptor.length());
-        DownloadBlockExecutor executor = new DownloadBlockExecutor(descriptor); // TODO
-        HttpRequestJob job = new HttpRequestJob(nextRequest, executor, null);
-        return job;
-    }
+//    private HttpRequestJob nextFragment(HttpRequestJob parentJob){
+//        if(descriptorProvider.isClosed()) {
+//            return null;
+//        }
+//        HttpRequest nextRequest = parentJob.getParam().clone();
+//        nextRequest.range(parentJob.offset(), descriptor.length());
+//        DownloadBlockExecutor executor = new DownloadBlockExecutor(descriptor); // TODO
+//        HttpRequestJob job = new HttpRequestJob(nextRequest, executor, null);
+//        return job;
+//    }
 
 
     private void downloadDirect(HttpResponse response) throws IOException {

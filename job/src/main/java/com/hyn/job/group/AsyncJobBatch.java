@@ -68,4 +68,14 @@ public class AsyncJobBatch extends AsyncJob {
             asyncJobList.remove(asyncJob);
         }
     }
+
+    @Override
+    public Object performRequest() throws Throwable {
+        return null;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return 0;
+    }
 }

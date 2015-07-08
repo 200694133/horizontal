@@ -287,28 +287,28 @@ public abstract class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerp
         //TODO
     }
 
-    final void deliverCanceled() {
+    public final void deliverCanceled() {
         CallbackDelivery delivery = getCallbackDelivery();
         if(null != delivery){
             delivery.postCanceled(this);
         }
     }
 
-    final void deliverResponse(R response) {
+    public final void deliverResponse(R response) {
         CallbackDelivery delivery = getCallbackDelivery();
         if(null != delivery){
             delivery.postSuccess(this, response);
         }
     }
 
-    final void deliverError(R response, String msg, Throwable throwable) {
+    public final void deliverError(R response, String msg, Throwable throwable) {
         CallbackDelivery delivery = getCallbackDelivery();
         if(null != delivery){
             delivery.postFailed(this, response, msg, throwable);
         }
     }
 
-    final void deliverIntermediate(I intermediate) {
+    public final void deliverIntermediate(I intermediate) {
         CallbackDelivery delivery = getCallbackDelivery();
         if(null != delivery){
             delivery.postIntermediate(this, intermediate);
@@ -320,10 +320,11 @@ public abstract class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerp
         return this.priorityPolicy.compareTo(o.priorityPolicy);
     }
 
-    @Override
-    public int hashCode() {
-        return fingerprint.hashCode();
-    }
+//    @Override
+//    public int hashCode() {
+//
+//        return fingerprint.hashCode();
+//    }
 
     @Override
     public boolean equals(Object obj) {

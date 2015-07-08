@@ -1,11 +1,13 @@
 package com.hanyanan.http.job;
 
 import com.hanyanan.http.HttpRequest;
+import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.HttpLoader;
 import com.hanyanan.http.internal.HttpResponse;
 import com.hanyanan.http.internal.HttpResponseBody;
 import com.hanyanan.http.internal.HttpResponseHeader;
 import com.hanyanan.http.internal.RedirectedResponse;
+import com.hyn.job.AsyncJob;
 import com.hyn.job.CallbackDelivery;
 import java.io.IOException;
 
@@ -15,9 +17,9 @@ import java.io.IOException;
  */
 public class HttpJobLoaderProxy implements HttpLoader {
     private final HttpLoader workExecutor;
-    private final HttpRequestJob asyncJob;
+    private final AsyncJob<? extends  HttpRequest, TransportProgress, ?> asyncJob;
 
-    public HttpJobLoaderProxy(HttpRequestJob asyncJob, HttpLoader workExecutor) {
+    public HttpJobLoaderProxy(AsyncJob<? extends  HttpRequest, TransportProgress, ?> asyncJob, HttpLoader workExecutor) {
         this.workExecutor = workExecutor;
         this.asyncJob = asyncJob;
     }
@@ -51,8 +53,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new IOException("Cancel redirect!");
         }
-        CallbackDelivery delivery = asyncJob.getCallbackDelivery();
-        delivery.postIntermediate(asyncJob, new SimpleHttpProgress(false, asyncJob, request, position, count));
+        asyncJob.deliverIntermediate(new SimpleHttpProgress(false, request, position, count));
         workExecutor.onTransportUpProgress(request, position , count);
     }
 
@@ -93,10 +94,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new IOException("Cancel redirect!");
         }
-        if(null != asyncJob.getCallback()) {
-            CallbackDelivery delivery = asyncJob.getCallbackDelivery();
-            delivery.postIntermediate(asyncJob, new SimpleHttpProgress(true, asyncJob, request, position, count));
-        }
+        asyncJob.deliverIntermediate(new SimpleHttpProgress(true, request, position, count));
         workExecutor.onTransportDownProgress(request, position, count);
     }
 

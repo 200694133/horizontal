@@ -50,13 +50,14 @@ public class HttpService {
     }
 
     public HttpResponse loadHttpRequest(HttpRequest request) throws Throwable{
-        HttpUrlLoader httpUrlExecutor = null;//new HttpPostExecutor();
-        if(request.getMethod() == Method.GET) {
-            httpUrlExecutor = new HttpGetLoader();
-        }else{
-            httpUrlExecutor = new HttpPostLoader();
-        }
-        return httpUrlExecutor.run(request);
+//        HttpUrlLoader httpUrlExecutor = null;//new HttpPostExecutor();
+//        if(request.getMethod() == Method.GET) {
+//            httpUrlExecutor = new HttpGetLoader();
+//        }else{
+//            httpUrlExecutor = new HttpPostLoader();
+//        }
+//        return httpUrlExecutor.run(request);
+        return null;
     }
 
     public TwoTuple<Integer, String> loadStringHttpRequest(HttpRequest httpRequest) throws Throwable{
