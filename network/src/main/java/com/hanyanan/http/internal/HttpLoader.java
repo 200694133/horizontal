@@ -1,5 +1,6 @@
 package com.hanyanan.http.internal;
 
+import com.hanyanan.http.HttpLog;
 import com.hanyanan.http.HttpRequest;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.IOException;
  * Created by hanyanan on 2015/5/13.
  */
 public interface HttpLoader {
+    public static final String LOG_TAG = "HttpRequest";
     public static final int HTTP_TEMP_REDIRECT = 307;
     public static final int HTTP_PERM_REDIRECT = 308;
     public static final int MAX_REDIRECT_COUNT = 10;
@@ -122,8 +124,10 @@ public interface HttpLoader {
 
     public HttpResponse performRequest(HttpRequest request) throws Throwable;
 
-    abstract class BaseHttpLoader implements HttpLoader {
-
+    /**
+     * A base http loader, that has add log
+     */
+    public abstract class BaseHttpLoader implements HttpLoader {
         @Override
         public void onPrepareRunning(HttpRequest request) throws InterruptedException {
 

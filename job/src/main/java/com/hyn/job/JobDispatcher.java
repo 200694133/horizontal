@@ -5,13 +5,15 @@ import com.hyn.job.log.Log;
 
 import java.util.concurrent.BlockingQueue;
 
+import hyn.com.lib.TimeUtils;
+
 
 /**
  * Created by hanyanan on 2015/6/3.
  * <p/>
  * Provides a thread for performing network dispatch from a queue of requests.
  */
-public class JobDispatcher extends Thread implements FullPerformer{
+public class JobDispatcher extends Thread implements FullPerformer {
     private static final String TAG = "WorkerThreadExecutor";
     /**
      * The queue of requests to service.
@@ -41,8 +43,8 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 if (isQuit()) {
                     return;
                 }
-                if(asyncJob == null) {
-                    return ;
+                if (asyncJob == null) {
+                    return;
                 }
             } catch (InterruptedException e) {
                 // We may have been interrupted because it was time to quit.
@@ -53,36 +55,37 @@ public class JobDispatcher extends Thread implements FullPerformer{
             }
             RunningTrace runningTrace = asyncJob.getRunningTrace();
             JobExecutor jobExecutor = asyncJob.getJobExecutor();
-            asyncJob.addMarker("network-queue-take");
+            asyncJob.addMarker("job-queue-take");
+            runningTrace.setRunningTime(TimeUtils.getCurrentWallClockTime());
 
             // If the request was cancelled already, do not perform the current request.
             if (asyncJob.isCanceled()) {
-                asyncJob.addMarker("network-discard-cancelled");
+                asyncJob.addMarker("job-discard-cancelled");
                 asyncJob.setJobStatus(JobStatus.Finish);
+                runningTrace.setFinishTime(TimeUtils.getCurrentWallClockTime());
                 asyncJob.deliverCanceled();
                 continue;
             }
-            asyncJob.setJobStatus(JobStatus.Running);
-            runningTrace.setRunningTime(currentTimeMillis());
             Object response = null;
             try {
-                asyncJob.addMarker("network-start-running");
-                if(null != jobExecutor) {
+                asyncJob.setJobStatus(JobStatus.Running);
+                asyncJob.addMarker("job-start-running");
+                if (null != jobExecutor) {
                     response = jobExecutor.performRequest(asyncJob);
-                }else{
+                } else {
                     response = asyncJob.performRequest();
                 }
-                if (isQuit()) {
-                    return;
-                }
+                runningTrace.setFinishTime(TimeUtils.getCurrentWallClockTime());
                 asyncJob.setJobStatus(JobStatus.Finish);
                 if (asyncJob.isCanceled()) {
                     asyncJob.addMarker("network-discard-cancelled");
                     asyncJob.deliverCanceled();
                     continue;
                 }
-                runningTrace.setFinishTime(System.currentTimeMillis());
-                asyncJob.addMarker("request-complete");
+                asyncJob.addMarker("job-complete");
+                if (isQuit()) {
+                    return;
+                }
                 asyncJob.deliverResponse(response);
                 asyncJob.markDelivered();
             } catch (UnexpectedResponseException exception) {
@@ -90,31 +93,30 @@ public class JobDispatcher extends Thread implements FullPerformer{
                 * force make failed.
                 * */
                 runningTrace.failed();
+                runningTrace.setFinishTime(TimeUtils.getCurrentWallClockTime());
                 asyncJob.setJobStatus(JobStatus.Finish);
                 Object tmp = null;
-                if(null != exception.getUnexpectedResponse()) {
+                if (null != exception.getUnexpectedResponse()) {
                     tmp = exception.getUnexpectedResponse().getValue();
                 }
                 asyncJob.deliverError(tmp, null, exception);
-                runningTrace.setFinishTime(currentTimeMillis());
                 continue;
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
+                runningTrace.failed();
+                runningTrace.setFinishTime(TimeUtils.getCurrentWallClockTime());
+                asyncJob.setJobStatus(JobStatus.Finish);
                 if (isQuit()) {
                     return;
                 }
-                runningTrace.failed();
 
-                if(throwable instanceof UnRetryable) {
+                if (throwable instanceof UnRetryable) {
                     /*
                     * Cannot running again. execute failed.
                     * */
-                    asyncJob.setJobStatus(JobStatus.Finish);
-                    asyncJob.deliverError(null,null,throwable);
-                    runningTrace.setFinishTime(currentTimeMillis());
+                    asyncJob.deliverError(null, null, throwable);
                     continue;
                 }
-
 
                 RetryPolicy retryPolicy = asyncJob.getRetryPolicy();
                 if (retryPolicy.retry(asyncJob, throwable)) { // retry again.
@@ -122,15 +124,14 @@ public class JobDispatcher extends Thread implements FullPerformer{
                     asyncJob.setPriorityPolicy(retryPolicy.retryPriority(asyncJob, asyncJob.getPriorityPolicy()));
                     retry(asyncJob);
                     asyncJob.setJobStatus(JobStatus.IDLE);
-                    runningTrace.setAddToQueueTimeStamp(currentTimeMillis());
+                    runningTrace.setAddToQueueTimeStamp(TimeUtils.getCurrentWallClockTime());
                 } else { // failed
-                    asyncJob.setJobStatus(JobStatus.Finish);
                     asyncJob.deliverError(null, null, throwable);
-                    runningTrace.setFinishTime(currentTimeMillis());
                 }
                 continue;
             }
         }
+
     }
 
     private enum Status {

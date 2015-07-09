@@ -4,13 +4,18 @@ package com.hanyanan.http;
 import static hyn.com.lib.Preconditions.checkNotNull;
 import static hyn.com.lib.Preconditions.checkArgument;
 import static hyn.com.lib.Preconditions.checkState;
+
 import com.hanyanan.http.internal.HttpPreconditions;
 import com.hanyanan.http.internal.TimeStatus;
 import com.hanyanan.http.internal.TrafficStatus;
+import com.hanyanan.http.job.HttpFingerPrint;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -21,8 +26,10 @@ import hyn.com.lib.binaryresource.BinaryResource;
  * Created by hanyanan on 2015/5/13.
  * The main http request.
  */
-public class HttpRequest implements Cloneable{
-    /** http request body, it it's a  */
+public class HttpRequest implements Cloneable {
+    /**
+     * http request body, it it's a
+     */
     private HttpRequestBody requestBody;
 
     private HttpRequestHeader requestHeader;
@@ -35,18 +42,28 @@ public class HttpRequest implements Cloneable{
     private final Method method;
 
     private final Protocol protocol;
-    /** A monitor to record the traffic. */
+    /**
+     * A monitor to record the traffic.
+     */
     private final TrafficStatus trafficStatus;
-    /** A monitor to record the http time status */
+    /**
+     * A monitor to record the http time status
+     */
     private final TimeStatus timeStatus;
-    /** The tag user for caller identify the request. */
+    /**
+     * The tag user for caller identify the request.
+     */
     private Object tag;
     /**  */
     private final Map<String, Object> params = new HashMap<String, Object>();
-    /** The callback bind to current request. */
+    /**
+     * The callback bind to current request.
+     */
     private TransportProgress transportProgress;
-    /** The finger print of current request. */
-    private String fingerPrint;
+    /**
+     * The finger print of current request.
+     */
+    private HttpFingerPrint fingerPrint;
 
     public HttpRequest(String url, Method method, Protocol protocol) {
         this.url = url;
@@ -61,9 +78,10 @@ public class HttpRequest implements Cloneable{
     /**
      * Clone a nearly totally same request from current, just clone request param/body/param. do not copy any other
      * attributes.
+     *
      * @return
      */
-    public HttpRequest clone(){
+    public HttpRequest clone() {
         HttpRequest res = new HttpRequest(this.getUrl(), this.method, this.protocol);
         res.setRequestHeader(this.getRequestHeader().clone());
         res.params.putAll(this.params);
@@ -71,6 +89,7 @@ public class HttpRequest implements Cloneable{
 
         return res;
     }
+
     public HttpRequest(String url, Method method) {
         this(url, method, Protocol.HTTP_1_1);
     }
@@ -84,7 +103,7 @@ public class HttpRequest implements Cloneable{
         return this;
     }
 
-    public TransportProgress getTransportProgress(){
+    public TransportProgress getTransportProgress() {
         return transportProgress;
     }
 
@@ -93,23 +112,24 @@ public class HttpRequest implements Cloneable{
         return this;
     }
 
-    public HttpRequest setFingerPrint(String fingerPrint) {
-        this.fingerPrint = fingerPrint;
-        return this;
-    }
-
-    public String getFingerPrint(){
-        if(null == fingerPrint) {
-            return ValueUtil.md5(getUrl());
-        }
+    public HttpFingerPrint getFingerPrint(){
         return fingerPrint;
     }
-    public String getForwardUrl(){
+
+//    public String getFingerPrint() {
+//        if (null == fingerPrint) {
+//            return ValueUtil.md5(getUrl());
+//        }
+//        return fingerPrint;
+//    }
+
+    public String getForwardUrl() {
         return forwardUrl;
     }
 
-    @Nullable public HttpRequestBody getRequestBody() {
-        if(HttpPreconditions.permitsRequestBody(method.toString())) {
+    @Nullable
+    public HttpRequestBody getRequestBody() {
+        if (HttpPreconditions.permitsRequestBody(method.toString())) {
             return requestBody;
         }
         return null;
@@ -123,6 +143,7 @@ public class HttpRequest implements Cloneable{
         checkNotNull(requestHeader);
         this.requestHeader = requestHeader;
     }
+
     final public String getUrl() {
         return url;
     }
@@ -131,11 +152,11 @@ public class HttpRequest implements Cloneable{
         return method;
     }
 
-    public String methodString(){
+    public String methodString() {
         return method.toString();
     }
 
-    public final TrafficStatus getTrafficStatus(){
+    public final TrafficStatus getTrafficStatus() {
         return trafficStatus;
     }
 
@@ -143,45 +164,45 @@ public class HttpRequest implements Cloneable{
         this.tag = tag;
     }
 
-    public final Object getTag(){
+    public final Object getTag() {
         return tag;
     }
 
-    public HttpRequest addBodyEntity(String param, BinaryResource resource){
+    public HttpRequest addBodyEntity(String param, BinaryResource resource) {
         //TODO
 
         return this;
     }
 
-    public HttpRequest setHttpRequestBody(HttpRequestBody httpRequestBody){
-        checkState(requestBody!=null && !requestBody.hasContent(), "The body not empty!");
+    public HttpRequest setHttpRequestBody(HttpRequestBody httpRequestBody) {
+        checkState(requestBody != null && !requestBody.hasContent(), "The body not empty!");
         this.requestBody = httpRequestBody;
         return this;
     }
 
-    public HttpRequest setCookie(String cookie){
+    public HttpRequest setCookie(String cookie) {
         getRequestHeader().setRequestCookie(cookie);
         return this;
     }
 
-    public HttpRequest range(long start, long count){
+    public HttpRequest range(long start, long count) {
         getRequestHeader().setRequestRange(start, count);
         return this;
     }
 
-    public HttpRequest params(Map<String, ?> params){
-        if(null != params) {
+    public HttpRequest params(Map<String, ?> params) {
+        if (null != params) {
             this.params.putAll(params);
         }
         return this;
     }
 
-    public Map<String, Object> getParams(){
+    public Map<String, Object> getParams() {
         return Collections.unmodifiableMap(params);
     }
 
 
-    public HttpRequest setRequestSupportCache(final boolean supportCache){
+    public HttpRequest setRequestSupportCache(final boolean supportCache) {
         getRequestHeader().setRequestSupportCache(supportCache);
         return this;
     }
@@ -192,11 +213,11 @@ public class HttpRequest implements Cloneable{
     }
 
     public HttpRequest setAuthorization(String name, String passwd) {
-        getRequestHeader().setAuthorization(name,passwd);
+        getRequestHeader().setAuthorization(name, passwd);
         return this;
     }
 
-    public HttpRequest setETag(String eTag){
+    public HttpRequest setETag(String eTag) {
         getRequestHeader().setETag(eTag);
         return this;
     }
@@ -206,15 +227,50 @@ public class HttpRequest implements Cloneable{
         return this;
     }
 
-    public HttpRequest setHeadProperty(String key, String value){
+    public HttpRequest setHeadProperty(String key, String value) {
         checkNotNull(key);
         checkNotNull(value);
-        getRequestHeader().setPriorHeadProperty(key,value);
+        getRequestHeader().setPriorHeadProperty(key, value);
         return this;
     }
 
-    public String urlString(){
+    public String urlString() {
         //TODO
         return this.getUrl();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[").append(getMethod().toString())
+                .append(getLogInfo(this))
+                .append(']');
+        return sb.toString();
+    }
+
+    public static String getLogInfo(HttpRequest httpRequest) {
+        Map<String, ?> parameters = httpRequest.getParams();
+        if (parameters == null) {
+            return httpRequest.getUrl();
+        }
+        String connectorChar = "&";
+        String url = httpRequest.getUrl();
+        StringBuilder builder = new StringBuilder(url);
+        if (url.contains("?")) {
+            if (!url.endsWith("?")) {
+                connectorChar = "&";
+            } else {
+                connectorChar = "";
+            }
+        } else {
+            connectorChar = "?";
+        }
+        Set<String> keySet = parameters.keySet();
+        for (String key : keySet) {
+            builder.append(connectorChar).append(key).append("=")
+                    .append(parameters.get(key));
+            connectorChar = "&";
+        }
+        return builder.toString();
     }
 }

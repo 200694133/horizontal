@@ -17,8 +17,6 @@ public class RunningTrace {
 
 
     private long firstAddToQueueTimeStamp = 0;
-    /** the time when load to request queue. */
-    private long firstLoadTimeStamp = 0;
     /** The time start running. */
     private long runningTimeStamp = 0;
     /** The time of finishing. */
@@ -36,10 +34,6 @@ public class RunningTrace {
         return failedTimes;
     }
 
-    public long getFirstLoadTimeStamp() {
-        return firstLoadTimeStamp;
-    }
-
     public long getRunningTimeStamp() {
         return runningTimeStamp;
     }
@@ -54,12 +48,6 @@ public class RunningTrace {
 
     void failed(){
         failedTimes ++;
-    }
-
-    void setLoadingTime(long millTimes){
-        if(this.firstLoadTimeStamp <= 0) {
-            firstLoadTimeStamp = millTimes;
-        }
     }
 
     void setAddToQueueTimeStamp(long millTimes){

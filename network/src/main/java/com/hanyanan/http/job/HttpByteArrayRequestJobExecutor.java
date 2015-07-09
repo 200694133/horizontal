@@ -22,25 +22,13 @@ import hyn.com.lib.binaryresource.BinaryResource;
  * Created by hanyanan on 2015/6/14.
  */
 public class HttpByteArrayRequestJobExecutor extends AsyncJob<HttpRequest, TransportProgress, byte[]> {
-
-    public HttpByteArrayRequestJobExecutor(HttpRequest param, JobCallback<TransportProgress, byte[]> callback, CallbackDelivery callbackDelivery, RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint, JobExecutor<? extends AsyncJob, byte[]> jobExecutor) {
-        super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, jobExecutor);
+    public HttpByteArrayRequestJobExecutor(HttpRequest request, JobCallback<TransportProgress, byte[]> callback) {
+        super(request, callback);
     }
 
-    public HttpByteArrayRequestJobExecutor(HttpRequest param, JobCallback<TransportProgress, byte[]> callback, CallbackDelivery callbackDelivery) {
-        super(param, callback, callbackDelivery);
-    }
-
-    public HttpByteArrayRequestJobExecutor(HttpRequest param, JobCallback<TransportProgress, byte[]> callback) {
-        super(param, callback);
-    }
-
-    public HttpByteArrayRequestJobExecutor(HttpRequest param, JobCallback<TransportProgress, byte[]> callback, CallbackDelivery callbackDelivery, RetryPolicy retryPolicy) {
-        super(param, callback, callbackDelivery, retryPolicy);
-    }
-
-    public HttpByteArrayRequestJobExecutor(HttpRequest param, JobCallback callback, RetryPolicy retryPolicy) {
-        super(param, callback, retryPolicy);
+    public HttpByteArrayRequestJobExecutor(HttpRequest request, JobCallback<TransportProgress, byte[]> callback,
+                                CallbackDelivery callbackDelivery) {
+        super(request, callback, callbackDelivery);
     }
 
     @Override
