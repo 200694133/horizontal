@@ -1,6 +1,6 @@
 package com.hanyanan.http;
 
-import com.hyn.job.impl.CounterRetryPolicy;
+import com.hyn.job.CounterRetryPolicy;
 
 /**
  * Created by hanyanan on 2015/6/11.

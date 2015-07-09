@@ -11,7 +11,7 @@ public interface DelayValueReference<T> {
      * This method is a time-consuming operation, it not just return a value, but do the havy work to get the value.
      * For example, when user want a http response, it do the http request operation, so avoid call the function in
      * main thread is necessary.
-     * @return the respect value.
+     * @return the expect value.
      */
     public T getValue();
 }

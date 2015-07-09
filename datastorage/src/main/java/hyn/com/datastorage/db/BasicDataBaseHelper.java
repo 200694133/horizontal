@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 
 import hyn.com.lib.TwoTuple;
-import hyn.com.lib.android.Log;
 
 /**
  * Created by hanyanan on 2015/2/28.

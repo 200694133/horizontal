@@ -10,7 +10,7 @@ import hyn.com.lib.DelayValueReference;
  *
  * A interface when get data from cache.
  */
-public interface HttpCacheExecutor {
+public interface CacheHitPolicy {
 
     /**
      * Miss current request.

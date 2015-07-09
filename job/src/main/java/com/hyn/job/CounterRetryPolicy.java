@@ -1,4 +1,4 @@
-package com.hyn.job.impl;
+package com.hyn.job;
 
 import com.hyn.job.CanceledException;
 import com.hyn.job.PriorityPolicy;
