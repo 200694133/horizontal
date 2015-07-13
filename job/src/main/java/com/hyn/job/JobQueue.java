@@ -82,7 +82,6 @@ class JobQueue {
 
         // Process requests in the order they are added.
         asyncJob.addMarker("add-to-queue");
-        asyncJob.getRunningTrace().setLoadingTime(TimeUtils.getCurrentWallClockTime());
         asyncJob.setJobStatus(JobStatus.Pending);
     }
 

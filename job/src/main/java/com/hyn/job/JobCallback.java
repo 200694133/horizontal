@@ -25,5 +25,5 @@ public interface JobCallback<I, R> {
      *
      * @param intermediate
      */
-    void onIntermediate(I intermediate);
+    void onIntermediate(AsyncJob asyncJob, I intermediate);
 }
