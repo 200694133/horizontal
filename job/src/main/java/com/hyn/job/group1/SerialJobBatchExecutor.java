@@ -8,21 +8,39 @@ import com.hyn.job.PriorityPolicy;
 import com.hyn.job.RetryPolicy;
 import com.hyn.job.group.JobBatchExecutor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import hyn.com.lib.Fingerprint;
 
 /**
  * Created by hanyanan on 2015/7/13.
  */
 public class SerialJobBatchExecutor<P> extends AsyncBatchJob<P> implements JobCallback {
-    public SerialJobBatchExecutor(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery,
-                                  RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                                  JobBatchExecutor requestExecutor) {
-        super(jobLoader, param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, requestExecutor);
+    private final List<AsyncJob> finishedJobList = new ArrayList<AsyncJob>();
+    private final List<AsyncJob> waitingJobList = new ArrayList<AsyncJob>();
+    private AsyncJob pendingJob;
+    public SerialJobBatchExecutor(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery) {
+        super(jobLoader, param, callback, callbackDelivery, RetryPolicy.UnRetryPolicy,
+                PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT, null);
     }
+
+
 
     @Override
     public Void performRequest() throws Throwable {
+        waitingJobList.addAll(asyncJobList);
+        scheduleNext();
         return null;
+    }
+
+    @Override
+    public synchronized void cancel() {
+        for(AsyncJob job : waitingJobList){
+            job.cancel();
+        }
+        pendingJob.cancel();
+        super.cancel();
     }
 
     @Override
@@ -30,18 +48,42 @@ public class SerialJobBatchExecutor<P> extends AsyncBatchJob<P> implements JobCa
 
     }
 
+    private synchronized void scheduleNext(){
+        if(waitingJobList.isEmpty()) {
+            deliverResponse(null);
+            return ;
+        }
+
+        pendingJob = waitingJobList.remove(0);
+
+        jobLoader.load(pendingJob);
+
+        deliverIntermediate(new BatchJobProgress() {
+            @Override
+            public AsyncJob onJobFinish() {
+                return pendingJob;
+            }
+        });
+    }
+
+
     @Override
     public void onSuccess(AsyncJob asyncJob, Object response) {
+        finishedJobList.add(asyncJob);
         if(null != asyncJob.getCallback()) {
             asyncJob.getCallback().onSuccess(asyncJob, response);
         }
+        // load next
+        scheduleNext();
     }
+
 
     @Override
     public void onFailed(AsyncJob asyncJob, Object response, String msg, Throwable throwable) {
         if(null != asyncJob.getCallback()) {
             asyncJob.getCallback().onFailed(asyncJob, response, msg,throwable);
         }
+        deliverError(null, msg, throwable);
     }
 
     @Override

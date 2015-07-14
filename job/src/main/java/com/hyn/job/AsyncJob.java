@@ -253,7 +253,7 @@ public abstract class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerp
         }
     }
 
-    public final void cancel() {
+    public void cancel() {
         disposeMark = true;
     }
 
