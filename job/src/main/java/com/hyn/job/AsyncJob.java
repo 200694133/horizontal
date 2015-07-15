@@ -131,27 +131,27 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
     /**
      * Perform current request and return the result.It's a execution unit. If the input job is a
      * <br>
-     *
+     * <p/>
      * User can throw some specify Throwable to retry again or force delivery failed result.
      * <hr>
      * <ul>
-     *     <li>{@link UnexpectedResponseException} may be attaching a unexpected response,
-     *          this will trigger {@link com.hyn.job.JobCallback#onFailed(AsyncJob, Object, String, Throwable)} if
-     *          current Job not canceled!
-     *     </li>
-     *     <li>if user throw any exception which implements {@link UnRetryable} interface, it means current job has
-     *          be abandoned, notify {@link JobCallback#onFailed(AsyncJob, Object, String, Throwable)} or
-     *          {@link JobCallback#onCanceled(AsyncJob)} callback.
-     *     </li>
-     *     <li>
-     *         {@link UnRetryException} is a runtime exception, which implement {@code UnRetryable}. This is
-     *         default exception for interrupt current job and do not retry again, will notify
-     *         {@link JobCallback#onFailed(AsyncJob, Object, String, Throwable)} or
-     *         {@link JobCallback#onCanceled(AsyncJob)} callback.
-     *     </li>
+     * <li>{@link UnexpectedResponseException} may be attaching a unexpected response,
+     * this will trigger {@link com.hyn.job.JobCallback#onFailed(AsyncJob, Object, String, Throwable)} if
+     * current Job not canceled!
+     * </li>
+     * <li>if user throw any exception which implements {@link UnRetryable} interface, it means current job has
+     * be abandoned, notify {@link JobCallback#onFailed(AsyncJob, Object, String, Throwable)} or
+     * {@link JobCallback#onCanceled(AsyncJob)} callback.
+     * </li>
+     * <li>
+     * {@link UnRetryException} is a runtime exception, which implement {@code UnRetryable}. This is
+     * default exception for interrupt current job and do not retry again, will notify
+     * {@link JobCallback#onFailed(AsyncJob, Object, String, Throwable)} or
+     * {@link JobCallback#onCanceled(AsyncJob)} callback.
+     * </li>
      * </ul>
      * <hr>
-     *
+     * <p/>
      * The normally executor http request sample code as follow:
      * <blockquote><pre>
      *     HttpResponse performRequest(HttpJob job){
@@ -162,8 +162,8 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
      * </pre></blockquote>
      * It's a success <code>JobExecutor</code>.
      * <hr>
-     *     A failed job's sample code as follow:
-     *     <blockquote><pre>
+     * A failed job's sample code as follow:
+     * <blockquote><pre>
      *     HttpResponse performRequest(HttpJob job){
      *          ... do the core code for http request ...
      *          Http response = ... ops, some exception occurs, job running failed ...
@@ -191,16 +191,17 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
      * exception will trigger failed callback.
      * </p>
      * <hr>
+     *
+     * @return the <b><i>expect</i></b> response.
+     * @throws Throwable intterupt current job, running retry or post failed response.
      * @see UnexpectedResponseException
      * @see UnRetryable
      * @see UnRetryException
-     * @return the <b><i>expect</i></b> response.
-     * @throws Throwable intterupt current job, running retry or post failed response.
      */
     public R performRequest() throws Throwable {
         List<JobProcessor> processorList = new LinkedList<JobProcessor>(this.processorList);
         Object tmp = getParam();
-        while(!processorList.isEmpty()) {
+        while (!processorList.isEmpty()) {
             JobProcessor processor = processorList.remove(0);
             tmp = processor.processor(this, tmp);
         }
@@ -281,34 +282,34 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
     /**
      * Called when afrer delivery the response success.
      */
-    public void markDelivered(){
+    public void markDelivered() {
         //TODO
     }
 
     public final void deliverCanceled() {
         CallbackDelivery delivery = getCallbackDelivery();
-        if(null != delivery){
+        if (null != delivery) {
             delivery.postCanceled(this);
         }
     }
 
     public final void deliverResponse(R response) {
         CallbackDelivery delivery = getCallbackDelivery();
-        if(null != delivery){
+        if (null != delivery) {
             delivery.postSuccess(this, response);
         }
     }
 
     public final void deliverError(R response, String msg, Throwable throwable) {
         CallbackDelivery delivery = getCallbackDelivery();
-        if(null != delivery){
+        if (null != delivery) {
             delivery.postFailed(this, response, msg, throwable);
         }
     }
 
     public final void deliverIntermediate(I intermediate) {
         CallbackDelivery delivery = getCallbackDelivery();
-        if(null != delivery){
+        if (null != delivery) {
             delivery.postIntermediate(this, intermediate);
         }
     }
@@ -337,7 +338,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
 
     @Override
     public String fingerprint() {
-        if(fingerprint == null) {
+        if (fingerprint == null) {
             return this.toString();
         }
         return fingerprint.fingerprint();
@@ -382,12 +383,12 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
             return this;
         }
 
-        public Builder<P, I, R>  disableReentrant(){
+        public Builder<P, I, R> disableReentrant() {
             this.retryPolicy = RetryPolicy.UnRetryPolicy;
             return this;
         }
 
-        public Builder<P, I, R> addJobProcessor(JobProcessor jobProcessor){
+        public Builder<P, I, R> addJobProcessor(JobProcessor jobProcessor) {
             processorList.add(jobProcessor);
             return this;
         }

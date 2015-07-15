@@ -151,7 +151,7 @@ public class CallbackDelivery {
                 return ;
             }
             asyncJob.addMarker("intermediate-response");
-            callback.onIntermediate(intermediate);
+            callback.onIntermediate(asyncJob, intermediate);
         }
     }
 }
