@@ -16,16 +16,19 @@ import hyn.com.lib.Fingerprint;
 /**
  * Created by hanyanan on 2015/7/13.
  */
-public class SerialJobBatchExecutor<P> extends AsyncBatchJob<P> implements JobCallback {
+public class SerialAsyncBatchJob<P> extends AsyncBatchJob<P> implements JobCallback {
     private final List<AsyncJob> finishedJobList = new ArrayList<AsyncJob>();
     private final List<AsyncJob> waitingJobList = new ArrayList<AsyncJob>();
     private AsyncJob pendingJob;
-    public SerialJobBatchExecutor(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery) {
+    public SerialAsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery) {
         super(jobLoader, param, callback, callbackDelivery, RetryPolicy.UnRetryPolicy,
                 PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT, null);
     }
 
-
+    public SerialAsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback) {
+        super(jobLoader, param, callback, CallbackDelivery.DEFAULT_CALLBACK_DELIVERY, RetryPolicy.UnRetryPolicy,
+                PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT, null);
+    }
 
     @Override
     public Void performRequest() throws Throwable {
@@ -43,13 +46,10 @@ public class SerialJobBatchExecutor<P> extends AsyncBatchJob<P> implements JobCa
         super.cancel();
     }
 
-    @Override
-    public void onCanceled(AsyncJob asyncJob) {
-
-    }
 
     private synchronized void scheduleNext(){
         if(waitingJobList.isEmpty()) {
+            pendingJob = null;
             deliverResponse(null);
             return ;
         }
@@ -66,6 +66,13 @@ public class SerialJobBatchExecutor<P> extends AsyncBatchJob<P> implements JobCa
         });
     }
 
+    @Override
+    public void onCanceled(AsyncJob asyncJob) {
+        if(null != asyncJob.getCallback()) {
+            asyncJob.getCallback().onCanceled(asyncJob);
+        }
+        deliverCanceled();
+    }
 
     @Override
     public void onSuccess(AsyncJob asyncJob, Object response) {

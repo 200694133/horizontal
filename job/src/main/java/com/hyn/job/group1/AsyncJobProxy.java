@@ -16,15 +16,12 @@ class AsyncJobProxy<P, I, R> extends AsyncJob<P, I, R>{
     AsyncJobProxy(AsyncJob<P, I, R> asyncJob, JobCallback callback){
         super(asyncJob.getParam(), callback, asyncJob.getCallbackDelivery(),
                 asyncJob.getRetryPolicy(), asyncJob.getPriorityPolicy(),
-                asyncJob.getFingerprint(), null);
+                asyncJob.getFingerprint());
         this.asyncJob = asyncJob;
     }
 
     @Override
     public R performRequest() throws Throwable {
-        if(null != asyncJob.getJobExecutor()) {
-//            return asyncJob.getJobExecutor().performRequest(asyncJob);
-        }
         return asyncJob.performRequest();
     }
 }

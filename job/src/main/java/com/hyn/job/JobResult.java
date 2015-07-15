@@ -3,7 +3,7 @@ package com.hyn.job;
 /**
  * Created by hanyanan on 2015/6/9.
  */
-public class JobResult<R> {
+class JobResult<R> {
     private final R response;
     private final String errorMsg;
     private final Throwable throwable;

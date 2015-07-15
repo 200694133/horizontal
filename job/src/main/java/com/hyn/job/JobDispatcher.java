@@ -13,24 +13,24 @@ import hyn.com.lib.TimeUtils;
  * <p/>
  * Provides a thread for performing network dispatch from a queue of requests.
  */
-public class JobDispatcher extends Thread implements FullPerformer {
+class JobDispatcher extends Thread {
     private static final String TAG = "WorkerThreadExecutor";
     /**
      * The queue of requests to service.
      */
     protected final BlockingQueue<AsyncJob> queue;
 
-    @Override
+
     public AsyncJob nextJob() throws InterruptedException {
         return queue.take();
     }
 
-    @Override
+
     public void retry(AsyncJob asyncJob) {
         queue.add(asyncJob);
     }
 
-    @Override
+
     public void fullPerformRequest() {
         AsyncJob asyncJob;
         while (true) {
@@ -54,7 +54,6 @@ public class JobDispatcher extends Thread implements FullPerformer {
                 continue;
             }
             RunningTrace runningTrace = asyncJob.getRunningTrace();
-            JobExecutor jobExecutor = asyncJob.getJobExecutor();
             asyncJob.addMarker("job-queue-take");
             runningTrace.setRunningTime(TimeUtils.getCurrentWallClockTime());
 
@@ -70,11 +69,7 @@ public class JobDispatcher extends Thread implements FullPerformer {
             try {
                 asyncJob.setJobStatus(JobStatus.Running);
                 asyncJob.addMarker("job-start-running");
-                if (null != jobExecutor) {
-                    response = jobExecutor.performRequest(asyncJob);
-                } else {
-                    response = asyncJob.performRequest();
-                }
+                response = asyncJob.performRequest();
                 runningTrace.setFinishTime(TimeUtils.getCurrentWallClockTime());
                 asyncJob.setJobStatus(JobStatus.Finish);
                 if (asyncJob.isCanceled()) {

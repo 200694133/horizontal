@@ -6,12 +6,10 @@ import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.*;
 import com.hanyanan.http.internal.Range;
 import com.hanyanan.http.job.HttpJobExecutor;
-import com.hanyanan.http.job.HttpJobLoaderProxy;
 import com.hanyanan.http.job.HttpRequestJob;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.JobCallback;
 import com.hyn.job.JobExecutor;
-import com.hyn.job.JobLoader;
 import com.hyn.job.UnexpectedResponseException;
 
 import java.io.File;

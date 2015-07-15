@@ -1,6 +1,5 @@
 package com.hanyanan.http.job;
 
-import com.hanyanan.http.DefaultHttpRetryPolicy;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.HttpLoader;
@@ -10,7 +9,6 @@ import com.hyn.job.AsyncJob;
 import com.hyn.job.CallbackDelivery;
 import com.hyn.job.JobCallback;
 import com.hyn.job.JobExecutor;
-import com.hyn.job.PriorityPolicy;
 
 /**
  * Created by hanyanan on 2015/6/11.

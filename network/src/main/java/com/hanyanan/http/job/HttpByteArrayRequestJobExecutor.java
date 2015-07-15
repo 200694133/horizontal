@@ -9,14 +9,10 @@ import com.hyn.job.AsyncJob;
 import com.hyn.job.CallbackDelivery;
 import com.hyn.job.JobCallback;
 import com.hyn.job.JobExecutor;
-import com.hyn.job.PriorityPolicy;
-import com.hyn.job.RetryPolicy;
 
 import java.io.InputStream;
 
-import hyn.com.lib.Fingerprint;
 import hyn.com.lib.IOUtil;
-import hyn.com.lib.binaryresource.BinaryResource;
 
 /**
  * Created by hanyanan on 2015/6/14.
