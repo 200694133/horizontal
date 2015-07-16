@@ -1,6 +1,8 @@
 package com.hyn.job;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -9,20 +11,30 @@ import java.util.concurrent.TimeUnit;
  */
 public class JobLoader {
     private static JobLoader sLoadInstance = null;
-    public static synchronized JobLoader getInstance(){
-        if(null == sLoadInstance) {
+
+    public static synchronized JobLoader getInstance() {
+        if (null == sLoadInstance) {
             sLoadInstance = new JobLoader();
         }
         return sLoadInstance;
     }
 
+    private final List<JobActivityLifecycleCallbacks> jobActivityLifecycleCallbacksList = new ArrayList<JobActivityLifecycleCallbacks>();
     private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
     private JobQueue jobQueue = new JobQueue();
-    private JobLoader(){
+
+    private JobLoader() {
         jobQueue.start();
     }
 
-    public synchronized void load(AsyncJob asyncJob){
+    public synchronized void addJobActivityLifecycleCallbacks(JobActivityLifecycleCallbacks callbacks) {
+        if (!jobActivityLifecycleCallbacksList.contains(callbacks)) {
+            jobActivityLifecycleCallbacksList.add(callbacks);
+        }
+    }
+    
+
+    public synchronized void load(AsyncJob asyncJob) {
         jobQueue.add(asyncJob);
     }
 
@@ -34,7 +46,7 @@ public class JobLoader {
         //TODO
     }
 
-    public synchronized void loadSchedule(AsyncJob asyncJob, TimeUnit timeUnit, long timeInterval, int count){
+    public synchronized void loadSchedule(AsyncJob asyncJob, TimeUnit timeUnit, long timeInterval, int count) {
         //TODO
     }
 
@@ -44,7 +56,7 @@ public class JobLoader {
         scheduledThreadPoolExecutor.remove(runnable);
     }
 
-    public synchronized void cancel(AsyncJob asyncJob){
+    public synchronized void cancel(AsyncJob asyncJob) {
 
     }
 
@@ -55,19 +67,20 @@ public class JobLoader {
         private final WeakReference<ScheduledThreadPoolExecutor> scheduledExecutorWeakReference;
         private final int runningCount;
         private int currentRunningCount = 0;
-        private LoadRunnable(ScheduledThreadPoolExecutor executor, JobQueue jobQueue, AsyncJob job){
+
+        private LoadRunnable(ScheduledThreadPoolExecutor executor, JobQueue jobQueue, AsyncJob job) {
             this(executor, jobQueue, job, 1);
         }
 
-        private LoadRunnable(ScheduledThreadPoolExecutor executor, JobQueue jobQueue, AsyncJob job, int runningCount){
+        private LoadRunnable(ScheduledThreadPoolExecutor executor, JobQueue jobQueue, AsyncJob job, int runningCount) {
             jobQueueWeakReference = new WeakReference<JobQueue>(jobQueue);
             jobWeakReference = new WeakReference<AsyncJob>(job);
             this.runningCount = runningCount;
             scheduledExecutorWeakReference = new WeakReference<ScheduledThreadPoolExecutor>(executor);
         }
 
-        public void run(){
-            if(null == jobQueueWeakReference.get() || null == jobWeakReference.get()) return ;
+        public void run() {
+            if (null == jobQueueWeakReference.get() || null == jobWeakReference.get()) return;
             jobQueueWeakReference.get().add(jobWeakReference.get());
         }
     }
