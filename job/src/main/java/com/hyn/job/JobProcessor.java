@@ -12,5 +12,5 @@ public interface JobProcessor<INPUT, OUTPUT> {
      * @param input
      * @return
      */
-    public OUTPUT processor(AsyncJob asyncJob, INPUT input);
+    public OUTPUT processor(AsyncJob asyncJob, INPUT input) throws Throwable;
 }

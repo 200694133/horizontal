@@ -46,7 +46,6 @@ public class SerialAsyncBatchJob<P> extends AsyncBatchJob<P> implements JobCallb
         super.cancel();
     }
 
-
     private synchronized void scheduleNext(){
         if(waitingJobList.isEmpty()) {
             pendingJob = null;

@@ -12,7 +12,7 @@ import hyn.com.lib.SimpleFingerprint;
 /**
  * Created by hanyanan on 2015/5/31.
  */
-public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
+public abstract class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
     public static final String LOG_TAG = "AsyncJob";
 
     /**
@@ -75,58 +75,52 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
 
     private JobResult<R> result;
 
-    /**
-     * The processor list to process current job.
-     */
-    private final List<JobProcessor> processorList = new LinkedList<JobProcessor>();
 
     public AsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery,
-                    RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                    List<JobProcessor> processorList) {
+                    RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint) {
         this.param = param;
         this.callback = callback;
         this.callbackDelivery = callbackDelivery;
         this.retryPolicy = retryPolicy;
         this.priorityPolicy = priorityPolicy;
         this.fingerprint = fingerprint;
-        this.processorList.addAll(processorList);
     }
 
-//    public AsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery) {
-//        this.param = param;
-//        this.callback = callback;
-//        this.callbackDelivery = callbackDelivery;
-//        this.retryPolicy = RetryPolicy.UnRetryPolicy;
-//        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
-//        this.fingerprint = this;
-//    }
-//
-//    public AsyncJob(P param, JobCallback<I, R> callback) {
-//        this.param = param;
-//        this.callback = callback;
-//        this.callbackDelivery = CallbackDelivery.DEFAULT_CALLBACK_DELIVERY;
-//        this.retryPolicy = RetryPolicy.UnRetryPolicy;
-//        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
-//        this.fingerprint = this;
-//    }
-//
-//    public AsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery, RetryPolicy retryPolicy) {
-//        this.param = param;
-//        this.callback = callback;
-//        this.callbackDelivery = callbackDelivery;
-//        this.retryPolicy = retryPolicy;
-//        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
-//        this.fingerprint = this;
-//    }
-//
-//    public AsyncJob(P param, JobCallback callback, RetryPolicy retryPolicy) {
-//        this.param = param;
-//        this.callback = callback;
-//        this.callbackDelivery = CallbackDelivery.DEFAULT_CALLBACK_DELIVERY;
-//        this.retryPolicy = retryPolicy;
-//        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
-//        this.fingerprint = this;
-//    }
+    public AsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery) {
+        this.param = param;
+        this.callback = callback;
+        this.callbackDelivery = callbackDelivery;
+        this.retryPolicy = RetryPolicy.UnRetryPolicy;
+        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
+        this.fingerprint = this;
+    }
+
+    public AsyncJob(P param, JobCallback<I, R> callback) {
+        this.param = param;
+        this.callback = callback;
+        this.callbackDelivery = CallbackDelivery.DEFAULT_CALLBACK_DELIVERY;
+        this.retryPolicy = RetryPolicy.UnRetryPolicy;
+        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
+        this.fingerprint = this;
+    }
+
+    public AsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery, RetryPolicy retryPolicy) {
+        this.param = param;
+        this.callback = callback;
+        this.callbackDelivery = callbackDelivery;
+        this.retryPolicy = retryPolicy;
+        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
+        this.fingerprint = this;
+    }
+
+    public AsyncJob(P param, JobCallback callback, RetryPolicy retryPolicy) {
+        this.param = param;
+        this.callback = callback;
+        this.callbackDelivery = CallbackDelivery.DEFAULT_CALLBACK_DELIVERY;
+        this.retryPolicy = retryPolicy;
+        this.priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
+        this.fingerprint = this;
+    }
 
     /**
      * Perform current request and return the result.It's a execution unit. If the input job is a
@@ -198,15 +192,7 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
      * @see UnRetryable
      * @see UnRetryException
      */
-    public R performRequest() throws Throwable {
-        List<JobProcessor> processorList = new LinkedList<JobProcessor>(this.processorList);
-        Object tmp = getParam();
-        while (!processorList.isEmpty()) {
-            JobProcessor processor = processorList.remove(0);
-            tmp = processor.processor(this, tmp);
-        }
-        return (R) tmp;
-    }
+    public abstract R performRequest() throws Throwable ;
 
     public void setPriorityPolicy(PriorityPolicy priorityPolicy) {
         this.priorityPolicy = priorityPolicy;
@@ -344,58 +330,52 @@ public class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerprint {
         return fingerprint.fingerprint();
     }
 
-    public static class Builder<P, I, R> {
-        private P param;
-        private JobCallback callback;
-        private CallbackDelivery callbackDelivery = CallbackDelivery.DEFAULT_CALLBACK_DELIVERY;
-        private RetryPolicy retryPolicy = RetryPolicy.UnRetryPolicy;
-        private PriorityPolicy priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
-        private Fingerprint fingerprint = new SimpleFingerprint();
-        private final List<JobProcessor> processorList = new LinkedList<JobProcessor>();
-
-        public Builder<P, I, R> setCallback(JobCallback callback) {
-            this.callback = callback;
-            return this;
-        }
-
-        public Builder<P, I, R> setParam(P param) {
-            this.param = param;
-            return this;
-        }
-
-        public Builder<P, I, R> setCallbackDelivery(CallbackDelivery callbackDelivery) {
-            this.callbackDelivery = callbackDelivery;
-            return this;
-        }
-
-        public Builder<P, I, R> setRetryPolicy(RetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
-            return this;
-        }
-
-        public Builder<P, I, R> setPriorityPolicy(PriorityPolicy priorityPolicy) {
-            this.priorityPolicy = priorityPolicy;
-            return this;
-        }
-
-        public Builder<P, I, R> setFingerprint(Fingerprint fingerprint) {
-            this.fingerprint = fingerprint;
-            return this;
-        }
-
-        public Builder<P, I, R> disableReentrant() {
-            this.retryPolicy = RetryPolicy.UnRetryPolicy;
-            return this;
-        }
-
-        public Builder<P, I, R> addJobProcessor(JobProcessor jobProcessor) {
-            processorList.add(jobProcessor);
-            return this;
-        }
-
-        public AsyncJob<P, I, R> build() {
-            return new AsyncJob(param, callback, callbackDelivery, retryPolicy, priorityPolicy,
-                    fingerprint, processorList);
-        }
-    }
+//    public static class Builder<P, I, R> {
+//        private P param;
+//        private JobCallback callback;
+//        private CallbackDelivery callbackDelivery = CallbackDelivery.DEFAULT_CALLBACK_DELIVERY;
+//        private RetryPolicy retryPolicy = RetryPolicy.UnRetryPolicy;
+//        private PriorityPolicy priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
+//        private Fingerprint fingerprint = new SimpleFingerprint();
+//
+//        public Builder<P, I, R> setCallback(JobCallback callback) {
+//            this.callback = callback;
+//            return this;
+//        }
+//
+//        public Builder<P, I, R> setParam(P param) {
+//            this.param = param;
+//            return this;
+//        }
+//
+//        public Builder<P, I, R> setCallbackDelivery(CallbackDelivery callbackDelivery) {
+//            this.callbackDelivery = callbackDelivery;
+//            return this;
+//        }
+//
+//        public Builder<P, I, R> setRetryPolicy(RetryPolicy retryPolicy) {
+//            this.retryPolicy = retryPolicy;
+//            return this;
+//        }
+//
+//        public Builder<P, I, R> setPriorityPolicy(PriorityPolicy priorityPolicy) {
+//            this.priorityPolicy = priorityPolicy;
+//            return this;
+//        }
+//
+//        public Builder<P, I, R> setFingerprint(Fingerprint fingerprint) {
+//            this.fingerprint = fingerprint;
+//            return this;
+//        }
+//
+//        public Builder<P, I, R> disableReentrant() {
+//            this.retryPolicy = RetryPolicy.UnRetryPolicy;
+//            return this;
+//        }
+//
+//        public AsyncJob<P, I, R> build() {
+//            return new AsyncJob(param, callback, callbackDelivery, retryPolicy, priorityPolicy,
+//                    fingerprint);
+//        }
+//    }
 }
