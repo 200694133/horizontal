@@ -12,13 +12,11 @@ import hyn.com.lib.Fingerprint;
 /**
  * Created by hanyanan on 2015/7/15.
  *
- * 链式结构，前一个的参数将作为下一个job的输入。
  */
 public class ChainAsyncBatchJob<P> extends AsyncBatchJob<P> {
     public ChainAsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery,
-                              RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                              JobBatchExecutor requestExecutor) {
-        super(jobLoader, param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, requestExecutor);
+                              RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint) {
+        super(jobLoader, param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint);
     }
 
     @Override

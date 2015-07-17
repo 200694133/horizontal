@@ -20,9 +20,8 @@ public class AsyncJobBatch extends AsyncJob {
     protected final JobLoader jobLoader;
     protected final List<AsyncJob> asyncJobList = new LinkedList<AsyncJob>();
     public AsyncJobBatch(JobLoader jobLoader, Object param, JobCallback callback, CallbackDelivery callbackDelivery,
-                         RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                         JobBatchExecutor requestExecutor) {
-        super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, requestExecutor);
+                         RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint) {
+        super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint);
         this.jobLoader = jobLoader;
     }
 

@@ -22,12 +22,12 @@ public class SerialAsyncBatchJob<P> extends AsyncBatchJob<P> implements JobCallb
     private AsyncJob pendingJob;
     public SerialAsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery) {
         super(jobLoader, param, callback, callbackDelivery, RetryPolicy.UnRetryPolicy,
-                PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT, null);
+                PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT);
     }
 
     public SerialAsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback) {
         super(jobLoader, param, callback, CallbackDelivery.DEFAULT_CALLBACK_DELIVERY, RetryPolicy.UnRetryPolicy,
-                PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT, null);
+                PriorityPolicy.DEFAULT_PRIORITY_POLICY, Fingerprint.DEFAULT_FINGERPRINT);
     }
 
     @Override

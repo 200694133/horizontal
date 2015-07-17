@@ -8,7 +8,7 @@ import com.hanyanan.http.internal.HttpResponseBody;
 import com.hanyanan.http.internal.HttpResponseHeader;
 import com.hanyanan.http.internal.RedirectedResponse;
 import com.hyn.job.AsyncJob;
-import com.hyn.job.CallbackDelivery;
+
 import java.io.IOException;
 
 /**
@@ -16,11 +16,11 @@ import java.io.IOException;
  * A proxy class for http executor.
  */
 public class HttpJobLoaderProxy implements HttpLoader {
-    private final HttpLoader workExecutor;
+    private final HttpLoader workLoader;
     private final AsyncJob<? extends  HttpRequest, TransportProgress, ?> asyncJob;
 
-    public HttpJobLoaderProxy(AsyncJob<? extends  HttpRequest, TransportProgress, ?> asyncJob, HttpLoader workExecutor) {
-        this.workExecutor = workExecutor;
+    public HttpJobLoaderProxy(AsyncJob<? extends  HttpRequest, TransportProgress, ?> asyncJob, HttpLoader workLoader) {
+        this.workLoader = workLoader;
         this.asyncJob = asyncJob;
     }
 
@@ -29,7 +29,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        workExecutor.onPrepareRunning(request);
+        workLoader.onPrepareRunning(request);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        workExecutor.onPropertyInit(request);
+        workLoader.onPropertyInit(request);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        workExecutor.onWriteRequestHeaderFinish(request);
+        workLoader.onWriteRequestHeaderFinish(request);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
             throw new IOException("Cancel redirect!");
         }
         asyncJob.deliverIntermediate(new SimpleHttpProgress(false, request, position, count));
-        workExecutor.onTransportUpProgress(request, position , count);
+        workLoader.onTransportUpProgress(request, position, count);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        workExecutor.onWriteRequestBodyFinish(request);
+        workLoader.onWriteRequestBodyFinish(request);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        return workExecutor.onReadResponseCode(request, code);
+        return workLoader.onReadResponseCode(request, code);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        return workExecutor.onReadResponseHeader(request, responseHeader);
+        return workLoader.onReadResponseHeader(request, responseHeader);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        return workExecutor.onPrepareRedirect(request, redirectedResponse, currCount);
+        return workLoader.onPrepareRedirect(request, redirectedResponse, currCount);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
             throw new IOException("Cancel redirect!");
         }
         asyncJob.deliverIntermediate(new SimpleHttpProgress(true, request, position, count));
-        workExecutor.onTransportDownProgress(request, position, count);
+        workLoader.onTransportDownProgress(request, position, count);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        return workExecutor.onReadRequestBodyFinish(request, responseBody);
+        return workLoader.onReadRequestBodyFinish(request, responseBody);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        return workExecutor.onAfterRunning(request, response);
+        return workLoader.onAfterRunning(request, response);
     }
 
     @Override
@@ -119,6 +119,6 @@ public class HttpJobLoaderProxy implements HttpLoader {
         if(asyncJob.isCanceled()) {
             throw new InterruptedException("Cancel redirect!");
         }
-        return workExecutor.performRequest(request);
+        return workLoader.performRequest(request);
     }
 }

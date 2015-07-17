@@ -19,9 +19,8 @@ import hyn.com.lib.Fingerprint;
 public class ConcurrentAsyncBatchJob<P> extends AsyncBatchJob<P> {
     public ConcurrentAsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback,
                                    CallbackDelivery callbackDelivery, RetryPolicy retryPolicy,
-                                   PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                                   JobBatchExecutor requestExecutor) {
-        super(jobLoader, param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, requestExecutor);
+                                   PriorityPolicy priorityPolicy, Fingerprint fingerprint) {
+        super(jobLoader, param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint);
     }
 
     @Override

@@ -8,7 +8,6 @@ import com.hanyanan.http.internal.HttpResponse;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.CallbackDelivery;
 import com.hyn.job.JobCallback;
-import com.hyn.job.JobExecutor;
 
 import java.io.InputStream;
 

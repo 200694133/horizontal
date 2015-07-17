@@ -3,9 +3,8 @@ package com.hanyanan.http.job.download;
 
 import com.hanyanan.http.internal.HttpResponse;
 import com.hanyanan.http.internal.HttpResponseHeader;
-import com.hanyanan.http.job.HttpJobExecutor;
+import com.hanyanan.http.job.HttpJobFunction;
 import com.hanyanan.http.job.HttpRequestJob;
-import com.hyn.job.JobExecutor;
 import com.hyn.job.UnRetryException;
 import java.io.InputStream;
 
@@ -15,7 +14,7 @@ import hyn.com.lib.IOUtil;
  * Created by hanyanan on 2015/6/18.
  * 分段下载具体的某一部分的区域。
  */
-public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> {
+public class DownloadBlockExecutor  {
     public static final int MAX_NOT_SAVED_SIZE = 1024 * 1024; // 2M
     private final VirtualFileDescriptor descriptor;
 
@@ -23,7 +22,7 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
         this.descriptor = descriptor;
     }
 
-    @Override
+
     public Void performRequest(HttpRequestJob asyncJob) throws Throwable{
         if (asyncJob.isCanceled()) {
             descriptor.abort();
@@ -33,11 +32,11 @@ public class DownloadBlockExecutor implements JobExecutor<HttpRequestJob, Void> 
             asyncJob.cancel();
             return null;
         }
-        HttpJobExecutor executor = HttpJobExecutor.DEFAULT_EXECUTOR;
+        HttpJobFunction executor = HttpJobFunction.DEFAULT_EXECUTOR;
         HttpResponse response = null;
         InputStream inputStream = null;
         try {
-            response = executor.performRequest(asyncJob);
+//            response = executor.performRequest(asyncJob);
             HttpResponseHeader responseHeader = response.getResponseHeader();
             com.hanyanan.http.internal.Range range = responseHeader.getRange();
             /**

@@ -9,18 +9,18 @@ import hyn.com.lib.SimpleFingerprint;
 /**
  * Created by hanyanan on 2015/7/16.
  */
-public class FiberAsyncJob<P, I, R> extends AsyncJob<P, I, R> {
+public class FunctionAsyncJob<P, I, R> extends AsyncJob<P, I, R> {
     /**
-     * The processor list to process current job.
+     * The function list to process current job.
      */
-    private final List<JobFiber> processorList = new LinkedList<JobFiber>();
+    private final List<JobFunction> functionList = new LinkedList<JobFunction>();
 
 
-    public FiberAsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery,
-                         RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                         List<JobFiber> processorList) {
+    public FunctionAsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery,
+                            RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
+                            List<JobFunction> functionList) {
         super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint);
-        this.processorList.addAll(processorList);
+        this.functionList.addAll(functionList);
     }
 
     /**
@@ -94,11 +94,14 @@ public class FiberAsyncJob<P, I, R> extends AsyncJob<P, I, R> {
      * @see UnRetryException
      */
     public R performRequest() throws Throwable {
-        List<JobFiber> processorList = new LinkedList<JobFiber>(this.processorList);
+        List<JobFunction> processorList = new LinkedList<JobFunction>(this.functionList);
         Object tmp = getParam();
         while (!processorList.isEmpty()) {
-            JobFiber processor = processorList.remove(0);
-            tmp = processor.processor(this, tmp);
+            JobFunction processor = processorList.remove(0);
+            tmp = processor.call(this, tmp);
+            if (isCanceled()) {
+                return null;
+            }
         }
         return (R) tmp;
     }
@@ -111,7 +114,7 @@ public class FiberAsyncJob<P, I, R> extends AsyncJob<P, I, R> {
         private RetryPolicy retryPolicy = RetryPolicy.UnRetryPolicy;
         private PriorityPolicy priorityPolicy = PriorityPolicy.DEFAULT_PRIORITY_POLICY;
         private Fingerprint fingerprint = new SimpleFingerprint();
-        private final List<JobFiber> processorList = new LinkedList<JobFiber>();
+        private final List<JobFunction> processorList = new LinkedList<JobFunction>();
 
         public Builder<P, I, R> setCallback(JobCallback callback) {
             this.callback = callback;
@@ -148,13 +151,13 @@ public class FiberAsyncJob<P, I, R> extends AsyncJob<P, I, R> {
             return this;
         }
 
-        public Builder<P, I, R> addProcessor(JobFiber processor){
+        public Builder<P, I, R> addProcessor(JobFunction processor) {
             this.processorList.add(processor);
             return this;
         }
 
-        public FiberAsyncJob<P, I, R> build() {
-            return new FiberAsyncJob(param, callback, callbackDelivery, retryPolicy, priorityPolicy,
+        public FunctionAsyncJob<P, I, R> build() {
+            return new FunctionAsyncJob(param, callback, callbackDelivery, retryPolicy, priorityPolicy,
                     fingerprint, processorList);
         }
     }

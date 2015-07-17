@@ -21,9 +21,8 @@ public abstract class AsyncBatchJob<P> extends AsyncJob<P, BatchJobProgress, Voi
     protected final List<AsyncJob> asyncJobList = new LinkedList<AsyncJob>();
     protected final JobLoader jobLoader;
     public AsyncBatchJob(JobLoader jobLoader, P param, JobCallback callback, CallbackDelivery callbackDelivery,
-                         RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint,
-                         JobBatchExecutor requestExecutor) {
-        super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint, requestExecutor);
+                         RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint) {
+        super(param, callback, callbackDelivery, retryPolicy, priorityPolicy, fingerprint);
         this.jobLoader = jobLoader;
     }
 

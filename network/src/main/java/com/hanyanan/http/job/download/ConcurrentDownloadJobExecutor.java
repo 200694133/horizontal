@@ -5,11 +5,10 @@ import com.hanyanan.http.Protocol;
 import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.*;
 import com.hanyanan.http.internal.Range;
-import com.hanyanan.http.job.HttpJobExecutor;
+import com.hanyanan.http.job.HttpJobFunction;
 import com.hanyanan.http.job.HttpRequestJob;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.JobCallback;
-import com.hyn.job.JobExecutor;
 import com.hyn.job.UnexpectedResponseException;
 
 import java.io.File;
@@ -22,7 +21,7 @@ import hyn.com.lib.IOUtil;
 /**
  * Created by hanyanan on 2015/6/15.
  */
-public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob, Float>,
+public class ConcurrentDownloadJobExecutor implements
         JobCallback<TransportProgress, HttpResponse> {
     private static final int DEFAULT_FIRST_FRAGMENT_SIZE = 20 * 1024; // 20K
     private static final int DEFAULT_FRAGMENT_COUNT = 2;
@@ -37,12 +36,12 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
         this.destFile = dest;
     }
 
-    @Override
+
     public Float performRequest(HttpRequestJob asyncJob) throws Throwable {
-        HttpJobExecutor httpJobExecutor = HttpJobExecutor.DEFAULT_EXECUTOR;
+        HttpJobFunction httpJobFunction = HttpJobFunction.DEFAULT_EXECUTOR;
         HttpRequest request = asyncJob.getParam();
         request.range(0, DEFAULT_FIRST_FRAGMENT_SIZE);
-        HttpResponse response = httpJobExecutor.performRequest(asyncJob);
+        HttpResponse response = null; // httpJobFunction.performRequest(asyncJob);
         try {
             if (!response.isSuccessful()) {
                 UnexpectedResponseException exception = new UnexpectedResponseException();
@@ -125,7 +124,7 @@ public class ConcurrentDownloadJobExecutor implements JobExecutor<HttpRequestJob
     }
 
     @Override
-    public void onIntermediate(TransportProgress intermediate) {
+    public void onIntermediate(AsyncJob asyncJob, TransportProgress intermediate) {
 
     }
 }
