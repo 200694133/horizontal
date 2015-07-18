@@ -116,6 +116,12 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         }
     }
 
+    /**
+     * 存储当前已下载的位置
+     * @param offset
+     * @param length
+     * @throws IOException
+     */
     private void saveFinishState(long offset, long length) throws IOException {
         synchronized (this) {
             if (isClosed) {
@@ -134,6 +140,9 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         Preconditions.checkState(!isClosed, "Cannot delivery descriptor from closed provider!");
         HttpLog.d("Http", "deliveryAndLock try delivery " + blockSize + " length");
         RangeMapper.FileRange range = rangeMapper.delivery(blockSize);
+        if(null == range) {
+            return null;
+        }
         HttpLog.d("Http", "deliveryAndLock range " + range);
         return create(range);
     }
@@ -152,8 +161,18 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         return isClosed;
     }
 
+    private synchronized void finish(RangeMapper.FileRange range) {
+        synchronized (this) {
+            rangeMapper.finish(range);
+        }
+    }
 
-    private void unSureSaveState(RangeMapper.FileRange range, long partlyLength) {
+    /**
+     * 尝试记录当前已下载的位置
+     * @param range
+     * @param partlyLength
+     */
+    private void unSureSaveState(final RangeMapper.FileRange range, long partlyLength) {
         synchronized (this) {
             if (partlyLength <= 0) {
                 return;
@@ -163,12 +182,6 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private synchronized void finish(RangeMapper.FileRange range) {
-        synchronized (this) {
-            rangeMapper.finish(range);
         }
     }
 

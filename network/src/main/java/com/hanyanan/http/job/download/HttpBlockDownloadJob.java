@@ -1,10 +1,13 @@
 package com.hanyanan.http.job.download;
 
 
+import com.hanyanan.http.HttpRequest;
+import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.HttpResponse;
 import com.hanyanan.http.internal.HttpResponseHeader;
-import com.hanyanan.http.job.HttpJobFunction;
-import com.hanyanan.http.job.HttpRequestJob;
+import com.hanyanan.http.job.HttpRequestJobFunction;
+import com.hyn.job.AsyncJob;
+import com.hyn.job.JobCallback;
 import com.hyn.job.UnRetryException;
 import java.io.InputStream;
 
@@ -14,29 +17,30 @@ import hyn.com.lib.IOUtil;
  * Created by hanyanan on 2015/6/18.
  * 分段下载具体的某一部分的区域。
  */
-public class DownloadBlockExecutor  {
+class HttpBlockDownloadJob extends AsyncJob<HttpRequest, TransportProgress, Void> {
     public static final int MAX_NOT_SAVED_SIZE = 1024 * 1024; // 2M
-    private final VirtualFileDescriptor descriptor;
+    final VirtualFileDescriptor descriptor;
 
-    DownloadBlockExecutor(VirtualFileDescriptor descriptor) {
+    HttpBlockDownloadJob(HttpRequest request, JobCallback<TransportProgress, Void> callback, VirtualFileDescriptor descriptor) {
+        super(request, callback);
         this.descriptor = descriptor;
     }
 
-
-    public Void performRequest(HttpRequestJob asyncJob) throws Throwable{
-        if (asyncJob.isCanceled()) {
+    @Override
+    public Void performRequest() throws Throwable {
+        if (isCanceled()) {
             descriptor.abort();
             return null;
         }
         if (descriptor.isClosed()) {
-            asyncJob.cancel();
+            cancel();
             return null;
         }
-        HttpJobFunction executor = HttpJobFunction.DEFAULT_EXECUTOR;
+        HttpRequestJobFunction executor = HttpRequestJobFunction.DEFAULT_EXECUTOR;
         HttpResponse response = null;
         InputStream inputStream = null;
         try {
-//            response = executor.performRequest(asyncJob);
+            response = executor.call(this, getParam());
             HttpResponseHeader responseHeader = response.getResponseHeader();
             com.hanyanan.http.internal.Range range = responseHeader.getRange();
             /**
@@ -70,7 +74,7 @@ public class DownloadBlockExecutor  {
                 descriptor.saveCurrentState();
             }
             descriptor.abort();
-            asyncJob.cancel();
+            cancel();
             throw new UnRetryException("");
         }finally {
             IOUtil.closeQuietly(inputStream);
@@ -79,7 +83,6 @@ public class DownloadBlockExecutor  {
             }
         }
     }
-
 
     /**
      * 进行先决条件的检测, 当与期望的大小不同时，则会尝试重新设置大小。
@@ -128,4 +131,5 @@ public class DownloadBlockExecutor  {
         }
         // 调整成功
     }
+
 }

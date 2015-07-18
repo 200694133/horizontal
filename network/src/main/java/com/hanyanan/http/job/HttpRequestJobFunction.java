@@ -10,8 +10,8 @@ import com.hyn.job.JobFunction;
 /**
  * Created by hanyanan on 2015/7/4.
  */
-public class HttpJobFunction implements JobFunction<HttpRequest, HttpResponse> {
-    public static final HttpJobFunction DEFAULT_EXECUTOR = new HttpJobFunction();
+public class HttpRequestJobFunction implements JobFunction<HttpRequest, HttpResponse> {
+    public static final HttpRequestJobFunction DEFAULT_EXECUTOR = new HttpRequestJobFunction();
     @Override
     public HttpResponse call(AsyncJob asyncJob, HttpRequest request) throws Throwable {
         HttpLoader loader = HttpLoaderFactory.createHttpExecutor(request);

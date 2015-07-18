@@ -12,6 +12,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import hyn.com.lib.Preconditions;
+
 import static hyn.com.lib.Preconditions.checkArgument;
 
 /**
@@ -54,13 +55,13 @@ public class RangeMapper {
         blockHoleOffsetList.put(range, range);
     }
 
-    public synchronized long getHoleSize(){
+    public synchronized long getHoleSize() {
         return holeSize;
     }
 
 
     protected synchronized boolean saveFinishState(long offset, long length) {
-        HttpLog.d(LOG_TAG, "saveFinishState From "+offset+" To "+(length+offset-1));
+        HttpLog.d(LOG_TAG, "saveFinishState From " + offset + " To " + (length + offset - 1));
         // TODO
         return true;
     }
@@ -88,7 +89,7 @@ public class RangeMapper {
             return;
         }
 
-        for (FileRange range : conflictRange) {
+        for (final FileRange range : conflictRange) {
             if (range.locked) {
                 /*
                 * 被锁定，存在重复下载
@@ -102,6 +103,7 @@ public class RangeMapper {
                 * */
                 blockHoleOffsetList.remove(range);
                 blockHoleLengthList.remove(range);
+                holeSize -= range.length;
                 HttpLog.d(LOG_TAG, "download success range: " + range);
                 continue;
             }
@@ -115,22 +117,26 @@ public class RangeMapper {
             blockHoleOffsetList.remove(range);
             HttpLog.d(LOG_TAG, "Remove conflict range: " + range);
             if (left > 0) {
+                // 右边相交
                 FileRange fileRange = new FileRange(tag, range.offset, left);
                 blockHoleLengthList.put(fileRange, fileRange);
                 blockHoleOffsetList.put(fileRange, fileRange);
+                holeSize -= range.length - left;
                 HttpLog.d(LOG_TAG, "Add from conflict range: " + fileRange);
             }
 
             if (right > 0) {
+                // 左边相交
                 FileRange fileRange = new FileRange(tag, offset + length, right);
                 blockHoleLengthList.put(fileRange, fileRange);
                 blockHoleOffsetList.put(fileRange, fileRange);
+                holeSize -= range.length - right;
                 HttpLog.d(LOG_TAG, "Add from conflict range: " + fileRange);
             }
         }
     }
 
-    public synchronized void finish(FileRange range) {
+    public synchronized void finish(final FileRange range) {
         checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
         /*
         * 恢复当前锁，使之可以重用
@@ -151,6 +157,7 @@ public class RangeMapper {
         * */
         blockHoleLengthList.remove(range);
         blockHoleOffsetList.remove(range);
+        holeSize -= range.length;
         HttpLog.d(LOG_TAG, "Save range success : " + range);
     }
 
@@ -160,7 +167,7 @@ public class RangeMapper {
         HttpLog.d(LOG_TAG, "Abort range : " + range);
     }
 
-    public synchronized void partlyDone(FileRange range, long partlyLength) {
+    public synchronized void partlyDone(final FileRange range, long partlyLength) {
         checkArgument(range.tag == tag, "Current rang is not delivery from current provider!");
         range.locked = false;
         /*
@@ -228,9 +235,9 @@ public class RangeMapper {
         return res;
     }
 
-    public synchronized FileRange adjustDeliveryedRange(FileRange range, long partlyLength){
+    public synchronized FileRange adjustDeliveryedRange(FileRange range, long partlyLength) {
         checkArgument(range.tag == tag && range.locked, "Current rang is not delivery from current provider!");
-        if(partlyLength >= range.length){
+        if (partlyLength >= range.length) {
             // TODO
             return range;
         }
@@ -243,7 +250,7 @@ public class RangeMapper {
         blockHoleLengthList.put(range1, range1);
         blockHoleOffsetList.put(range1, range1);
 
-        FileRange range2 = new FileRange(tag, range.offset+partlyLength, range.length - partlyLength);
+        FileRange range2 = new FileRange(tag, range.offset + partlyLength, range.length - partlyLength);
         blockHoleLengthList.put(range2, range2);
         blockHoleOffsetList.put(range2, range2);
         return range1;
@@ -266,7 +273,7 @@ public class RangeMapper {
         FileRange prev;
         for (int index = 0; index < fileRangeList.size(); ++index) {
             FileRange range = fileRangeList.get(index);
-            if (range.offset >= offset+length || range.offset + range.length - 1 < offset) {
+            if (range.offset >= offset + length || range.offset + range.length - 1 < offset) {
                 continue;
             }
             if (range.offset > offset + length) {
@@ -320,12 +327,12 @@ public class RangeMapper {
             FileRange r1 = fileRangeList.get(index);
             if (r1.locked) {
                 sb.append("[locked ");
-            }else{
+            } else {
                 sb.append("[unlock ");
             }
             sb.append(r1.offset)
                     .append(" , ")
-                    .append(r1.offset+r1.length-1)
+                    .append(r1.offset + r1.length - 1)
                     .append("]\t");
         }
         return sb.toString();
@@ -334,13 +341,13 @@ public class RangeMapper {
     public static void main(String[] argv) {
         final long length = 1000;
         RangeMapper mapper1 = new RangeMapper(length);
-        mapper1.finish(0,2, true);
+        mapper1.finish(0, 2, true);
         mapper1.finish(7, 20, true);
         mapper1.finish(56, 12, true);
         mapper1.finish(23, 56, true);
         mapper1.finish(98, 12, true);
         mapper1.finish(102, 20, true);
-        mapper1.finish(125, 4 , true);
+        mapper1.finish(125, 4, true);
         mapper1.finish(189, 100, true);
         mapper1.finish(458, 100, true);
         mapper1.finish(89, 20, true);

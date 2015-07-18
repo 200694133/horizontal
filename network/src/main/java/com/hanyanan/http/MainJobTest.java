@@ -1,28 +1,19 @@
 package com.hanyanan.http;
 
-import com.hanyanan.http.internal.HttpLoader;
-import com.hanyanan.http.internal.HttpLoaderFactory;
 import com.hanyanan.http.internal.HttpResponse;
-import com.hanyanan.http.job.HttpJobLoaderProxy;
-import com.hanyanan.http.job.HttpRequestFunction;
-import com.hanyanan.http.job.HttpRequestJob;
+import com.hanyanan.http.job.HttpRequestJobFunction;
 import com.hanyanan.http.job.HttpResponseFunction;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.FunctionAsyncJob;
 import com.hyn.job.JobCallback;
-import com.hyn.job.JobFunction;
 import com.hyn.job.JobLoader;
 import com.hyn.job.log.Log;
 import com.hyn.job.processor.BytesToStringFunction;
 import com.hyn.job.processor.InputToBytesFunction;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import hyn.com.lib.IOUtil;
-import hyn.com.lib.binaryresource.BinaryResource;
 import hyn.com.lib.binaryresource.ByteArrayBinaryResource;
 
 /**
@@ -106,7 +97,7 @@ public class MainJobTest {
                 new FunctionAsyncJob.Builder<HttpRequest, TransportProgress, HttpResponse>()
                         .setCallback(stringCallback)
                         .setParam(request)
-                        .addProcessor(new HttpRequestFunction())
+                        .addProcessor(new HttpRequestJobFunction())
                         .addProcessor(new HttpResponseFunction())
                         .addProcessor(new InputToBytesFunction(true))
                         .addProcessor(new BytesToStringFunction())
