@@ -10,7 +10,9 @@ public class UnRetryException extends Exception implements UnRetryable {
     public UnRetryException(String message) {
         super(message);
     }
-
+    public UnRetryException(Throwable cause) {
+        super(cause);
+    }
     public UnRetryException(String message, Throwable cause) {
         super(message, cause);
     }

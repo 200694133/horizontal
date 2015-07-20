@@ -22,16 +22,22 @@ public class StreamBinaryResource implements BinaryResource {
     }
     @Override
     public InputStream openStream() throws IOException {
-        if(!consumed) {
-            consumed = true;
-            return inputStream;
+        if(null != data) {
+            return IOUtil.bytesToInputStream(data);
         }
+        return inputStream;
 
-        if(null == data) {
-            throw new IllegalStateException("The resource has consumed!");
-        }
 
-        return IOUtil.bytesToInputStream(data);
+        //        if(!consumed) {
+//            consumed = true;
+//            return inputStream;
+//        }
+//
+//        if(null == data) {
+//            throw new IllegalStateException("The resource has consumed!");
+//        }
+//
+//        return IOUtil.bytesToInputStream(data);
     }
 
     @Override

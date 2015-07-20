@@ -1,6 +1,7 @@
 package com.hanyanan.http.job.download;
 
 
+import com.hanyanan.http.HttpLog;
 import com.hanyanan.http.HttpRequest;
 import com.hanyanan.http.TransportProgress;
 import com.hanyanan.http.internal.HttpResponse;
@@ -58,24 +59,29 @@ class HttpBlockDownloadJob extends AsyncJob<HttpRequest, TransportProgress, Void
             inputStream = response.body().getResource().openStream();
             while (left > 0 && (read = inputStream.read(buff)) > 0) {
                 // 数据操作
-                descriptor.write(buff, 0, read);
+                descriptor.write(buff, 0, read); // may be throw IOException and IllegalStateException
                 left -= read;
                 countOfNotSaved += read;
                 if (countOfNotSaved >= MAX_NOT_SAVED_SIZE) {
                     descriptor.saveCurrentState();
                     countOfNotSaved = 0;
                 }
+                try {
+                    Thread.sleep(1000);
+                }catch (InterruptedException exp){
+                    exp.printStackTrace();
+                }
             }
             descriptor.finish();
             return null;
         }catch (Throwable throwable) {
             // 不可重试
-            if(!descriptor.isClosed()) {
+            if(!descriptor.isClosed() && descriptor.finished() > 0) {
                 descriptor.saveCurrentState();
             }
             descriptor.abort();
             cancel();
-            throw new UnRetryException("");
+            throw new UnRetryException(throwable);
         }finally {
             IOUtil.closeQuietly(inputStream);
             if(null != response) {

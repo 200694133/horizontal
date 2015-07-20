@@ -9,7 +9,7 @@ import java.io.OutputStream;
 abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     final VirtualFileDescriptorProvider provider;
     final RangeMapper.FileRange range;
-    protected boolean finished = false;
+    private boolean finished = false;
 
     /**
      * The length has written to the file.
@@ -52,6 +52,11 @@ abstract class AbstractVirtualFileDescriptor implements VirtualFileDescriptor {
     @Override
     public void finish() throws IOException {
         finished = true;
+    }
+
+    @Override
+    public long finished() {
+        return hasWritten;
     }
 
     @Override

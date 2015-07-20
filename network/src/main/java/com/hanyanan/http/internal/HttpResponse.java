@@ -23,7 +23,7 @@ public class HttpResponse implements Closeable{
     private final List<RedirectedResponse> redirectedResponse = new LinkedList<RedirectedResponse>();
 
     /** The real body which store the content response from server. */
-    private final HttpResponseBody bodyResource;
+    private HttpResponseBody bodyResource;
     /** http resonse code */
     private final int code;
     /** http status message */
@@ -190,11 +190,14 @@ public class HttpResponse implements Closeable{
 //    }
 
     public void dispose(){
-        if(null != bodyResource && bodyResource.getResource() != null){
-            try {
-                IOUtil.safeClose(bodyResource.getResource().openStream());
-            } catch (IOException e) {
-                e.printStackTrace();
+        synchronized (this) {
+            if (null != bodyResource && bodyResource.getResource() != null) {
+                try {
+                    IOUtil.safeClose(bodyResource.getResource().openStream());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                bodyResource = null;
             }
         }
     }

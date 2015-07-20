@@ -51,12 +51,12 @@ public class HttpResponseHeader extends HttpHeader {
         }
         String range = value(Headers.CONTENT_RANGE);
         if (null == range) return null;
-        Pattern pattern = Pattern.compile("bytes\\s*(\\d*)-?(\\d)*/?(\\d*)");
+        Pattern pattern = Pattern.compile("(\\d+)-(\\d+)/(\\d+)");
         Matcher m = pattern.matcher(range);
         if (m.find()) {
-            String start = m.group(0);
-            String end = m.group(1);
-            String full = m.group(2);
+            String start = m.group(1);
+            String end = m.group(2);
+            String full = m.group(3);
             long s = ValueUtil.parseLong(start, 0);
             long e = ValueUtil.parseLong(end, -1);
             long f = ValueUtil.parseLong(full, -1);

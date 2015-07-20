@@ -45,7 +45,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
     /**
      * The config file to store the download information of {@link #destFile} which real data stored..
      */
-    private final File destConfigFile;
+//    private final File destConfigFile;
 
     private boolean isClosed = false;
 
@@ -72,16 +72,17 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             }
         };
 
-        destConfigFile = new File(dstFile.getAbsolutePath() + ".config");
-        if (!destConfigFile.exists()) {
-            destConfigFile.createNewFile();
-        }
-        configWriter = new FileWriter(destConfigFile);
+        File destConfigFile = new File(dstFile.getAbsolutePath() + ".config");
+//        if (!destConfigFile.exists()) {
+//            destConfigFile.createNewFile();
+//        }
+        initRangeMap(destConfigFile);
 
-        initRangeMap();
+
+        configWriter = new FileWriter(destConfigFile);
     }
 
-    private void initRangeMap() {
+    private void initRangeMap(File destConfigFile) {
         FileReader reader = null;
         BufferedReader br = null;
         Map<Long, Long> rangeMaps = new LinkedHashMap<Long, Long>();
@@ -118,6 +119,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
 
     /**
      * 存储当前已下载的位置
+     *
      * @param offset
      * @param length
      * @throws IOException
@@ -127,7 +129,8 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             if (isClosed) {
                 throw new IOException("Cannot saveFinishState after closed!");
             }
-            configWriter.write(offset + "-" + length);
+            configWriter.write(offset + "-" + length+"\r\n");
+            configWriter.flush();
         }
     }
 
@@ -140,7 +143,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
         Preconditions.checkState(!isClosed, "Cannot delivery descriptor from closed provider!");
         HttpLog.d("Http", "deliveryAndLock try delivery " + blockSize + " length");
         RangeMapper.FileRange range = rangeMapper.delivery(blockSize);
-        if(null == range) {
+        if (null == range) {
             return null;
         }
         HttpLog.d("Http", "deliveryAndLock range " + range);
@@ -169,6 +172,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
 
     /**
      * 尝试记录当前已下载的位置
+     *
      * @param range
      * @param partlyLength
      */
@@ -187,9 +191,9 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
 
     private synchronized void abort(RangeMapper.FileRange range, long currentFinish) {
         synchronized (this) {
-            if(currentFinish <= 0){
+            if (currentFinish <= 0) {
                 rangeMapper.abort(range);
-                return ;
+                return;
             }
             rangeMapper.partlyDone(range, currentFinish);
         }
@@ -216,7 +220,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             public void write(byte[] buff, int offset, int length) throws IOException {
                 synchronized (this) {
                     if (isClosed()) {
-                        throw new IOException("Current Descriptor has closed!");
+                        throw new IOException("write failed! Current Descriptor has closed!");
                     }
                     RandomFileDescriptorProvider.this.write(buff, range.offset + hasWritten, offset, length);
                     hasWritten += length;
@@ -229,7 +233,7 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
                 synchronized (this) {
                     Preconditions.checkState(hasWritten <= 0, "The descriptor has written to the file, cannot change the size.");
                     rangeMapper.adjustDeliveryedRange(this.range, newLength);
-                    HttpLog.d("Http", getLogName() + "\tadjustNewLength " + newLength);
+                    HttpLog.d("Http", getLogName() + range.toString() + "\tadjustNewLength " + newLength);
                 }
             }
 
@@ -237,11 +241,11 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             public void finish() throws IOException {
                 synchronized (this) {
                     if (isClosed()) {
-                        throw new IOException("Current Descriptor has closed!");
+                        throw new IOException("finish failed! Current Descriptor has closed!");
                     }
                     RandomFileDescriptorProvider.this.finish(this.range);
                     super.finish();
-                    HttpLog.d("Http", getLogName() + "\tfinish " + range);
+                    HttpLog.d("Http", getLogName() + this.range.toString() + "\tfinish ");
                 }
             }
 
@@ -249,12 +253,11 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             public void saveCurrentState() {
                 synchronized (this) {
                     if (isClosed()) {
-                        HttpLog.w("Http", "Call saveCurrentState after descriptor has closed!");
+                        HttpLog.w("Http", "saveCurrentState failed! Call saveCurrentState after descriptor has closed!");
                         return;
                     }
                     RandomFileDescriptorProvider.this.unSureSaveState(this.range, hasWritten);
-                    finished = true;
-                    HttpLog.d("Http", getLogName() + "\tsaveCurrentState " + range + " current state " + hasWritten);
+                    HttpLog.d("Http", getLogName() + this.range.toString() + "\tsaveCurrentState " + range + " current state " + hasWritten);
                 }
             }
 
@@ -263,8 +266,8 @@ public class RandomFileDescriptorProvider implements VirtualFileDescriptorProvid
             public void abort() {
                 synchronized (this) {
                     RandomFileDescriptorProvider.this.abort(this.range, this.hasWritten);
-                    finished = true;
-                    HttpLog.d("Http", getLogName() + "\tabort " + range);
+                    super.abort();
+                    HttpLog.d("Http", getLogName() + this.range.toString() + "\tabort ");
                 }
             }
         };

@@ -225,8 +225,8 @@ public class RangeMapper {
             res = expect;
             blockHoleLengthList.remove(fileRange);
             blockHoleOffsetList.remove(fileRange);
-            blockHoleLengthList.put(fileRange, fileRange);
-            blockHoleOffsetList.put(fileRange, fileRange);
+            blockHoleLengthList.put(expect, expect);
+            blockHoleOffsetList.put(expect, expect);
             blockHoleLengthList.put(leave, leave);
             blockHoleOffsetList.put(leave, leave);
             break;
@@ -415,7 +415,7 @@ public class RangeMapper {
 
         @Override
         public String toString() {
-            return "From " + offset + "\tTo " + (length + offset - 1);
+            return "\t[From " + offset + "\tTo " + (length + offset - 1) + "]";
         }
 
         public int tag;
