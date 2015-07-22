@@ -10,13 +10,12 @@ import com.hanyanan.http.job.HttpRequestJobFunction;
 import com.hyn.job.AsyncJob;
 import com.hyn.job.JobCallback;
 import com.hyn.job.JobLoader;
-import com.sun.javafx.WeakReferenceMap;
-import com.sun.javafx.WeakReferenceQueue;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.WeakHashMap;
 
 import hyn.com.lib.IOUtil;
 
@@ -26,23 +25,27 @@ import hyn.com.lib.IOUtil;
 public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgress, Float>
         implements JobCallback<TransportProgress, Void> {
     private static final int DEFAULT_FIRST_FRAGMENT_SIZE = 20 * 1024; // 20K
-    private static final int DEFAULT_FRAGMENT_COUNT = 3;
+    private static final int DEFAULT_FRAGMENT_COUNT = 4;
     private final File destFile;
     private final int concurrentCount = 3;
     private final long blockSize; // 默认块大小
     private long finished = 0;
     private long length = 0;
     private VirtualFileDescriptorProvider descriptorProvider;
-    private final WeakReferenceQueue<AsyncJob> downloadJobQueue = new WeakReferenceQueue<AsyncJob>();
+    private final JobCallback<TransportProgress, Float> callback;
+    private final WeakHashMap<AsyncJob, AsyncJob> downloadJobMap = new WeakHashMap<AsyncJob, AsyncJob>();
+
 
     public HttpDownloadMajorJob(HttpRequest param, JobCallback<TransportProgress, Float> callback, File destFile) {
-        super(param, callback);
+        super(param, null);
+        this.callback = callback;
         this.destFile = destFile;
         this.blockSize = 2 * 1024 * 1024;
     }
 
     public HttpDownloadMajorJob(HttpRequest param, JobCallback<TransportProgress, Float> callback, File destFile, int blockSize) {
-        super(param, callback);
+        super(param, null);
+        this.callback = callback;
         this.destFile = destFile;
         this.blockSize = blockSize;
     }
@@ -88,9 +91,10 @@ public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgres
 
     private synchronized void scheduleNextBlock() {
         if (isCanceled()) {
-            if(!descriptorProvider.isClosed()) {
+            if (!descriptorProvider.isClosed()) {
                 descriptorProvider.close();
             }
+            notifyCancelCallback();
             return;
         }
         HttpRequest request = getParam();
@@ -100,7 +104,12 @@ public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgres
         VirtualFileDescriptor descriptor = descriptorProvider.deliveryAndLock();
         if (null == descriptor) {
 //            descriptorProvider.close();
-            if(downloadJobQueue.)
+            if (downloadJobMap.isEmpty()) {
+                /*
+                * 所有的任务都结束了，通知回调
+                * */
+                notifyFinishCallback(1.0F);
+            }
             HttpLog.d("HttpDownloadMajorJob", "Finished");
             return;
         }
@@ -108,11 +117,25 @@ public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgres
         HttpRequest nextRequest = request.clone();
         nextRequest.range(descriptor.offset(), descriptor.length());
         HttpBlockDownloadJob job = new HttpBlockDownloadJob(nextRequest, this, descriptor);
-        downloadJobQueue.add(job);
+        downloadJobMap.put(job, job);
         JobLoader loader = JobLoader.getInstance();
         loader.load(job);
     }
 
+    private synchronized void notifyFinishCallback(Float progress) {
+        if (!descriptorProvider.isClosed()) {
+            descriptorProvider.close();
+        }
+        if (null != callback) {
+            getCallbackDelivery().postSuccess(this, callback, progress);
+        }
+    }
+
+    private synchronized void notifyCancelCallback(){
+        if (null != callback) {
+            getCallbackDelivery().postCanceled(this, callback);
+        }
+    }
 
     private void downloadDirect(HttpResponse response) throws IOException {
         FileOutputStream fileOutputStream = new FileOutputStream(destFile);
@@ -120,6 +143,7 @@ public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgres
         IOUtil.copy(inputStream, fileOutputStream);
         IOUtil.closeQuietly(fileOutputStream);
         IOUtil.closeQuietly(inputStream);
+        notifyFinishCallback(1.0F);
     }
 
     /**
@@ -141,11 +165,13 @@ public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgres
 
     @Override
     public void onCanceled(AsyncJob asyncJob) {
+        downloadJobMap.remove(asyncJob);
         scheduleNextBlock();
     }
 
     @Override
     public void onSuccess(AsyncJob asyncJob, Void response) {
+        downloadJobMap.remove(asyncJob);
         scheduleNextBlock();
     }
 
@@ -153,7 +179,7 @@ public class HttpDownloadMajorJob extends AsyncJob<HttpRequest, TransportProgres
     public void onFailed(AsyncJob asyncJob, Void response, String msg, Throwable throwable) {
         VirtualFileDescriptor descriptor = ((HttpBlockDownloadJob) asyncJob).descriptor;
         descriptor.abort();
-
+        downloadJobMap.remove(asyncJob);
         scheduleNextBlock();
     }
 
