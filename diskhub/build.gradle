@@ -1,0 +1,12 @@
+import com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile
+
+apply plugin: 'java'
+
+tasks.withType(JavaCompile) { options.encoding = "UTF-8" }
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':tinyhttpserver')
+    compile project(':lib-java')
+    compile 'com.google.code.gson:gson:2.3.1'
+}

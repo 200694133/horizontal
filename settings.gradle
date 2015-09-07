@@ -1,1 +1,1 @@
-include ':app', ':lib-android', ':lib-java', ':datastorage', ':network', ':job'
+include ':app', ':lib-android', ':lib-java', ':datastorage', ':network', ':job', ':arch', ':tinyhttpserver', ':diskhub'

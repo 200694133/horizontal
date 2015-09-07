@@ -73,9 +73,6 @@ public abstract class AsyncJob<P, I, R> implements Comparable<AsyncJob>, Fingerp
      */
     protected Object tag;
 
-    private JobResult<R> result;
-
-
     public AsyncJob(P param, JobCallback<I, R> callback, CallbackDelivery callbackDelivery,
                     RetryPolicy retryPolicy, PriorityPolicy priorityPolicy, Fingerprint fingerprint) {
         this.param = param;

@@ -8,19 +8,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.Serializable;
-import java.io.StreamCorruptedException;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static hyn.com.lib.Preconditions.checkNotNull;
 import static hyn.com.lib.Preconditions.checkArgument;
+
 /**
  * Created by hanyanan on 2015/3/6.
  */
@@ -39,6 +33,7 @@ public class IOUtil {
             throw new IOException();
         }
     }
+
     public static void safeRenameTo(File from, File to, boolean deleteDestination) {
         try {
             renameTo(from, to, deleteDestination);
@@ -46,20 +41,23 @@ public class IOUtil {
             e.printStackTrace();
         }
     }
-    public static void safeDeleteIfExists(File file){
+
+    public static void safeDeleteIfExists(File file) {
         try {
             deleteIfExists(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     public static void deleteIfExists(File file) throws IOException {
         if (file.exists() && !file.delete()) {
             throw new IOException("delete failed");
         }
     }
-    public static void safeClose(Closeable closeable){
-        if(null == closeable) return ;
+
+    public static void safeClose(Closeable closeable) {
+        if (null == closeable) return;
         try {
             closeable.close();
         } catch (IOException e) {
@@ -79,45 +77,69 @@ public class IOUtil {
      * @param file the file to read from
      * @return a byte array containing all the bytes from file
      * @throws IllegalArgumentException if the file is bigger than the largest
-     *     possible byte array (2^31 - 1)
-     * @throws IOException if an I/O error occurs
+     *                                  possible byte array (2^31 - 1)
+     * @throws IOException              if an I/O error occurs
      */
     public static byte[] toByteArray(File file) throws IOException {
         FileInputStream in = null;
         try {
             in = new FileInputStream(file);
-            return readFile(in, in.getChannel().size());
+            return readFile(in, (int) in.getChannel().size());
         } finally {
             if (in != null) {
                 in.close();
             }
         }
     }
+
     /**
      * Reads a file of the given expected size from the given input stream, if
      * it will fit into a byte array. This method handles the case where the file
      * size changes between when the size is read and when the contents are read
      * from the stream.
      */
-    static byte[] readFile(InputStream in, long expectedSize) throws IOException {
+    static byte[] readFile(InputStream in, int expectedSize) throws IOException {
         if (expectedSize > Integer.MAX_VALUE) {
             throw new OutOfMemoryError("file is too large to fit in a byte array: " + expectedSize + " bytes");
         }
+
         // some special files may return size 0 but have content, so read
         // the file normally in that case
 //        return expectedSize == 0
 //                ? ByteStreams.toByteArray(in)
 //                : ByteStreams.toByteArray(in, (int) expectedSize);
-        return null;
+        return inputStreamToBytes(in, expectedSize);
     }
 
-    public static final byte[] inputStreamToBytes(InputStream inStream)  {
+    public static final byte[] inputStreamToBytes(InputStream inStream) {
         ByteArrayOutputStream swapStream = new ByteArrayOutputStream();
         byte[] buff = new byte[100];
         int rc = 0;
         try {
             while ((rc = inStream.read(buff, 0, 100)) > 0) {
                 swapStream.write(buff, 0, rc);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        byte[] in2b = swapStream.toByteArray();
+        return in2b;
+    }
+
+    public static final byte[] inputStreamToBytes(InputStream inStream, int expectedSize) {
+        ByteArrayOutputStream swapStream = new ByteArrayOutputStream();
+        byte[] buff = new byte[100];
+        int rc = 0;
+        int remainder = expectedSize;
+        try {
+            while (remainder >0 && (rc = inStream.read(buff, 0, 100)) > 0) {
+                if (remainder >= rc) {
+                    remainder -= rc;
+                    swapStream.write(buff, 0, rc);
+                } else {
+                    swapStream.write(buff, 0, remainder);
+                    remainder = 0;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -169,6 +191,7 @@ public class IOUtil {
             }
         }
     }
+
     public static void throwInterruptedIoException() throws InterruptedIOException {
         // This is typically thrown in response to an
         // InterruptedException which does not leave the thread in an
@@ -178,33 +201,34 @@ public class IOUtil {
         throw new InterruptedIOException();
     }
 
-    public static String generatorKey(String primaryKey, String secondaryKey){
-        return primaryKey+"_"+secondaryKey;
+    public static String generatorKey(String primaryKey, String secondaryKey) {
+        return primaryKey + "_" + secondaryKey;
     }
 
     /**
      * Copies all bytes from the input stream to the output stream. Does not close or flush either
      * stream.
-     * @param from the input stream to read from
-     * @param to the output stream to write to
-     * @param length the max length need to copy
+     *
+     * @param from     the input stream to read from
+     * @param to       the output stream to write to
+     * @param length   the max length need to copy
      * @param buffSize buff size during copy progress.
      * @return the number of bytes copied
      * @throws IOException IOException if an I/O error occurs
      */
-    public static long copy(InputStream from, OutputStream to, long length, int buffSize)throws IOException {
+    public static long copy(InputStream from, OutputStream to, long length, int buffSize) throws IOException {
         checkNotNull(from);
         checkNotNull(to);
-        buffSize = buffSize<=0?DEFAULT_BUFF_SIZE:buffSize;
-        length = length<=0?Long.MAX_VALUE:length;
+        buffSize = buffSize <= 0 ? DEFAULT_BUFF_SIZE : buffSize;
+        length = length <= 0 ? Long.MAX_VALUE : length;
         byte[] buf = new byte[buffSize];
         long total = 0;
         long left = length;
         while (left > 0) {
             int r = 0;
-            if(buffSize <= left){
+            if (buffSize <= left) {
                 r = from.read(buf);
-            }else{
+            } else {
                 r = from.read(buf, 0, (int) left);
             }
             if (r == -1) {
@@ -216,16 +240,17 @@ public class IOUtil {
         }
         return total;
     }
+
     /**
      * Copies all bytes from the input stream to the output stream. Does not close or flush either
      * stream.
      *
      * @param from the input stream to read from
-     * @param to the output stream to write to
+     * @param to   the output stream to write to
      * @return the number of bytes copied
      * @throws IOException if an I/O error occurs
      */
-    public static long copy(InputStream from, OutputStream to)throws IOException {
+    public static long copy(InputStream from, OutputStream to) throws IOException {
         return copy(from, to, -1, DEFAULT_BUFF_SIZE);
     }
 
@@ -234,11 +259,11 @@ public class IOUtil {
      * stream.
      *
      * @param from the input stream to read from
-     * @param to the output stream to write to
+     * @param to   the output stream to write to
      * @return the number of bytes copied
      * @throws IOException if an I/O error occurs
      */
-    public static long copy(InputStream from, OutputStream to, long size)throws IOException {
+    public static long copy(InputStream from, OutputStream to, long size) throws IOException {
         return copy(from, to, size, DEFAULT_BUFF_SIZE);
     }
 
@@ -254,6 +279,7 @@ public class IOUtil {
      * Efficiently fetch the bytes from the InputStream, provided that caller can guess
      * exact numbers of bytes that can be read from inputStream. Avoids one extra byte[] allocation
      * that ByteStreams.toByteArray() performs.
+     *
      * @param hint - size of inputStream's content in bytes
      */
     public static byte[] getBytesFromStream(InputStream inputStream, int hint) throws IOException {
@@ -278,7 +304,7 @@ public class IOUtil {
      * Skips exactly bytesCount bytes in inputStream unless end of stream is reached first.
      *
      * @param inputStream input stream to skip bytes from
-     * @param bytesCount number of bytes to skip
+     * @param bytesCount  number of bytes to skip
      * @return number of skipped bytes
      * @throws IOException
      */
