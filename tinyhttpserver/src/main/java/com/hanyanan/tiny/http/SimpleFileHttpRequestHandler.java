@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.Map;
 
 /**
@@ -29,7 +30,7 @@ public class SimpleFileHttpRequestHandler implements HttpRequestHandler {
     public SimpleFileSet getFile(String path, Map<String, String> requestParam,
                                  Map<String, String> requestHeaders, Map<String, String> responseHeaders) throws IOException{
 //        FileInputStream inFileInputStream = new FileInputStream("/storage/extSdCard/DCIM/Camera/20141220_212114.mp4");
-        File file = new File("D://BaiduTuan.rar");
+        File file = new File(path);
         SimpleFileSet res = new SimpleFileSet();
         res.inputStream = new FileInputStream(file);
         res.size = file.length();
@@ -60,7 +61,10 @@ public class SimpleFileHttpRequestHandler implements HttpRequestHandler {
 
         Log.d("get request range from " + range[0] + " to " + range[1]);
         HandlerResult response = new HandlerResult();
-        SimpleFileSet file = getFile(path, requestParam, requestHeaders, response.mResponseHeaders);
+        String absPath = requestParam.get("path");
+        absPath = absPath==null?"C:\\":absPath;
+        absPath = URLDecoder.decode(absPath);
+        SimpleFileSet file = getFile(absPath, requestParam, requestHeaders, response.mResponseHeaders);
         //test code
         final long fileLength = file.size;
         response.inputStream = null;

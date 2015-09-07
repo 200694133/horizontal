@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import hyn.com.lib.IOUtil;
+import hyn.com.lib.ValueUtil;
 
 /**
  * Created by hanyanan on 2015/9/7.
@@ -66,13 +67,19 @@ public class FileBrowseRequestHandler implements HttpRequestHandler {
 
     @Override
     public HandlerResult handle(String path, Map<String, String> requestParam, Map<String, String> requestHeaders) throws IOException {
-        String absPath = URLDecoder.decode(requestParam.get("path"), "utf-8");
+        String absPath = requestParam.get("path");
+        if(ValueUtil.isEmpty(absPath)) {
+            absPath = rootDirectory.getAbsolutePath();
+        }else{
+            absPath = URLDecoder.decode(absPath, "utf-8");
+        }
         FileListBean result = handle(absPath);
         HandlerResult handlerResult = new HandlerResult();
-        byte[] data = URLEncoder.encode(gson.toJson(result)).getBytes();
+        byte[] data = gson.toJson(result).getBytes();
         handlerResult.size = data.length;
         handlerResult.inputStream = IOUtil.bytesToInputStream(data);
         handlerResult.responseCode = 200;
+        handlerResult.mResponseHeaders.put("Content-Type", "application/json");
         return handlerResult;
     }
 }

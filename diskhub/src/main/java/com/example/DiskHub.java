@@ -10,7 +10,7 @@ public class DiskHub {
         File rootDirect = new File("C:\\");
         TinyGetHttpSever server = new TinyGetHttpSever(38913);
         server.registerRequestHandler("fileBrowse", new FileBrowseRequestHandler(rootDirect));
-//        server.registerRequestHandler("getFile", new SimpleFileHttpRequestHandler());
+        server.registerRequestHandler("getFile", new SimpleFileHttpRequestHandler());
         server.start();
     }
 }
